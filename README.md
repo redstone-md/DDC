@@ -13,12 +13,14 @@
 
 DDC introduces an **asymmetric gameplay model**. Players explore the world as heroic characters with D&D classes, spell slots, and dice checks, while a **Game Master (GM)** controls the environment, possesses monsters, triggers sounds, and narrates the adventure in real-time.
 
-> ### Status: 1.1.0
+> ### Status: 1.2.0
 >
 > **This page describes the full design. The released mod is smaller.** Shipping today: the rules
-> engine, `/roll`, character sheets, attack rolls against armour class, spells with slots, classes,
-> races, spells and encounters from data packs, the GM's wand, and GM narration. Not yet built: 3D
-> dice, mob possession, the sheet screen on `C`, class mechanics, and the Twitch/OBS integration.
+> engine, `/roll`, character sheets whose hit points are the player's real health, attack rolls
+> against armour class, spells with slots, class mechanics, ability checks, classes, races, spells and
+> encounters from data packs, the GM's wand, mob possession, world control, and GM narration.
+> Everything still missing needs a screen or a shader: 3D dice, the sheet on `C`, the GM panel, the
+> Nat 20 fanfare, and the Twitch/OBS integration.
 >
 > [**CHANGELOG.md**](CHANGELOG.md) lists exactly what is in the release and what is not. Sections
 > below marked _(planned)_ are design intent, not behaviour.
@@ -48,7 +50,7 @@ DDC introduces an **asymmetric gameplay model**. Players explore the world as he
 
 ---
 
-## 🎲 What 1.1.0 actually does
+## 🎲 What 1.2.0 actually does
 
 | Command | Who | What |
 |---|---|---|
@@ -59,11 +61,15 @@ DDC introduces an **asymmetric gameplay model**. Players explore the world as he
 | `/ddc race <id>` | anyone | Picks a race; its ability bonuses land on your sheet. |
 | `/ddc cast <spell> <target>` | anyone | Spends a slot, rolls damage in public, rolls the target's save. |
 | `/ddc rest` | anyone | A long rest: spell slots and hit points back. |
+| `/ddc check <ability> <dc>` | anyone | An ability check: picking a lock, jumping a gap. Public. |
+| `/ddc second-wind` | Fighter | Heals 1d10 + level, once per rest. |
+| `/ddc channel-divinity` | Cleric | Turns the undead within 30 feet. |
 | `/ddc narrate <text>` | Game Master | Letterboxed cinematic narration on every screen. |
+| `/ddc world <change>` | Game Master | Day, night, storm, stop the clock, freeze the party. |
 
 Attacks are resolved with the SRD's d20 against armour class: a miss cancels the damage and shows a
-dodge, and the roll is hidden so only the attacker sees the numbers. The **Game Master's Wand**
-places encounters — right-click the ground, sneak-right-click to change which one.
+dodge, and the roll is hidden so only the attacker sees the numbers. The **Game Master's Wand** places encounters (right-click the ground, sneak-right-click to change
+which one) and possesses creatures (right-click one, sneak to let go).
 
 A Game Master is any player with Minecraft 26's `COMMANDS_GAMEMASTER` permission (what used to be
 operator level 2). The server checks this on every GM action; the client is never asked.

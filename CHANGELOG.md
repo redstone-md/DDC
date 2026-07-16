@@ -9,6 +9,45 @@ Each GitHub release carries notes generated from that release's commits by
 is written by hand for what the commits cannot say: why a release is shaped the way it is, and what
 it deliberately leaves out.
 
+## [1.2.0] - 2026-07-16
+
+Everything PRD 3.1 and 3.2 describe that does not need a screen. The classes have
+mechanics, the party can be asked to roll, and the Game Master can drive a monster.
+
+### Added
+
+**Class mechanics** (PRD 3.1)
+- The rogue's **sneak attack**: 1d6 per two levels, when unseen, behind the target, or with a player
+  within five feet of it. The SRD's condition is "advantage, or an ally within 5 feet"; DDC has no
+  turn order, so the trigger is read off the world and the reading is stated in `SneakAttackRules`.
+- The fighter's **second wind**: `/ddc second-wind` heals 1d10 plus level, once per rest.
+- The cleric's **channel divinity**: `/ddc channel-divinity` turns the undead within 30 feet. They are
+  slowed, weakened and lit up rather than made to flee, because Minecraft has no fleeing state to set.
+- Which class has which is data. The kinds of feature are code, because each is behaviour rather than
+  numbers; a pack tunes what is here, a mod adds a new kind.
+
+**Ability checks** (PRD 3.1)
+- `/ddc check <ability> <dc>` for picking a lock or jumping a gap. Public, unlike an attack roll: a
+  hidden lockpick tells the player nothing.
+- A GM can call for someone else's roll with a trailing player name.
+
+**Possession** (PRD 3.2, ADR-0003)
+- Right-click a creature with the wand to drive it. The GM goes to spectator and the mob follows the
+  point they fly at, which is ADR-0003's "translate movement into pathfinding" rather than mirroring
+  input: no new packet exists to forge.
+- A possessed mob is a mini-boss: four times the health, twice the damage, both given back on release.
+- Sneaking lets go. So does the mob dying, which ejects the GM rather than killing them, and so does
+  the GM logging out.
+
+**World control** (PRD 3.2)
+- `/ddc world day|night|storm|clear|pause-time|resume-time|freeze|release`. The freeze is an effect
+  that wears off, so a GM who disconnects mid-scene cannot strand the table.
+
+### Still not shipped
+Everything left needs a screen or a shader: 3D dice with physics, the sheet on `C`, the GM panel on
+`G`, the Nat 20 fanfare, spell runes, the glassmorphic blur, the streamer HUD, and the Twitch and OBS
+integration. The wizard's spellbook is not in either.
+
 ## [1.1.1] - 2026-07-16
 
 ### Fixed
@@ -186,6 +225,7 @@ describes intent rather than behaviour:
 - The development server's console cannot run commands, including vanilla ones. It is an environment
   fault rather than a mod fault; use a client to try the commands.
 
+[1.2.0]: https://github.com/redstone-md/DDC/releases/tag/v1.2.0
 [1.1.1]: https://github.com/redstone-md/DDC/releases/tag/v1.1.1
 [1.1.0]: https://github.com/redstone-md/DDC/releases/tag/v1.1.0
 [1.0.1]: https://github.com/redstone-md/DDC/releases/tag/v1.0.1
