@@ -67,7 +67,9 @@ jobs:
           args: --latest --strip header
         env:
           OUTPUT: RELEASE_NOTES.md
-          GITHUB_REPO: ${{ github.repository }}
+          # GITHUB_REPO is deliberately unset. Setting it makes git-cliff pull pull-request metadata
+          # from the API, which this token has no permission for and the template never uses; it
+          # panics on the 403 rather than carrying on without it.
 
       # Named explicitly rather than globbed: the libs directory also holds the -raw and -sources
       # jars, and a release that quietly ships the wrong one of those is hard to notice.
