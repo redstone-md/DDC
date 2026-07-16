@@ -76,7 +76,7 @@ public final class OverlayCommand {
             return 0;
         }
         context.getSource().arch$sendSuccess(() -> Component.literal(result.message()
-                + " — add it to OBS as a Browser Source.").withStyle(ChatFormatting.GOLD), false);
+                + " — add that URL to OBS as a Browser Source.").withStyle(ChatFormatting.GOLD), false);
         return port;
     }
 

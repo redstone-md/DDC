@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>DDC — stream overlay</title>
+<style>
+  /* Transparent: OBS composites this over the capture, so the page must not paint a background. */
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    overflow: hidden;
+    font-family: "Bookman Old Style", Georgia, serif;
+  }
+
+  #rolls {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-end;
+  }
+
+  .roll {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    padding: 10px 18px;
+    border-radius: 6px;
+    border-left: 4px solid #c9973f;
+    background: rgba(18, 16, 14, 0.82);
+    color: #e8dcc0;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+    animation: enter 240ms ease-out, leave 500ms ease-in forwards;
+    /* Held on screen, then faded: the delay is the life of the alert. */
+    animation-delay: 0s, 7s;
+  }
+
+  .roll .who { font-size: 18px; opacity: 0.75; }
+  .roll .what { font-size: 15px; opacity: 0.55; }
+  .roll .total { font-size: 34px; font-weight: bold; margin-left: auto; }
+
+  .roll.crit { border-left-color: #f2c879; }
+  .roll.crit .total { color: #f2c879; text-shadow: 0 0 14px rgba(242, 200, 121, 0.6); }
+  .roll.fumble { border-left-color: #c04040; }
+  .roll.fumble .total { color: #ff5555; }
+
+  @keyframes enter {
+    from { opacity: 0; transform: translateX(40px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes leave {
+    to { opacity: 0; transform: translateX(40px); }
+  }
+
+  #offline {
+    position: absolute;
+    left: 24px;
+    bottom: 24px;
+    padding: 8px 14px;
+    border-radius: 4px;
+    background: rgba(74, 28, 36, 0.9);
+    color: #e8dcc0;
+    font-size: 13px;
+  }
+  #offline[hidden] { display: none; }
+</style>
+</head>
+<body>
+<div id="rolls"></div>
+<div id="offline" hidden>DDC overlay: not connected</div>
+
+<script>
+  // The page is served by the game on the same port it speaks WebSocket on, so the socket's address
+  // follows the page's rather than being written down twice.
+  const SOCKET_URL = `ws://${location.host}/ws`;
+
+  // How long an alert lives, in step with the CSS above.
+  const ALERT_MS = 7600;
+
+  const rolls = document.getElementById("rolls");
+  const offline = document.getElementById("offline");
+
+  function show(data) {
+    const card = document.createElement("div");
+    card.className = "roll"
+      + (data.is_critical_success ? " crit" : "")
+      + (data.is_critical_failure ? " fumble" : "");
+
+    const who = document.createElement("span");
+    who.className = "who";
+    who.textContent = data.player;
+
+    const what = document.createElement("span");
+    what.className = "what";
+    what.textContent = data.notation + (data.mode !== "normal" ? " · " + data.mode : "");
+
+    const total = document.createElement("span");
+    total.className = "total";
+    total.textContent = data.total;
+
+    card.append(who, what, total);
+    rolls.prepend(card);
+
+    setTimeout(() => card.remove(), ALERT_MS);
+  }
+
+  function connect() {
+    const socket = new WebSocket(SOCKET_URL);
+
+    socket.onopen = () => { offline.hidden = true; };
+    socket.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      if (message.event === "dice_roll") {
+        show(message.data);
+      }
+    };
+    // The game closing should not leave a dead overlay: keep trying, quietly.
+    socket.onclose = () => {
+      offline.hidden = false;
+      setTimeout(connect, 2000);
+    };
+    socket.onerror = () => socket.close();
+  }
+
+  connect();
+</script>
+</body>
+</html>

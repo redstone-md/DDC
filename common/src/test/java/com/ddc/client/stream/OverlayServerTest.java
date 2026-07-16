@@ -98,7 +98,7 @@ class OverlayServerTest {
         CompletableFuture<String> received = new CompletableFuture<>();
         CountDownLatch open = new CountDownLatch(1);
         WebSocket socket = HttpClient.newHttpClient().newWebSocketBuilder()
-                .buildAsync(URI.create("ws://localhost:" + port + "/"), new WebSocket.Listener() {
+                .buildAsync(URI.create("ws://localhost:" + port + "/ws"), new WebSocket.Listener() {
                     @Override
                     public void onOpen(WebSocket webSocket) {
                         webSocket.request(1);
@@ -130,6 +130,42 @@ class OverlayServerTest {
         assertEquals(1, data.getAsJsonArray("dice").size());
 
         socket.abort();
+    }
+
+    /**
+     * What OBS actually does: a browser source opens an http:// URL and renders the page. It cannot be
+     * pointed at a WebSocket, which is what an earlier build served and nothing else -- so this
+     * fetches the page the way OBS would.
+     */
+    @Test
+    @DisplayName("a browser source can fetch the widget over HTTP")
+    void servesTheWidgetPage() throws Exception {
+        int port = freePort();
+        assertTrue(server.start(port).started());
+
+        java.net.http.HttpResponse<String> response = HttpClient.newHttpClient().send(
+                java.net.http.HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/")).build(),
+                java.net.http.HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(200, response.statusCode());
+        assertTrue(response.headers().firstValue("content-type").orElse("").startsWith("text/html"));
+        assertTrue(response.body().contains("<!DOCTYPE html>"), "that was not a page");
+        assertTrue(response.body().contains("/ws"), "the page must know where its socket is");
+        assertTrue(response.body().contains("dice_roll"), "the page must know what to draw");
+    }
+
+    @Test
+    void anUnknownPathSaysWhereTheOverlayIs() throws Exception {
+        int port = freePort();
+        server.start(port);
+
+        java.net.http.HttpResponse<String> response = HttpClient.newHttpClient().send(
+                java.net.http.HttpRequest.newBuilder(
+                        URI.create("http://localhost:" + port + "/nonsense")).build(),
+                java.net.http.HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(404, response.statusCode());
+        assertTrue(response.body().contains("/ws"));
     }
 
     @Test

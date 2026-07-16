@@ -20,11 +20,15 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
 /**
- * The stream overlay's WebSocket server, from ARCHITECTURE.md 5.
+ * The stream overlay's server, from ARCHITECTURE.md 5.
  *
- * <p>A streamer points an OBS browser source at {@code ws://localhost:8082} and gets the table's
- * state as JSON: every roll, as it happens. The widget itself is HTML the streamer writes or takes
- * from the docs; this only feeds it.
+ * <p>A streamer points an OBS browser source at {@code http://localhost:8082} and gets the widget:
+ * roll alerts sliding in as they happen.
+ *
+ * <p>It serves both halves on one port, because a browser source loads a <em>page</em>. It cannot be
+ * pointed at a WebSocket -- ARCHITECTURE.md's {@code ws://localhost:8082} is not an address OBS can
+ * open, and an earlier build of this served only the socket, which no browser source could ever have
+ * used. So {@code GET /} returns the widget's HTML, and the page opens {@code /ws} for itself.
  *
  * <p><strong>Off unless asked for.</strong> It listens on a socket, and a mod that opens one on every
  * machine that installs it, for a feature most players will never use, has helped itself to
@@ -68,8 +72,8 @@ public final class OverlayServer {
                     .bind(new InetSocketAddress("127.0.0.1", port))
                     .sync()
                     .channel();
-            DDC.LOGGER.info("Stream overlay listening on ws://localhost:{}", port);
-            return new Result(true, "Overlay running on ws://localhost:" + port);
+            DDC.LOGGER.info("Stream overlay serving http://localhost:{} (socket at {})", port, SOCKET_PATH);
+            return new Result(true, "Overlay running on http://localhost:" + port);
         } catch (Exception e) {
             stop();
             DDC.LOGGER.warn("The stream overlay could not start on port {}", port, e);
@@ -110,6 +114,9 @@ public final class OverlayServer {
     public record Result(boolean started, String message) {
     }
 
+    /** Where the page opens its socket. Anything else on this port is the page itself. */
+    static final String SOCKET_PATH = "/ws";
+
     private final class Initializer extends ChannelInitializer<SocketChannel> {
 
         @Override
@@ -117,11 +124,18 @@ public final class OverlayServer {
             channel.pipeline()
                     .addLast(new HttpServerCodec())
                     .addLast(new HttpObjectAggregator(8192))
-                    .addLast(new WebSocketServerProtocolHandler("/"))
+                    // Upgrades only what asks for /ws; every other request falls through to the page.
+                    .addLast(new WebSocketServerProtocolHandler(SOCKET_PATH))
+                    .addLast(new WidgetHandler())
                     .addLast(new io.netty.channel.ChannelInboundHandlerAdapter() {
                         @Override
-                        public void channelActive(io.netty.channel.ChannelHandlerContext context) {
-                            clients.add(context.channel());
+                        public void userEventTriggered(io.netty.channel.ChannelHandlerContext context,
+                                Object event) {
+                            // A client is only a widget once its upgrade has completed; adding it on
+                            // channelActive would have counted the page's own GET as a listener.
+                            if (event instanceof WebSocketServerProtocolHandler.HandshakeComplete) {
+                                clients.add(context.channel());
+                            }
                         }
 
                         @Override
