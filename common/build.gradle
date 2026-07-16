@@ -2,11 +2,9 @@ architectury {
     common(rootProject.enabled_platforms.split(","))
 }
 
-loom {
-    accessWidenerPath = file("src/main/resources/ddc.accesswidener")
-}
-
 dependencies {
-    // Shared dependencies across Fabric and NeoForge
-    modImplementation "dev.architectury:architectury:9.2.14" // example version for 26.1.x
+    // Fabric loader is here only for its @Environment annotations. Nothing else from the loader may
+    // be used in common, per common/AGENTS.md.
+    implementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    api "dev.architectury:architectury:${architectury_api_version}"
 }

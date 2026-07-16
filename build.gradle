@@ -1,37 +1,68 @@
 plugins {
-    id "architectury-plugin" version "3.4-SNAPSHOT"
-    id "dev.architectury.loom" version "1.7-SNAPSHOT" apply false
+    id "architectury-plugin"
+    id "dev.architectury.loom-no-remap" apply false
+    id "com.gradleup.shadow" apply false
 }
 
 architectury {
-    minecraft = "26.1.2"
+    minecraft = minecraft_version
 }
 
 subprojects {
-    apply plugin: "dev.architectury.loom"
+    apply plugin: "java-library"
+    apply plugin: "dev.architectury.loom-no-remap"
     apply plugin: "architectury-plugin"
     apply plugin: "maven-publish"
 
-    version = "1.0.0"
-    group = "com.ddc"
+    version = "${mod_version}+${minecraft_version}"
+    group = maven_group
+    base.archivesName = "${mod_id}-${project.name}"
 
-    loom {
-        silentMojangMappingsWarning()
+    repositories {
+        maven { url = "https://maven.architectury.dev/" }
+        maven { url = "https://maven.neoforged.net/releases/" }
+        mavenCentral()
     }
 
     dependencies {
-        minecraft "com.mojang:minecraft:26.1.2"
-        mappings loom.officialMojangMappings()
+        // Minecraft 26.x ships unobfuscated: Mojang publishes no mappings for it and Fabric's
+        // intermediary is a no-op, so no `mappings` dependency is declared at all.
+        minecraft "com.mojang:minecraft:${minecraft_version}"
+
+        testImplementation platform("org.junit:junit-bom:${junit_version}")
+        testImplementation "org.junit.jupiter:junit-jupiter"
+        testRuntimeOnly "org.junit.platform:junit-platform-launcher"
     }
 
     java {
         withSourcesJar()
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        toolchain.languageVersion = JavaLanguageVersion.of(java_version as int)
     }
 
     tasks.withType(JavaCompile).configureEach {
         options.encoding = "UTF-8"
-        options.release.set(21)
+        options.release.set(java_version as int)
+        options.compilerArgs << "-Xlint:all,-processing" << "-parameters"
+    }
+
+    tasks.withType(Test).configureEach {
+        useJUnitPlatform()
+        testLogging {
+            events "passed", "skipped", "failed"
+        }
+    }
+
+    tasks.withType(ProcessResources).configureEach {
+        inputs.property "version", project.version
+        filesMatching(["fabric.mod.json", "META-INF/neoforge.mods.toml"]) {
+            expand([
+                    mod_id                 : mod_id,
+                    mod_version            : project.version,
+                    minecraft_version      : minecraft_version,
+                    fabric_loader_version  : fabric_loader_version,
+                    architectury_api_version: architectury_api_version,
+                    neoforge_version       : neoforge_version
+            ])
+        }
     }
 }

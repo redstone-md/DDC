@@ -9,8 +9,12 @@ pluginManagement {
 }
 
 plugins {
-    id "architectury-plugin" version "3.4-SNAPSHOT"
-    id "dev.architectury.loom" version "1.7-SNAPSHOT" apply false
+    // Resolves the Java toolchain the build asks for, downloading a JDK when the machine has none.
+    id "org.gradle.toolchains.foojay-resolver-convention" version "0.9.0"
+    // Versions are pinned here and applied in the build scripts, so no subproject repeats a version.
+    id "architectury-plugin" version "${architectury_plugin_version}" apply false
+    id "dev.architectury.loom-no-remap" version "${architectury_loom_version}" apply false
+    id "com.gradleup.shadow" version "${shadow_version}" apply false
 }
 
 rootProject.name = "DDC"
