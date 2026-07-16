@@ -13,12 +13,12 @@
 
 DDC introduces an **asymmetric gameplay model**. Players explore the world as heroic characters with D&D classes, spell slots, and dice checks, while a **Game Master (GM)** controls the environment, possesses monsters, triggers sounds, and narrates the adventure in real-time.
 
-> ### Status: 1.0.0
+> ### Status: 1.1.0
 >
 > **This page describes the full design. The released mod is smaller.** Shipping today: the rules
-> engine, `/roll` with advantage and hidden GM rolls, character sheets with a HUD, data-driven
-> classes from data packs, and GM narration. Not yet built: 3D dice, mob possession, spells, combat
-> replacement, and the Twitch/OBS integration.
+> engine, `/roll`, character sheets, attack rolls against armour class, spells with slots, classes,
+> races, spells and encounters from data packs, the GM's wand, and GM narration. Not yet built: 3D
+> dice, mob possession, the sheet screen on `C`, class mechanics, and the Twitch/OBS integration.
 >
 > [**CHANGELOG.md**](CHANGELOG.md) lists exactly what is in the release and what is not. Sections
 > below marked _(planned)_ are design intent, not behaviour.
@@ -48,7 +48,7 @@ DDC introduces an **asymmetric gameplay model**. Players explore the world as he
 
 ---
 
-## 🎲 What 1.0.0 actually does
+## 🎲 What 1.1.0 actually does
 
 | Command | Who | What |
 |---|---|---|
@@ -56,12 +56,21 @@ DDC introduces an **asymmetric gameplay model**. Players explore the world as he
 | `/roll <expr> ... hidden` | Game Master | Rolls privately; nobody else sees the number. |
 | `/ddc sheet` | anyone | Shows your class, level, hit points, proficiency, and abilities. |
 | `/ddc class <id>` | anyone | Picks a class from any loaded data pack. |
+| `/ddc race <id>` | anyone | Picks a race; its ability bonuses land on your sheet. |
+| `/ddc cast <spell> <target>` | anyone | Spends a slot, rolls damage in public, rolls the target's save. |
+| `/ddc rest` | anyone | A long rest: spell slots and hit points back. |
 | `/ddc narrate <text>` | Game Master | Letterboxed cinematic narration on every screen. |
+
+Attacks are resolved with the SRD's d20 against armour class: a miss cancels the damage and shows a
+dodge, and the roll is hidden so only the attacker sees the numbers. The **Game Master's Wand**
+places encounters — right-click the ground, sneak-right-click to change which one.
 
 A Game Master is any player with Minecraft 26's `COMMANDS_GAMEMASTER` permission (what used to be
 operator level 2). The server checks this on every GM action; the client is never asked.
 
-**Add a class with no code** — drop a file into any data pack and `/reload`:
+**Add a class, race, spell or encounter with no code** — drop a file into any data pack and
+`/reload`. Four directories are scanned across every namespace: `ddc_classes`, `ddc_races`,
+`ddc_spells`, `ddc_encounters`.
 
 ```json
 // data/my_addon/ddc_classes/paladin.json

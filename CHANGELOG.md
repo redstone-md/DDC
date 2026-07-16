@@ -9,6 +9,58 @@ Each GitHub release carries notes generated from that release's commits by
 is written by hand for what the commits cannot say: why a release is shaped the way it is, and what
 it deliberately leaves out.
 
+## [1.1.0] - 2026-07-16
+
+The mod starts playing like D&D rather than describing it: attacks roll against
+armour class, spells cost slots, and the Game Master can place a fight.
+
+### Added
+
+**Combat** (PRD 4.2)
+- An attack roll now stands between a swing and its damage. The d20 must meet the target's armour
+  class; a miss cancels the damage and shows a dodge. The roll is hidden, so only the attacker sees
+  the numbers.
+- Two mappings neither Minecraft nor the SRD defines, so DDC states them: vanilla armour points are
+  halved onto armour class, which puts iron at 17 against chain mail's 16 and keeps full diamond
+  inside the SRD's own ceiling; a mob's to-hit is half its attack damage, capped at +10, which puts
+  a zombie at +1 and a vindicator at +6.
+- Armour category decides how much Dexterity survives, so plate feels like plate.
+
+**Races and spells** (ADR-0002)
+- `ddc_races` and `ddc_spells` join `ddc_classes`: all scanned across every namespace, all reloading
+  with `/reload`. The addon promise now covers what it said it would.
+- `/ddc race <id>` applies a race's ability bonuses to the sheet.
+- `/ddc cast <spell> <target>` spends a slot, rolls damage in public where the table can see it,
+  rolls the target's save against DC 8 + proficiency + casting ability, and halves or negates it by
+  what the spell says.
+- `/ddc rest` takes a long rest: slots and hit points back.
+- Spell slots are a table in the class's own JSON, because that is what they are in the SRD. A
+  homebrew half-caster writes its own progression instead of asking DDC to know what one is.
+- Ships the SRD's dwarf, elf, human and halfling, and fire bolt, magic missile, burning hands,
+  fireball and sacred flame.
+
+**Game Master** (PRD 3.2)
+- The Game Master's Wand, the mod's first item. Right-click the ground to place the selected
+  encounter; sneak-right-click to step through them. Holding it grants nothing: every use re-checks
+  the GM permission.
+- `ddc_encounters`, a fourth data pack directory, so a GM writes their campaign's fights and an addon
+  can ship a bestiary. Capped at 32 mobs per encounter.
+
+### Fixed
+- **A typo in an addon could take down a whole data pack reload.** The encounter and spell-slot
+  codecs let their constructors throw, so bad JSON raised an exception instead of being reported
+  against its own file. Both now validate before constructing, which is what ADR-0002 asks for. Found
+  by a test, not in the wild.
+
+### Changed
+- **The character sheet's saved shape and its payload changed** (it carries a race and spent spell
+  slots now). Sheets from 1.0.x load; a 1.1.0 client still needs a 1.1.0 server.
+
+### Still not shipped
+3D dice with physics, mob possession, the character sheet screen on `C`, class mechanics beyond hit
+points, Twitch and the OBS overlay, and the Nat 20 fanfare. Armour class is calculated and used in
+combat, but hit points still do not replace hearts. See 1.0.0's list below; it is otherwise unchanged.
+
 ## [1.0.1] - 2026-07-16
 
 ### Fixed
@@ -106,5 +158,6 @@ describes intent rather than behaviour:
 - The development server's console cannot run commands, including vanilla ones. It is an environment
   fault rather than a mod fault; use a client to try the commands.
 
+[1.1.0]: https://github.com/redstone-md/DDC/releases/tag/v1.1.0
 [1.0.1]: https://github.com/redstone-md/DDC/releases/tag/v1.0.1
 [1.0.0]: https://github.com/redstone-md/DDC/releases/tag/v1.0.0
