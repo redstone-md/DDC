@@ -43,6 +43,7 @@ public final class DDCClient {
     private static final CharacterHud CHARACTER_HUD = new CharacterHud();
     private static final NarrationOverlay NARRATION = new NarrationOverlay();
     private static final Fanfare FANFARE = new Fanfare();
+    private static final ColourGrade GRADE = new ColourGrade();
 
     /**
      * The stream overlay. Off until a streamer asks for it: a mod that opens a socket on every
@@ -118,6 +119,8 @@ public final class DDCClient {
                     // The dice standing in the world find their faces here, by seed.
                     RollCache.put(payload.result());
                     FANFARE.accept(payload.result(), isMine(payload.roller()), now);
+                    GRADE.accept(payload.result().isNatural20(), payload.result().isNatural1(),
+                            isMine(payload.roller()), now);
                     OVERLAY.broadcast(OverlayEvents.diceRoll(payload.rollerName(), payload.result()));
                 }));
 
@@ -142,6 +145,7 @@ public final class DDCClient {
 
         ClientPlayerEvent.CLIENT_PLAYER_QUIT.register(player -> {
             RollCache.clear();
+            GRADE.tick(Long.MAX_VALUE);
             ClientRules.clear();
             // Leaving a world drops the widgets and the chat: what they were watching is gone.
             OVERLAY.stop();
@@ -152,6 +156,9 @@ public final class DDCClient {
         // during rendering, where the camera has already been placed for the frame.
         dev.architectury.event.events.client.ClientTickEvent.CLIENT_POST.register(client -> {
             FANFARE.applyShake(Util.getMillis());
+            // The grade must come off on its own, so it is taken off on a tick rather than trusted
+            // to whatever set it.
+            GRADE.tick(Util.getMillis());
             while (SHEET_KEY.consumeClick()) {
                 openSheet(client);
             }

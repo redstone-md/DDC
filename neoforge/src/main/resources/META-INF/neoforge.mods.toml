@@ -33,3 +33,7 @@ type = "required"
 versionRange = "[20.0.9,)"
 ordering = "AFTER"
 side = "BOTH"
+
+# The one mixin: it opens the renderer's private door so a natural 20 can grade the screen.
+[[mixins]]
+config = "ddc-common.mixins.json"

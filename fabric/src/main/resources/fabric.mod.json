@@ -27,5 +27,11 @@
     "java": ">=25",
     "fabric-api": "*",
     "architectury": ">=20.0.9"
-  }
+  },
+  "mixins": [
+    {
+      "config": "ddc-common.mixins.json",
+      "environment": "client"
+    }
+  ]
 }

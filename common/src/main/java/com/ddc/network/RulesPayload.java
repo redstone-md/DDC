@@ -99,24 +99,27 @@ public record RulesPayload(List<Entry> classes, List<Entry> races, List<Entry> s
             DataRegistry<Spell> spells, DataRegistry<com.ddc.rules.Encounter> encounters,
             boolean gameMaster) {
         return new RulesPayload(
-                entries(classes, definition -> Entry.of(null, definition.name())),
-                entries(races, definition -> Entry.of(null, definition.name())),
-                entries(spells, spell -> new Entry(null, spell.name(), spell.level())),
+                entries(classes, (id, definition) -> Entry.of(id, definition.name())),
+                entries(races, (id, definition) -> Entry.of(id, definition.name())),
+                entries(spells, (id, spell) -> new Entry(id, spell.name(), spell.level())),
                 gameMaster
-                        ? entries(encounters, encounter -> new Entry(null, encounter.name(), encounter.total()))
+                        ? entries(encounters, (id, encounter) -> new Entry(id, encounter.name(), encounter.total()))
                         : List.of(),
                 gameMaster);
     }
 
+    /**
+     * Describes every entry in a registry, dropping any the registry has an id for but no definition.
+     *
+     * <p>The id is handed to the describer rather than patched in afterwards, because an entry with no
+     * id is not a thing that should ever exist for even one line: {@link Entry} refuses to be built
+     * without one, and it is right to.
+     */
     private static <T> List<Entry> entries(DataRegistry<T> registry,
-            java.util.function.Function<T, Entry> describe) {
+            java.util.function.BiFunction<Identifier, T, Entry> describe) {
         return registry.ids().stream()
                 .sorted(Identifier::compareTo)
-                .map(id -> {
-                    Entry described = registry.get(id).map(describe).orElse(null);
-                    return described == null ? null : new Entry(id, described.name(), described.level());
-                })
-                .filter(Objects::nonNull)
+                .flatMap(id -> registry.get(id).map(definition -> describe.apply(id, definition)).stream())
                 .toList();
     }
 
