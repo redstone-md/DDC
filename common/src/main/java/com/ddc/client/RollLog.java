@@ -31,6 +31,7 @@ public final class RollLog {
     private static final int MARGIN = 4;
     private static final int LINE_HEIGHT = 10;
 
+    // These are or-ed with a computed alpha, so they carry only colour.
     private static final int COLOUR_NORMAL = 0xFFFFFF;
     private static final int COLOUR_CRITICAL_SUCCESS = 0xFFD700;
     private static final int COLOUR_CRITICAL_FAILURE = 0xFF5555;

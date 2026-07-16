@@ -16,6 +16,11 @@ import net.minecraft.network.chat.Component;
  * <p>A client command, not a server one. The overlay is the streamer's own machine talking to their
  * own OBS; a server has no business being asked, and a player on someone else's server should not
  * need permission to point a browser source at their own game.
+ *
+ * <p>It lives under {@code /ddcstream} rather than {@code /ddc} on purpose. A client command tree
+ * swallows the root it registers: putting these under {@code /ddc} took the whole server-side tree
+ * with them, and {@code /ddc sheet} answered "incorrect argument" instead of reaching the server.
+ * The two roots are separate so they cannot shadow each other.
  */
 @Environment(EnvType.CLIENT)
 public final class OverlayCommand {
@@ -25,6 +30,14 @@ public final class OverlayCommand {
     private static final int MAX_PORT = 65535;
 
     private static final String ARG_PORT = "port";
+
+    /**
+     * The client's own command root.
+     *
+     * <p>Never {@code ddc}: a client tree swallows its root, and the server's {@code /ddc} lives
+     * there.
+     */
+    public static final String ROOT = "ddcstream";
 
     private final OverlayServer server;
 
@@ -38,7 +51,7 @@ public final class OverlayCommand {
 
     private void register(CommandDispatcher<ClientCommandSourceStack> dispatcher,
             net.minecraft.commands.CommandBuildContext context) {
-        dispatcher.register(ClientCommandRegistrationEvent.literal("ddc")
+        dispatcher.register(ClientCommandRegistrationEvent.literal(ROOT)
                 .then(ClientCommandRegistrationEvent.literal("overlay")
                         .then(ClientCommandRegistrationEvent.literal("start")
                                 .executes(command -> start(command, OverlayServer.DEFAULT_PORT))
@@ -76,7 +89,7 @@ public final class OverlayCommand {
     private int status(CommandContext<ClientCommandSourceStack> context) {
         String message = server.isRunning()
                 ? "Overlay running, " + server.connected() + " widget(s) connected."
-                : "Overlay stopped. Start it with /ddc overlay start.";
+                : "Overlay stopped. Start it with /ddcstream overlay start.";
         context.getSource().arch$sendSuccess(() -> Component.literal(message), false);
         return server.isRunning() ? 1 : 0;
     }

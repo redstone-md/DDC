@@ -11,13 +11,13 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 
 /**
- * {@code /ddc twitch connect <channel>|disconnect|vote|close}: PRD 4.4's viewer votes.
+ * {@code /ddcstream twitch connect <channel>|disconnect|vote|close}: PRD 4.4's viewer votes.
  *
- * <p>A client command, like the overlay: this is the streamer's own machine reading their own chat,
- * and no server has any business being asked about it.
+ * <p>A client command, like the overlay, and under the same {@code /ddcstream} root: a client tree
+ * swallows the root it registers, and {@code /ddc} belongs to the server.
  *
  * <p>A vote is opened by the streamer, chat types {@code !adv} or {@code !dis}, and the streamer
- * closes it. The result decides the next {@code /roll}: {@code /ddc twitch close} says what chat
+ * closes it. The result decides the next {@code /roll}: {@code /ddcstream twitch close} says what chat
  * chose and how to roll it, rather than reaching over and rolling for them. What the table does with
  * chat's opinion stays the table's decision.
  */
@@ -39,7 +39,7 @@ public final class TwitchCommand {
     }
 
     private void register(CommandDispatcher<ClientCommandSourceStack> dispatcher) {
-        dispatcher.register(ClientCommandRegistrationEvent.literal("ddc")
+        dispatcher.register(ClientCommandRegistrationEvent.literal(OverlayCommand.ROOT)
                 .then(ClientCommandRegistrationEvent.literal("twitch")
                         .then(ClientCommandRegistrationEvent.literal("connect")
                                 .then(ClientCommandRegistrationEvent.argument(ARG_CHANNEL,
@@ -63,7 +63,7 @@ public final class TwitchCommand {
                 })
                 .orElseGet(() -> {
                     context.getSource().arch$sendSuccess(() -> Component.literal(
-                            "Reading " + channel + "'s chat. Open a vote with /ddc twitch vote.")
+                            "Reading " + channel + "'s chat. Open a vote with /ddcstream twitch vote.")
                             .withStyle(ChatFormatting.GOLD), false);
                     return 1;
                 });
@@ -79,7 +79,7 @@ public final class TwitchCommand {
     private int openVote(CommandContext<ClientCommandSourceStack> context) {
         if (!chat.isConnected()) {
             context.getSource().arch$sendFailure(Component.literal(
-                    "Not reading any chat. Connect with /ddc twitch connect <channel>."));
+                    "Not reading any chat. Connect with /ddcstream twitch connect <channel>."));
             return 0;
         }
         vote.open();

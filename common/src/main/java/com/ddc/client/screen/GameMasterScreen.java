@@ -32,7 +32,7 @@ public class GameMasterScreen extends Screen {
 
     private static final int BACKDROP = 0x90101010;
     private static final int BORDER = 0xFFC9973F;
-    private static final int BRASS = 0xC9973F;
+    private static final int BRASS = 0xFFC9973F;
 
     /** The world changes, in the order a scene tends to want them. */
     private static final List<String> WORLD_CHANGES =

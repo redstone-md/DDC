@@ -28,9 +28,10 @@ public class CharacterSheetScreen extends Screen {
 
     private static final int BACKDROP = 0x90101010;
     private static final int BORDER = 0xFFC9973F;
-    private static final int TEXT = 0xFFFFFF;
-    private static final int MUTED = 0xAAAAAA;
-    private static final int BRASS = 0xC9973F;
+    // Alpha is not optional: a colour written 0xFFFFFF is fully transparent.
+    private static final int TEXT = 0xFFFFFFFF;
+    private static final int MUTED = 0xFFAAAAAA;
+    private static final int BRASS = 0xFFC9973F;
 
     private static final int LINE = 12;
 

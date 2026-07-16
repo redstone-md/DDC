@@ -9,6 +9,33 @@ Each GitHub release carries notes generated from that release's commits by
 is written by hand for what the commits cannot say: why a release is shaped the way it is, and what
 it deliberately leaves out.
 
+## [1.4.1] - 2026-07-17
+
+Three faults that only showed up when somebody actually played the mod. All three
+were in 1.4.0, and all three are the kind of thing a test cannot see.
+
+### Fixed
+- **`/ddc` was completely broken on a client.** The overlay and Twitch commands registered `/ddc` as a
+  *client* command, and a client command tree swallows the root it registers: every `/ddc sheet`,
+  `/ddc class`, `/ddc cast` answered "incorrect argument" and the server never saw them. The streamer
+  commands now live under their own `/ddcstream` root, which cannot shadow the server's.
+- **The whole game was blurred, permanently.** Minecraft 26's blur is a full-frame pass — it blurs
+  everything drawn beneath the stratum, which is the world — and the HUD is on screen the entire time
+  a player is playing. PRD 3.1's glassmorphic card needs a blur bounded to the card's own rectangle,
+  which the renderer does not offer; until it does, the HUD is a translucent card. The sheet and GM
+  screens keep the blur, because a screen is a moment rather than a state.
+- **The HUD's text was invisible, and had been since 1.0.0.** Its colours were written `0xFFFFFF`,
+  which is fully transparent: alpha is the top byte and leaving it out means nothing draws. The card
+  had been rendering as an empty box for every release, and nobody had looked at it.
+
+### Added
+- **Twitch chat votes** (PRD 4.4). `/ddcstream twitch connect <channel>` reads a channel, `vote` opens
+  the floor, chat types `!adv` or `!dis`, and `close` reports what chat chose — it does not roll for
+  the table. Read-only and anonymous: Twitch allows an anonymous reader, so no OAuth token is ever
+  asked for or held. One viewer, one vote, and a tie decides nothing rather than flipping a coin.
+- **Spell runes** (PRD 4.4). A ring under the caster and the target before a spell lands, sized by the
+  spell's level, drawn with particles rather than a decal shader.
+
 ## [1.4.0] - 2026-07-16
 
 Everything left in the PRD that DDC can build for itself.
@@ -292,6 +319,7 @@ describes intent rather than behaviour:
 - The development server's console cannot run commands, including vanilla ones. It is an environment
   fault rather than a mod fault; use a client to try the commands.
 
+[1.4.1]: https://github.com/redstone-md/DDC/releases/tag/v1.4.1
 [1.4.0]: https://github.com/redstone-md/DDC/releases/tag/v1.4.0
 [1.3.0]: https://github.com/redstone-md/DDC/releases/tag/v1.3.0
 [1.2.0]: https://github.com/redstone-md/DDC/releases/tag/v1.2.0

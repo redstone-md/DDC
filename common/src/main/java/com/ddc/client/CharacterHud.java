@@ -16,9 +16,12 @@ import net.minecraft.client.player.LocalPlayer;
  * health now, so the panel reads them off the player rather than being told them. It holds no rules
  * and derives no numbers, so it cannot disagree with the server about a character.
  *
- * <p>PRD 3.1's glassmorphic panel: the world behind the card is blurred by the renderer's own pass,
- * which is what {@link GuiGraphicsExtractor#blurBeforeThisStratum()} is for. Glass, rather than a
- * grey rectangle over the game.
+ * <p>PRD 3.1 asks for a glassmorphic panel, and this is not one. Minecraft 26's blur is a full-frame
+ * pass -- it blurs everything drawn beneath the stratum, which is the entire world -- and the HUD is
+ * on screen the whole time a player is playing. Using it here blurred the game permanently, which a
+ * screenshot showed in the plainest possible terms. Glass behind a small always-on card needs a blur
+ * bounded to the card's own rectangle, which the renderer does not offer. Until it does, this is a
+ * translucent card, and the sheet screen keeps the blur because a screen is a moment, not a state.
  */
 @Environment(EnvType.CLIENT)
 public final class CharacterHud {
@@ -27,13 +30,15 @@ public final class CharacterHud {
     private static final int PADDING = 3;
     private static final int LINE_HEIGHT = 10;
 
-    private static final int BACKDROP = 0x60101010;
-    private static final int BORDER = 0x60C9973F;
-    private static final int TEXT = 0xFFFFFF;
-    private static final int TEXT_DIM = 0xAAAAAA;
-    private static final int HP_HEALTHY = 0x55FF55;
-    private static final int HP_HURT = 0xFFAA00;
-    private static final int HP_CRITICAL = 0xFF5555;
+    // Every colour carries its alpha. A colour written 0xFFFFFF is fully transparent, which is how
+    // the HUD's text came to be invisible from 1.0.0 until a screenshot caught it.
+    private static final int BACKDROP = 0xB0101010;
+    private static final int BORDER = 0xFFC9973F;
+    private static final int TEXT = 0xFFFFFFFF;
+    private static final int TEXT_DIM = 0xFFAAAAAA;
+    private static final int HP_HEALTHY = 0xFF55FF55;
+    private static final int HP_HURT = 0xFFFFAA00;
+    private static final int HP_CRITICAL = 0xFFFF5555;
 
     private CharacterSheet sheet;
 
@@ -73,11 +78,6 @@ public final class CharacterHud {
         String abilities = abilityText();
         int width = Math.max(font.width(header), font.width(abilities)) + PADDING * 2;
         int height = LINE_HEIGHT * 2 + PADDING * 2;
-
-        // Everything drawn before this point -- the world -- is blurred behind the card. The card
-        // itself is drawn after, so it stays sharp.
-        graphics.nextStratum();
-        graphics.blurBeforeThisStratum();
 
         graphics.fill(MARGIN, MARGIN, MARGIN + width, MARGIN + height, BACKDROP);
         graphics.outline(MARGIN, MARGIN, width, height, BORDER);
