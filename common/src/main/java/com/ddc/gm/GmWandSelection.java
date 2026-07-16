@@ -17,11 +17,16 @@ import net.minecraft.server.level.ServerPlayer;
  * <p>Selections are held by player id rather than on the item, so two GMs sharing a wand from a chest
  * each keep their own.
  */
-final class GmWandSelection {
+public final class GmWandSelection {
 
     private static final Map<UUID, Identifier> SELECTED = new ConcurrentHashMap<>();
 
     private GmWandSelection() {
+    }
+
+    /** Sets a player's selection outright, for the wheel that picks it by name. */
+    public static void select(ServerPlayer player, Identifier encounter) {
+        SELECTED.put(player.getUUID(), encounter);
     }
 
     /**

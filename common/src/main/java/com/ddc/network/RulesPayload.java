@@ -29,12 +29,14 @@ import net.minecraft.resources.Identifier;
  * <p>Sent on join and again after {@code /reload}, so an addon added mid-session appears in the menu
  * without anyone reconnecting.
  *
- * @param classes what {@code ddc_classes} defines
- * @param races   what {@code ddc_races} defines
- * @param spells  what {@code ddc_spells} defines
+ * @param classes     what {@code ddc_classes} defines
+ * @param races       what {@code ddc_races} defines
+ * @param spells      what {@code ddc_spells} defines
+ * @param encounters  what {@code ddc_encounters} defines; only a Game Master is sent any
+ * @param gameMaster  whether this player may use the GM tools, so their wheel can offer them
  */
-public record RulesPayload(List<Entry> classes, List<Entry> races, List<Entry> spells)
-        implements CustomPacketPayload {
+public record RulesPayload(List<Entry> classes, List<Entry> races, List<Entry> spells,
+        List<Entry> encounters, boolean gameMaster) implements CustomPacketPayload {
 
     public static final Type<RulesPayload> TYPE = new Type<>(DDC.id("rules"));
 
@@ -75,21 +77,35 @@ public record RulesPayload(List<Entry> classes, List<Entry> races, List<Entry> s
                     ENTRIES, RulesPayload::classes,
                     ENTRIES, RulesPayload::races,
                     ENTRIES, RulesPayload::spells,
+                    ENTRIES, RulesPayload::encounters,
+                    ByteBufCodecs.BOOL, RulesPayload::gameMaster,
                     RulesPayload::new);
 
     public RulesPayload {
         classes = List.copyOf(Objects.requireNonNull(classes, "classes"));
         races = List.copyOf(Objects.requireNonNull(races, "races"));
         spells = List.copyOf(Objects.requireNonNull(spells, "spells"));
+        encounters = List.copyOf(Objects.requireNonNull(encounters, "encounters"));
     }
 
-    /** Reads the registries into the few facts a menu needs. Sorted, so menus do not shuffle. */
+    /**
+     * Reads the registries into the few facts a menu needs. Sorted, so menus do not shuffle.
+     *
+     * <p>The encounters are sent only to a Game Master. It is not a secret worth guarding -- the
+     * server refuses the spawn either way -- but a wheel that offers a player something they cannot
+     * do is a wheel that lies to them.
+     */
     public static RulesPayload of(DataRegistry<CharacterClass> classes, DataRegistry<Race> races,
-            DataRegistry<Spell> spells) {
+            DataRegistry<Spell> spells, DataRegistry<com.ddc.rules.Encounter> encounters,
+            boolean gameMaster) {
         return new RulesPayload(
                 entries(classes, definition -> Entry.of(null, definition.name())),
                 entries(races, definition -> Entry.of(null, definition.name())),
-                entries(spells, spell -> new Entry(null, spell.name(), spell.level())));
+                entries(spells, spell -> new Entry(null, spell.name(), spell.level())),
+                gameMaster
+                        ? entries(encounters, encounter -> new Entry(null, encounter.name(), encounter.total()))
+                        : List.of(),
+                gameMaster);
     }
 
     private static <T> List<Entry> entries(DataRegistry<T> registry,

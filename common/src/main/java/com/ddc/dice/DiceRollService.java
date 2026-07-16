@@ -25,9 +25,16 @@ public final class DiceRollService {
     public static final double BROADCAST_RADIUS = 32.0;
 
     private final DiceRoller roller;
+    private final com.ddc.gm.SlowMotion slowMotion;
 
     public DiceRollService(DiceRoller roller) {
+        this(roller, null);
+    }
+
+    /** Takes the slow motion so a natural 20 can land in it. */
+    public DiceRollService(DiceRoller roller, com.ddc.gm.SlowMotion slowMotion) {
         this.roller = Objects.requireNonNull(roller, "roller");
+        this.slowMotion = slowMotion;
     }
 
     /** The service the server runs, seeded from the platform's own randomness. */
@@ -49,6 +56,11 @@ public final class DiceRollService {
         }
         NetworkManager.sendToPlayers(audience, DiceResultPayload.of(player.getUUID(), displayName(player), result));
         throwDice(player, result);
+        // PRD 4.4's slow motion, on the roll that earns it. The whole table shares the moment: the
+        // world itself slows, rather than one client pretending it did.
+        if (result.isNatural20() && slowMotion != null) {
+            slowMotion.play(player.level().getServer(), System.currentTimeMillis());
+        }
         return result;
     }
 

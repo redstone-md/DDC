@@ -47,9 +47,10 @@ public final class DDCRegistries {
         }
     }
 
-    /** Tells one player what the packs define. */
+    /** Tells one player what the packs define, and what they are allowed to do with it. */
     public static void sendTo(net.minecraft.server.level.ServerPlayer player) {
         dev.architectury.networking.NetworkManager.sendToPlayer(player,
-                com.ddc.network.RulesPayload.of(CLASSES, RACES, SPELLS));
+                com.ddc.network.RulesPayload.of(CLASSES, RACES, SPELLS, ENCOUNTERS,
+                        com.ddc.gm.GameMasters.isGameMaster(player)));
     }
 }

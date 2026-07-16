@@ -34,12 +34,50 @@ public final class PlayerWheel {
     private PlayerWheel() {
     }
 
-    /** The wheel a player sees when they press the key. */
+    /**
+      * The wheel a player sees when they press the key.
+      *
+      * <p>A Game Master holding the wand gets theirs: PRD 3.2's radial menu, which is what the wand
+      * is for. Holding the wand is the ask -- a GM who is playing a character presses the same key and
+      * gets their character.
+      */
     public static WheelScreen forPlayer(CharacterSheet sheet, Optional<ClassSummary> summary) {
+        if (ClientRules.isGameMaster() && isHoldingWand()) {
+            return new WheelScreen(Component.translatable("ddc.wheel.encounter"), encounters());
+        }
         if (sheet == null || !sheet.hasClass() || summary.isEmpty()) {
             return new WheelScreen(Component.translatable("ddc.wheel.create"), creation());
         }
         return new WheelScreen(Component.literal(summary.get().name()), actions(sheet, summary.get()));
+    }
+
+    /**
+     * The encounters a Game Master can put on their wand, and the panel.
+     *
+     * <p>Picking one only selects it; the wand places it where the GM points. Choosing a fight and
+     * choosing where it happens are two decisions, and a menu that did both at once would drop a
+     * patrol wherever the GM happened to be standing.
+     */
+    private static List<WheelOption> encounters() {
+        List<WheelOption> options = new ArrayList<>(ClientRules.encounters().stream()
+                .map(entry -> new WheelOption(
+                        Component.literal(entry.name()),
+                        Component.translatable("ddc.wheel.mobs", entry.level()),
+                        "ddc encounter " + entry.id()))
+                .toList());
+        options.add(new WheelOption(Component.translatable("ddc.wheel.gm"),
+                Component.translatable("ddc.wheel.gm.detail"), Wheels.GM_PANEL));
+        return options;
+    }
+
+    /** Whether the player is holding the wand in either hand. */
+    private static boolean isHoldingWand() {
+        Minecraft client = Minecraft.getInstance();
+        if (client.player == null) {
+            return false;
+        }
+        return client.player.getMainHandItem().is(com.ddc.registry.DDCItems.GM_WAND.get())
+                || client.player.getOffhandItem().is(com.ddc.registry.DDCItems.GM_WAND.get());
     }
 
     /**
@@ -153,6 +191,7 @@ public final class PlayerWheel {
         public static final String RACE_MENU = "@race";
         public static final String SPELL_MENU = "@spell";
         public static final String SHEET_SCREEN = "@sheet";
+        public static final String GM_PANEL = "@gm";
 
         private Wheels() {
         }

@@ -15,7 +15,8 @@ import net.fabricmc.api.Environment;
 @Environment(EnvType.CLIENT)
 public final class ClientRules {
 
-    private static volatile RulesPayload rules = new RulesPayload(List.of(), List.of(), List.of());
+    private static volatile RulesPayload rules =
+            new RulesPayload(List.of(), List.of(), List.of(), List.of(), false);
 
     private ClientRules() {
     }
@@ -27,7 +28,7 @@ public final class ClientRules {
 
     /** Forgets everything. Leaving a world must not leave another server's classes on the menu. */
     public static void clear() {
-        rules = new RulesPayload(List.of(), List.of(), List.of());
+        rules = new RulesPayload(List.of(), List.of(), List.of(), List.of(), false);
     }
 
     public static List<RulesPayload.Entry> classes() {
@@ -40,6 +41,16 @@ public final class ClientRules {
 
     public static List<RulesPayload.Entry> spells() {
         return rules.spells();
+    }
+
+    /** The encounters a Game Master may place. Empty for everyone else. */
+    public static List<RulesPayload.Entry> encounters() {
+        return rules.encounters();
+    }
+
+    /** Whether the server says this player may use the GM tools. */
+    public static boolean isGameMaster() {
+        return rules.gameMaster();
     }
 
     /** A spell's name, or its id when this client has not been told about it. */

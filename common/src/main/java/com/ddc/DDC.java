@@ -3,6 +3,7 @@ package com.ddc;
 import com.ddc.character.CharacterService;
 import com.ddc.character.FeatureService;
 import com.ddc.command.CheckCommand;
+import com.ddc.command.EncounterCommand;
 import com.ddc.command.PrepareCommand;
 import com.ddc.command.FeatureCommand;
 import com.ddc.combat.CombatListener;
@@ -15,6 +16,7 @@ import com.ddc.command.RollCommand;
 import com.ddc.core.dice.DiceRoller;
 import com.ddc.dice.DiceRollService;
 import com.ddc.gm.NarrationService;
+import com.ddc.gm.SlowMotion;
 import com.ddc.gm.WorldControlService;
 import com.ddc.command.WorldCommand;
 import com.ddc.spell.SpellService;
@@ -57,7 +59,10 @@ public final class DDC {
         DDCEntities.register();
 
         CharacterService characters = new CharacterService(DDCRegistries.CLASSES);
-        DiceRollService diceRolls = DiceRollService.serverSide();
+        SlowMotion slowMotion = new SlowMotion();
+        slowMotion.register();
+        DiceRollService diceRolls = new DiceRollService(
+                com.ddc.core.dice.DiceRoller.random(), slowMotion);
         RollCommand rollCommand = new RollCommand(diceRolls);
 
         // Attack rolls are hidden, so they never reach the roll log: this roller answers only to the
@@ -71,7 +76,8 @@ public final class DDC {
                 new FeatureCommand(new FeatureService(characters, diceRolls)),
                 new CheckCommand(characters, diceRolls),
                 new WorldCommand(new WorldControlService()),
-                new PrepareCommand(characters, DDCRegistries.SPELLS));
+                new PrepareCommand(characters, DDCRegistries.SPELLS),
+                new EncounterCommand(DDCRegistries.ENCOUNTERS));
 
         CommandRegistrationEvent.EVENT.register((dispatcher, registry, selection) -> {
             rollCommand.register(dispatcher);

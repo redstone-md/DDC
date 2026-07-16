@@ -50,7 +50,8 @@ class CharacterCommandTest {
                 new FeatureCommand(new FeatureService(characters, diceRolls)),
                 new CheckCommand(characters, diceRolls),
                 new WorldCommand(new com.ddc.gm.WorldControlService()),
-                new PrepareCommand(characters, spells))
+                new PrepareCommand(characters, spells),
+                new EncounterCommand(DDCRegistries.ENCOUNTERS))
                 .register(dispatcher);
     }
 
