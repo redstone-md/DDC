@@ -2,6 +2,7 @@ package com.ddc.registry;
 
 import com.ddc.DDC;
 import com.ddc.gm.GmWandItem;
+import com.ddc.gm.PossessionService;
 import dev.architectury.registry.CreativeTabRegistry;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
@@ -28,6 +29,9 @@ public final class DDCItems {
     private static final DeferredRegister<CreativeModeTab> TABS =
             DeferredRegister.create(DDC.MOD_ID, Registries.CREATIVE_MODE_TAB);
 
+    /** The one possession service, shared by the wand and by anything else that needs it. */
+    public static final PossessionService POSSESSIONS = new PossessionService();
+
     /**
      * The Game Master's wand. It is only a tool for a GM: holding it grants nothing, and every use
      * re-checks the permission.
@@ -36,7 +40,7 @@ public final class DDCItems {
             () -> new GmWandItem(new Item.Properties()
                     .stacksTo(1)
                     .rarity(Rarity.EPIC)
-                    .setId(ResourceKey.create(Registries.ITEM, DDC.id("gm_wand")))));
+                    .setId(ResourceKey.create(Registries.ITEM, DDC.id("gm_wand"))), POSSESSIONS));
 
     public static final RegistrySupplier<CreativeModeTab> TAB = TABS.register("ddc",
             () -> CreativeTabRegistry.create(
@@ -51,6 +55,7 @@ public final class DDCItems {
         ITEMS.register();
         TABS.register();
         CreativeTabRegistry.append(TAB, GM_WAND);
+        POSSESSIONS.register();
     }
 
     /** The wand's id, for anything that needs to name it. */

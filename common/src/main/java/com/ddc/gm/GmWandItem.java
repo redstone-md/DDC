@@ -10,16 +10,20 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.phys.Vec3;
 
 /**
  * The Game Master's wand: point at the ground, place an encounter.
  *
- * <p>PRD 3.2's wand, in its first form. Right-click a block to spawn the selected encounter;
- * sneak-right-click to step to the next one. The full radial menu the PRD describes needs a screen,
- * which this does not have yet, so the selection is announced in the action bar instead.
+ * <p>PRD 3.2's wand. Right-click a block to spawn the selected encounter; sneak-right-click to step
+ * to the next one; right-click a creature to possess it. The full radial menu the PRD describes needs
+ * a screen, which this does not have yet, so the selection is announced in the action bar instead.
  *
  * <p>Holding the item grants nothing. Every use re-checks with {@link GameMasters}, because an item
  * can be dropped, put in a chest, or handed to a player, and none of that may confer GM powers.
@@ -27,9 +31,29 @@ import net.minecraft.world.phys.Vec3;
 public class GmWandItem extends Item {
 
     private final EncounterService encounters = new EncounterService();
+    private final PossessionService possessions;
 
-    public GmWandItem(Properties properties) {
+    public GmWandItem(Properties properties, PossessionService possessions) {
         super(properties);
+        this.possessions = possessions;
+    }
+
+    /**
+     * Right-clicking a creature possesses it.
+     *
+     * <p>Checked here as well as in the service: an item can be dropped, chested or handed over, and
+     * none of that may confer GM powers.
+     */
+    @Override
+    public InteractionResult interactLivingEntity(ItemStack stack, Player user, LivingEntity target,
+            InteractionHand hand) {
+        if (!(user instanceof ServerPlayer player)) {
+            return InteractionResult.CONSUME;
+        }
+        Optional<PossessionService.Failure> failure = possessions.possess(player, target);
+        failure.ifPresent(reason -> player.sendSystemMessage(
+                Component.literal(reason.message()).withStyle(ChatFormatting.RED), true));
+        return failure.isEmpty() ? InteractionResult.SUCCESS : InteractionResult.FAIL;
     }
 
     @Override
