@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${mod_version}",
+  "name": "Dungeons, Dragons & Crafting",
+  "description": "Tabletop D&D rules and an asymmetric Game Master role inside Minecraft.",
+  "authors": [
+    "redstone-md"
+  ],
+  "contact": {
+    "sources": "https://github.com/redstone-md/DDC"
+  },
+  "license": "MIT",
+  "icon": "assets/${mod_id}/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.ddc.fabric.DDCFabric"
+    ],
+    "client": [
+      "com.ddc.fabric.DDCFabricClient"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=${fabric_loader_version}",
+    "minecraft": "${minecraft_version}",
+    "java": ">=25",
+    "fabric-api": "*",
+    "architectury": ">=20.0.9"
+  }
+}
