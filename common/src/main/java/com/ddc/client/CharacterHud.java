@@ -16,8 +16,9 @@ import net.minecraft.client.player.LocalPlayer;
  * health now, so the panel reads them off the player rather than being told them. It holds no rules
  * and derives no numbers, so it cannot disagree with the server about a character.
  *
- * <p>The PRD asks for a glassmorphic panel; this is the readable version of that panel, a translucent
- * backdrop behind plain text. The blur shader it describes is not here yet.
+ * <p>PRD 3.1's glassmorphic panel: the world behind the card is blurred by the renderer's own pass,
+ * which is what {@link GuiGraphicsExtractor#blurBeforeThisStratum()} is for. Glass, rather than a
+ * grey rectangle over the game.
  */
 @Environment(EnvType.CLIENT)
 public final class CharacterHud {
@@ -26,7 +27,8 @@ public final class CharacterHud {
     private static final int PADDING = 3;
     private static final int LINE_HEIGHT = 10;
 
-    private static final int BACKDROP = 0x80000000;
+    private static final int BACKDROP = 0x60101010;
+    private static final int BORDER = 0x60C9973F;
     private static final int TEXT = 0xFFFFFF;
     private static final int TEXT_DIM = 0xAAAAAA;
     private static final int HP_HEALTHY = 0x55FF55;
@@ -72,7 +74,13 @@ public final class CharacterHud {
         int width = Math.max(font.width(header), font.width(abilities)) + PADDING * 2;
         int height = LINE_HEIGHT * 2 + PADDING * 2;
 
+        // Everything drawn before this point -- the world -- is blurred behind the card. The card
+        // itself is drawn after, so it stays sharp.
+        graphics.nextStratum();
+        graphics.blurBeforeThisStratum();
+
         graphics.fill(MARGIN, MARGIN, MARGIN + width, MARGIN + height, BACKDROP);
+        graphics.outline(MARGIN, MARGIN, width, height, BORDER);
         graphics.text(font, header, MARGIN + PADDING, MARGIN + PADDING,
                 hitPointColour(hitPoints, maxHitPoints));
         graphics.text(font, abilities, MARGIN + PADDING, MARGIN + PADDING + LINE_HEIGHT, TEXT);

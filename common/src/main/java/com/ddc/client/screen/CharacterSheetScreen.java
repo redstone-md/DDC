@@ -17,9 +17,8 @@ import net.minecraft.network.chat.Component;
  * asked the server nicely would be a lie about where the rules live. Choices are made with commands,
  * which the server can check.
  *
- * <p>The PRD asks for a glassmorphic panel. This is the readable version: a translucent card and
- * plain type. The blur it describes needs a post-processing pass that Minecraft 26's renderer would
- * have to be given, and a sheet that is legible matters more than a sheet that is frosted.
+ * <p>PRD 3.1's glassmorphic panel: the world behind the card is blurred by the renderer's own pass,
+ * which is what {@link GuiGraphicsExtractor#blurBeforeThisStratum()} is for.
  */
 @Environment(EnvType.CLIENT)
 public class CharacterSheetScreen extends Screen {
@@ -27,7 +26,7 @@ public class CharacterSheetScreen extends Screen {
     private static final int CARD_WIDTH = 240;
     private static final int CARD_HEIGHT = 150;
 
-    private static final int BACKDROP = 0xC0101010;
+    private static final int BACKDROP = 0x90101010;
     private static final int BORDER = 0xFFC9973F;
     private static final int TEXT = 0xFFFFFF;
     private static final int MUTED = 0xAAAAAA;
@@ -60,6 +59,11 @@ public class CharacterSheetScreen extends Screen {
 
         int left = (width - CARD_WIDTH) / 2;
         int top = (height - CARD_HEIGHT) / 2;
+
+        // The world behind the card is blurred; the card is drawn on the stratum above it, sharp.
+        graphics.nextStratum();
+        graphics.blurBeforeThisStratum();
+
         graphics.fill(left, top, left + CARD_WIDTH, top + CARD_HEIGHT, BACKDROP);
         graphics.outline(left, top, CARD_WIDTH, CARD_HEIGHT, BORDER);
 

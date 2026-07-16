@@ -120,6 +120,9 @@ public final class SpellService {
     /** Rolls the spell's damage and its save, and applies what survives. */
     private Cast resolve(ServerPlayer caster, CharacterSheet sheet, Spellcasting casting, Spell spell,
             LivingEntity target) {
+        if (caster.level() instanceof ServerLevel level) {
+            SpellRunes.draw(level, caster, target, spell);
+        }
         Optional<CheckOutcome> save = spell.savingThrow()
                 .map(throwSpec -> rollSave(target, throwSpec.ability(), saveDc(sheet, casting)));
 

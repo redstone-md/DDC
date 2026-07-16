@@ -30,7 +30,7 @@ public class GameMasterScreen extends Screen {
     private static final int BUTTON_HEIGHT = 20;
     private static final int GAP = 4;
 
-    private static final int BACKDROP = 0xC0101010;
+    private static final int BACKDROP = 0x90101010;
     private static final int BORDER = 0xFFC9973F;
     private static final int BRASS = 0xC9973F;
 
@@ -98,6 +98,9 @@ public class GameMasterScreen extends Screen {
         int top = height / 2 - 84;
         int panelHeight = 14 + (BUTTON_HEIGHT + GAP) * 2 + 8
                 + (WORLD_CHANGES.size() / 2) * (BUTTON_HEIGHT + GAP) + 12;
+
+        graphics.nextStratum();
+        graphics.blurBeforeThisStratum();
 
         graphics.fill(left - 8, top, left + PANEL_WIDTH + 8, top + panelHeight, BACKDROP);
         graphics.outline(left - 8, top, PANEL_WIDTH + 16, panelHeight, BORDER);
