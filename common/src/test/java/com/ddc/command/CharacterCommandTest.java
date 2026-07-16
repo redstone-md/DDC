@@ -47,7 +47,8 @@ class CharacterCommandTest {
         new CharacterCommand(characters, classes, races, new NarrateCommand(new NarrationService()),
                 new SpellCommand(characters, spells, classes,
                         new SpellService(characters, diceRolls, DiceRoller.replaying(1L))),
-                new FeatureCommand(new FeatureService(characters, diceRolls)))
+                new FeatureCommand(new FeatureService(characters, diceRolls)),
+                new CheckCommand(characters, diceRolls))
                 .register(dispatcher);
     }
 
