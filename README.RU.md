@@ -1,9 +1,12 @@
+<img src="assets/banner.png" alt="Dungeons, Dragons &amp; Crafting - кубики, листы персонажей и Гейм-Мастер, который ведёт мир. Minecraft 26.1.2, Fabric и NeoForge." width="100%">
+
 # DDC (Dungeons, Dragons & Crafting)
 
 [![Minecraft](https://img.shields.io/badge/Minecraft-26.1.2-blue.svg)](https://minecraft.net)
 [![Loader](https://img.shields.io/badge/Loader-Fabric%20%7C%20NeoForge-purple.svg)](https://modrinth.com)
 [![Java](https://img.shields.io/badge/Java-25-red.svg)](https://oracle.com/java)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![CI](https://github.com/redstone-md/DDC/actions/workflows/ci.yml/badge.svg)](https://github.com/redstone-md/DDC/actions/workflows/ci.yml)
 [![Framework](https://img.shields.io/badge/Framework-MCAF%20v1.2-success.svg)](https://mcaf.managed-code.com)
 
 **DDC** — это модификация для Minecraft Java Edition, которая переносит настольные ролевые правила и повествование (подобно Dungeons & Dragons) в трехмерный воксельный мир игры. Мод нацелен на версию **26.1.2** и нативно поддерживает загрузчики **Fabric** и **NeoForge**.
