@@ -2,12 +2,23 @@
 
 [![Minecraft](https://img.shields.io/badge/Minecraft-26.1.2-blue.svg)](https://minecraft.net)
 [![Loader](https://img.shields.io/badge/Loader-Fabric%20%7C%20NeoForge-purple.svg)](https://modrinth.com)
-[![Java](https://img.shields.io/badge/Java-21-red.svg)](https://oracle.com/java)
+[![Java](https://img.shields.io/badge/Java-25-red.svg)](https://oracle.com/java)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Framework](https://img.shields.io/badge/Framework-MCAF%20v1.2-success.svg)](https://mcaf.managed-code.com)
 
 **DDC** is a Minecraft Java Edition mod that merges tabletop roleplaying rules and storytelling (like Dungeons & Dragons) into Minecraft's 3D voxel world. It targets version **26.1.2** with native support for both **Fabric** and **NeoForge**.
 
 DDC introduces an **asymmetric gameplay model**. Players explore the world as heroic characters with D&D classes, spell slots, and dice checks, while a **Game Master (GM)** controls the environment, possesses monsters, triggers sounds, and narrates the adventure in real-time.
+
+> ### Status: 1.0.0
+>
+> **This page describes the full design. The released mod is smaller.** Shipping today: the rules
+> engine, `/roll` with advantage and hidden GM rolls, character sheets with a HUD, data-driven
+> classes from data packs, and GM narration. Not yet built: 3D dice, mob possession, spells, combat
+> replacement, and the Twitch/OBS integration.
+>
+> [**CHANGELOG.md**](CHANGELOG.md) lists exactly what is in the release and what is not. Sections
+> below marked _(planned)_ are design intent, not behaviour.
 
 🇷🇺 **[Нажмите здесь, чтобы прочитать README на русском языке.](file:///d:/projects/DDC/README.RU.md)**
 
@@ -15,6 +26,9 @@ DDC introduces an **asymmetric gameplay model**. Players explore the world as he
 
 ## 🗺️ Repository Navigation & Documentation Map
 
+- 📜 **Release**:
+  - [CHANGELOG.md](CHANGELOG.md) — what 1.0.0 ships, and what it deliberately does not.
+  - [LICENSE](LICENSE) — MIT; the built-in rules data pack is SRD 5.1 under CC-BY-4.0.
 - 📑 **Root Instructions**: 
   - [AGENTS.md](file:///d:/projects/DDC/AGENTS.md) — Root AI development rules, workspace layout, and compiler properties.
 - 📁 **Module Instructions**:
@@ -31,9 +45,36 @@ DDC introduces an **asymmetric gameplay model**. Players explore the world as he
 
 ---
 
-## 🛡️ Gameplay Perspectives
+## 🎲 What 1.0.0 actually does
 
-### 1. From the Player's Perspective
+| Command | Who | What |
+|---|---|---|
+| `/roll <expr> [advantage\|disadvantage]` | anyone | Rolls dice; result goes to chat and the roll log of everyone within 32 blocks. |
+| `/roll <expr> ... hidden` | Game Master | Rolls privately; nobody else sees the number. |
+| `/ddc sheet` | anyone | Shows your class, level, hit points, proficiency, and abilities. |
+| `/ddc class <id>` | anyone | Picks a class from any loaded data pack. |
+| `/ddc narrate <text>` | Game Master | Letterboxed cinematic narration on every screen. |
+
+A Game Master is any player with Minecraft 26's `COMMANDS_GAMEMASTER` permission (what used to be
+operator level 2). The server checks this on every GM action; the client is never asked.
+
+**Add a class with no code** — drop a file into any data pack and `/reload`:
+
+```json
+// data/my_addon/ddc_classes/paladin.json
+{
+  "name": "Paladin",
+  "hit_die": "d10",
+  "primary_ability": "strength",
+  "saving_throws": ["wisdom", "charisma"]
+}
+```
+
+---
+
+## 🛡️ Gameplay Perspectives _(design intent; see the status note above)_
+
+### 1. From the Player's Perspective _(partly planned)_
 
 Players experience the mod as an immersive 3D RPG:
 
@@ -51,7 +92,7 @@ Players experience the mod as an immersive 3D RPG:
 
 ---
 
-### 2. From the Game Master's (GM) Perspective
+### 2. From the Game Master's (GM) Perspective _(narration shipped; the rest planned)_
 
 The GM does not play survival; they act as a director/storyteller:
 
@@ -68,7 +109,7 @@ The GM does not play survival; they act as a director/storyteller:
 
 ---
 
-### 3. From the Streamer / Twitch Audience Perspective ("Twitch-Ready")
+### 3. From the Streamer / Twitch Audience Perspective ("Twitch-Ready") _(planned)_
 
 DDC is built to turn campaigns into interactive streaming content:
 
@@ -81,18 +122,28 @@ DDC is built to turn campaigns into interactive streaming content:
 ## 🛠️ Quickstart Developer Setup
 
 To build and compile the project, run:
+Requires **JDK 25** — Minecraft 26.1.2 will not run on anything older.
+
 ```bash
 # Clone the repository
 git clone https://github.com/redstone-md/DDC.git
 cd DDC
 
-# Setup Gradle wrapper and build dependencies
+# Build both jars and run the tests
 ./gradlew build
 
-# Run Fabric Developer Client
+# Run a developer client
 ./gradlew :fabric:runClient
-
-# Run NeoForge Developer Client
 ./gradlew :neoforge:runClient
+
+# Run a dedicated server
+./gradlew :fabric:runServer
+./gradlew :neoforge:runServer
 ```
-All code styles are validated via `./gradlew checkstyleMain`. All unit tests must pass before pushing to `main`.
+
+Jars land in `fabric/build/libs/` and `neoforge/build/libs/`. All unit tests must pass before pushing
+to `main`; `./gradlew build` runs them.
+
+Minecraft 26.x ships unobfuscated, so this build declares no mappings and uses the
+`loom-no-remap` plugin. See [AGENTS.md](AGENTS.md) for the verified version matrix and the 26.x API
+renames that catch people out.

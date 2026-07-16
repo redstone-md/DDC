@@ -2,6 +2,12 @@
 
 This document details the engineering architecture of the DDC mod for Minecraft version **26.1.2**. It covers the multi-loader project layout, the networking protocol for asymmetric GM-player gameplay, the data-driven RPG engine, and client-side rendering systems.
 
+> **What is built as of 1.0.0**: the multi-loader layout, the data-driven class registry, the
+> networking and its GM validation gate, character storage and sync, and the plain HUD, roll log, and
+> narration overlay. The 3D dice pipeline, possession, the VFX stack, and the OBS WebSocket server
+> are **design intent, not code** — see [CHANGELOG.md](../CHANGELOG.md). Sections describing them are
+> kept as the plan to build against.
+
 ---
 
 ## 1. Multi-Loader Project Architecture
@@ -88,11 +94,20 @@ We define custom Codecs for parsing RPG stats. For example, a spell definition J
 }
 ```
 
-### Character Attachment (Capabilities/Attachments)
-- To store character attributes, spell slots, class selection, and current XP on players:
-  - On **Fabric**: We use Architectury's Attachment API (or Cardinal Components) to inject capability data into `PlayerEntity`.
-  - On **NeoForge**: We use NeoForge's `ICapabilityProvider` / Attachment system.
-  - Data is synchronized to the client via a custom S2C packet (`ddc:sync_character_data`) whenever the player joins, respawns, or updates attributes.
+### Character Storage (implemented: world saved data, not attachments)
+Character sheets are stored in the world's own saved data (`SavedData`, keyed per player UUID against
+the overworld), **not** attached to the player entity.
+
+The original plan here was a per-loader attachment: Architectury/Cardinal Components on Fabric,
+capabilities on NeoForge. That would have meant two implementations of one idea, in the loader
+modules, against the "90% in common" rule. One vanilla `SavedData` is the same code on both loaders,
+and because it was never tied to an entity it survives death and dimension changes with no extra
+work. Revisit only if sheets need to live on non-player entities.
+
+Data is synchronised to its owner via the S2C `ddc:character_sheet` payload on join, on respawn, and
+on every change — every write goes through `CharacterService`, so no path can change a sheet and
+forget to sync it. Maximum hit points ride along in the payload because deriving them needs the class
+definition from the data packs, which the client does not have.
 
 ---
 
@@ -102,24 +117,43 @@ Asymmetric play requires rapid, low-overhead sync packets between the GM and the
 
 | Payload ID | Type | Sender | Description |
 |---|---|---|---|
-| `ddc:roll_dice` | C2S | Player | Trigger a dice roll request (specifying dice count, type, and modifier). |
-| `ddc:dice_result` | S2C | Server | Sync visual 3D dice roll result (number, physics seed, location) to nearby players. |
-| `ddc:possess_mob` | C2S | GM | GM requests to possess a specific target entity. |
-| `ddc:narrate` | C2S | GM | GM broadcasts a cinematic text narration screen overlay. |
-| `ddc:sync_character` | S2C | Server | Sync full D&D sheet state to player's client HUD. |
+| `ddc:dice_result` | S2C | Server | **Built.** Roll result as roller, notation, mode, and seed; nearby clients replay the seed rather than being told the number. |
+| `ddc:character_sheet` | S2C | Server | **Built.** The player's own sheet plus derived max hit points. |
+| `ddc:narrate` | S2C | Server | **Built.** Cinematic narration text, sent only after the server has checked the sender is a GM. |
+| `ddc:possess_mob` | C2S | GM | *Planned.* GM requests to possess a specific target entity. |
+
+There is deliberately **no C2S roll or narrate payload**. Both are requested through commands, which
+already carry Brigadier's parsing and permission plumbing, so there is no second, hand-written entry
+point into the same authority to keep secure.
 
 ### Security Validation Gate
-To prevent cheating, the server acts as the absolute authority:
-- When `ddc:possess_mob` is received:
-  ```java
-  public void handlePossession(ServerPlayer gmPlayer, Entity target) {
-      if (!gmPlayer.hasPermissions(2)) { // Operator level Check
-          gmPlayer.sendSystemMessage(Component.literal("Error: Only GMs can possess entities."));
-          return;
-      }
-      PossessionManager.possess(gmPlayer, target);
-  }
-  ```
+To prevent cheating, the server acts as the absolute authority.
+
+Minecraft 26 replaced numeric operator levels with named permissions, so `hasPermissions(2)` no
+longer exists. The level-2 equivalent is `Permissions.COMMANDS_GAMEMASTER`, and every GM capability
+goes through the one gate in `com.ddc.gm.GameMasters`:
+
+```java
+public final class GameMasters {
+    private static final PermissionCheck CHECK =
+            new PermissionCheck.Require(Permissions.COMMANDS_GAMEMASTER);
+
+    public static boolean isGameMaster(ServerPlayer player) {
+        return CHECK.check(player.permissions());
+    }
+
+    public static <T extends PermissionSetSupplier> Predicate<T> requirement() {
+        return Commands.hasPermission(CHECK);
+    }
+}
+```
+
+A server running a permissions plugin grants that permission through its own provider, which covers
+ADR-0003's "or specified by permission plugins" with no extra support.
+
+`requirement()` shapes the command tree and hides GM branches from ordinary players' completions. It
+is **not** a security boundary: handlers call `isGameMaster` again before acting, because a command
+tree only describes what a client is offered, not what it can attempt.
 
 ---
 
