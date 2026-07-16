@@ -1,6 +1,7 @@
 package com.ddc.rules;
 
 import com.ddc.core.character.Ability;
+import com.ddc.core.dice.DiceExpression;
 import com.ddc.core.dice.Die;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
@@ -37,6 +38,17 @@ public final class DDCCodecs {
                 }
             },
             Die::toString);
+
+    /** Dice notation, as a data pack writes it: {@code "1d6"}, {@code "8d6"}, {@code "1d10+2"}. */
+    public static final Codec<DiceExpression> DICE_EXPRESSION = Codec.STRING.comapFlatMap(
+            notation -> {
+                try {
+                    return DataResult.success(DiceExpression.parse(notation));
+                } catch (IllegalArgumentException e) {
+                    return DataResult.error(() -> "Bad dice: " + e.getMessage());
+                }
+            },
+            DiceExpression::toString);
 
     private DDCCodecs() {
     }

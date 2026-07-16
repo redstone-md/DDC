@@ -2,5 +2,14 @@
   "name": "Fighter",
   "hit_die": "d10",
   "primary_ability": "strength",
-  "saving_throws": ["strength", "constitution"]
+  "saving_throws": [
+    "strength",
+    "constitution"
+  ],
+  "features": [
+    {
+      "type": "ddc:second_wind",
+      "dice": "1d10"
+    }
+  ]
 }

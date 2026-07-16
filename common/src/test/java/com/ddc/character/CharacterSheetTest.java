@@ -24,7 +24,7 @@ class CharacterSheetTest {
     private static final Identifier FIGHTER_ID = Identifier.fromNamespaceAndPath("ddc", "fighter");
     private static final CharacterClass FIGHTER = new CharacterClass(
             "Fighter", new HitDie(Die.D10), Ability.STRENGTH,
-            Set.of(Ability.STRENGTH, Ability.CONSTITUTION), Optional.empty());
+            Set.of(Ability.STRENGTH, Ability.CONSTITUTION), Optional.empty(), java.util.List.of());
 
     @BeforeAll
     static void setUp() {

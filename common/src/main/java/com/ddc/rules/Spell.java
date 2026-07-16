@@ -40,22 +40,12 @@ public record Spell(String name, int level, String school, int range,
     /** Feet. Generous enough for SRD's longest ranged spells. */
     private static final int MAX_RANGE = 500;
 
-    private static final Codec<DiceExpression> DAMAGE_DICE = Codec.STRING.comapFlatMap(
-            notation -> {
-                try {
-                    return DataResult.success(DiceExpression.parse(notation));
-                } catch (IllegalArgumentException e) {
-                    return DataResult.error(() -> "Bad damage dice: " + e.getMessage());
-                }
-            },
-            DiceExpression::toString);
-
     public static final Codec<Spell> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.STRING.fieldOf("name").forGetter(Spell::name),
             Codec.intRange(0, Spellcasting.MAX_SPELL_LEVEL).fieldOf("level").forGetter(Spell::level),
             Codec.STRING.optionalFieldOf("school", "unknown").forGetter(Spell::school),
             Codec.intRange(0, MAX_RANGE).optionalFieldOf("range", 30).forGetter(Spell::range),
-            DAMAGE_DICE.optionalFieldOf("damage_dice").forGetter(Spell::damageDice),
+            DDCCodecs.DICE_EXPRESSION.optionalFieldOf("damage_dice").forGetter(Spell::damageDice),
             SavingThrow.CODEC.optionalFieldOf("saving_throw").forGetter(Spell::savingThrow)
     ).apply(instance, Spell::new));
 

@@ -1,8 +1,11 @@
 package com.ddc;
 
 import com.ddc.character.CharacterService;
+import com.ddc.character.FeatureService;
+import com.ddc.command.FeatureCommand;
 import com.ddc.combat.CombatListener;
 import com.ddc.combat.CombatRules;
+import com.ddc.combat.SneakAttackService;
 import com.ddc.command.CharacterCommand;
 import com.ddc.command.NarrateCommand;
 import com.ddc.command.SpellCommand;
@@ -53,11 +56,13 @@ public final class DDC {
 
         // Attack rolls are hidden, so they never reach the roll log: this roller answers only to the
         // combat listener.
-        new CombatListener(new CombatRules(characters), DiceRoller.random()).register();
+        new CombatListener(new CombatRules(characters), DiceRoller.random(),
+                new SneakAttackService(characters, diceRolls)).register();
         SpellService spellService = new SpellService(characters, diceRolls, DiceRoller.random());
         CharacterCommand characterCommand = new CharacterCommand(characters, DDCRegistries.CLASSES,
                 DDCRegistries.RACES, new NarrateCommand(new NarrationService()),
-                new SpellCommand(characters, DDCRegistries.SPELLS, DDCRegistries.CLASSES, spellService));
+                new SpellCommand(characters, DDCRegistries.SPELLS, DDCRegistries.CLASSES, spellService),
+                new FeatureCommand(new FeatureService(characters, diceRolls)));
 
         CommandRegistrationEvent.EVENT.register((dispatcher, registry, selection) -> {
             rollCommand.register(dispatcher);

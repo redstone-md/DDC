@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.ddc.MinecraftBootstrapExtension;
 import com.ddc.character.CharacterService;
+import com.ddc.character.FeatureService;
 import com.ddc.gm.NarrationService;
 import com.ddc.command.SpellCommand;
 import com.ddc.rules.CharacterClass;
@@ -45,7 +46,8 @@ class CharacterCommandTest {
         DiceRollService diceRolls = new DiceRollService(DiceRoller.replaying(1L));
         new CharacterCommand(characters, classes, races, new NarrateCommand(new NarrationService()),
                 new SpellCommand(characters, spells, classes,
-                        new SpellService(characters, diceRolls, DiceRoller.replaying(1L))))
+                        new SpellService(characters, diceRolls, DiceRoller.replaying(1L))),
+                new FeatureCommand(new FeatureService(characters, diceRolls)))
                 .register(dispatcher);
     }
 

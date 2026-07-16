@@ -31,10 +31,12 @@ public final class CombatListener {
 
     private final CombatRules rules;
     private final DiceRoller roller;
+    private final SneakAttackService sneakAttack;
 
-    public CombatListener(CombatRules rules, DiceRoller roller) {
+    public CombatListener(CombatRules rules, DiceRoller roller, SneakAttackService sneakAttack) {
         this.rules = rules;
         this.roller = roller;
+        this.sneakAttack = sneakAttack;
     }
 
     public void register() {
@@ -59,6 +61,7 @@ public final class CombatListener {
 
         CheckOutcome outcome = rules.attackCheck(attacker, target).resolve(roller);
         if (outcome.isSuccess()) {
+            sneakAttack.applyIfEarned(attacker, target, level);
             return EventResult.pass();
         }
 

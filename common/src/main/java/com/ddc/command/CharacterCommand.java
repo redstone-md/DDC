@@ -44,14 +44,17 @@ public final class CharacterCommand {
     private final DataRegistry<Race> races;
     private final NarrateCommand narration;
     private final SpellCommand spells;
+    private final FeatureCommand features;
 
     public CharacterCommand(CharacterService characters, DataRegistry<CharacterClass> classes,
-            DataRegistry<Race> races, NarrateCommand narration, SpellCommand spells) {
+            DataRegistry<Race> races, NarrateCommand narration, SpellCommand spells,
+            FeatureCommand features) {
         this.characters = characters;
         this.classes = classes;
         this.races = races;
         this.narration = narration;
         this.spells = spells;
+        this.features = features;
     }
 
     public void register(CommandDispatcher<CommandSourceStack> dispatcher) {
@@ -68,6 +71,8 @@ public final class CharacterCommand {
                                 .executes(this::chooseRace)))
                 .then(spells.castBranch())
                 .then(spells.restBranch())
+                .then(features.secondWindBranch())
+                .then(features.channelDivinityBranch())
                 .then(narration.branch()));
     }
 

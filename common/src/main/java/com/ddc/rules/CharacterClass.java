@@ -31,9 +31,10 @@ import java.util.Set;
  * @param primaryAbility the ability the class is built around
  * @param savingThrows  the saving throws the class is proficient in
  * @param spellcasting  what it can cast, absent for a class with no magic
+ * @param features      what else it can do
  */
 public record CharacterClass(String name, HitDie hitDie, Ability primaryAbility, Set<Ability> savingThrows,
-        Optional<Spellcasting> spellcasting) {
+        Optional<Spellcasting> spellcasting, List<ClassFeature> features) {
 
     public static final Codec<CharacterClass> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.STRING.fieldOf("name").forGetter(CharacterClass::name),
@@ -42,7 +43,9 @@ public record CharacterClass(String name, HitDie hitDie, Ability primaryAbility,
             DDCCodecs.ABILITY.listOf().xmap(Set::copyOf, List::copyOf)
                     .optionalFieldOf("saving_throws", Set.of())
                     .forGetter(CharacterClass::savingThrows),
-            Spellcasting.CODEC.optionalFieldOf("spellcasting").forGetter(CharacterClass::spellcasting)
+            Spellcasting.CODEC.optionalFieldOf("spellcasting").forGetter(CharacterClass::spellcasting),
+            ClassFeature.CODEC.listOf().optionalFieldOf("features", List.of())
+                    .forGetter(CharacterClass::features)
     ).apply(instance, CharacterClass::new));
 
     public CharacterClass {
@@ -51,6 +54,17 @@ public record CharacterClass(String name, HitDie hitDie, Ability primaryAbility,
         Objects.requireNonNull(primaryAbility, "primaryAbility");
         savingThrows = Set.copyOf(Objects.requireNonNull(savingThrows, "savingThrows"));
         Objects.requireNonNull(spellcasting, "spellcasting");
+        features = List.copyOf(Objects.requireNonNull(features, "features"));
+    }
+
+    /**
+     * This class's feature of a kind, if it has one.
+     *
+     * <p>Typed so a caller gets back what it asked for: {@code feature(SneakAttack.class)} rather
+     * than a cast at every call site.
+     */
+    public <T extends ClassFeature> Optional<T> feature(Class<T> kind) {
+        return features.stream().filter(kind::isInstance).map(kind::cast).findFirst();
     }
 
     /** Whether this class casts spells at all. */

@@ -4,6 +4,7 @@ import com.ddc.core.character.Ability;
 import com.ddc.core.character.AbilityScores;
 import com.ddc.core.character.Proficiency;
 import com.ddc.rules.CharacterClass;
+import com.ddc.rules.ClassFeature;
 import com.ddc.rules.Race;
 import com.ddc.rules.Spellcasting;
 import com.ddc.rules.DDCCodecs;
@@ -13,7 +14,9 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import net.minecraft.resources.Identifier;
 
 /**
@@ -32,9 +35,10 @@ import net.minecraft.resources.Identifier;
  * @param abilities         the six ability scores
  * @param race              the race the player picked, empty until they pick one
  * @param usedSpellSlots    how many slots of each spell level have been spent since the last rest
+ * @param usedFeatures      which once-per-rest class features have been spent
  */
 public record CharacterSheet(Optional<Identifier> characterClass, int level, AbilityScores abilities,
-        Optional<Identifier> race, Map<Integer, Integer> usedSpellSlots) {
+        Optional<Identifier> race, Map<Integer, Integer> usedSpellSlots, Set<ClassFeature.Type> usedFeatures) {
 
     private static final Codec<AbilityScores> ABILITY_SCORES_CODEC =
             Codec.unboundedMap(DDCCodecs.ABILITY, Codec.intRange(Ability.MIN_SCORE, Ability.MAX_SCORE))
@@ -69,7 +73,10 @@ public record CharacterSheet(Optional<Identifier> characterClass, int level, Abi
             Identifier.CODEC.optionalFieldOf("race").forGetter(CharacterSheet::race),
             Codec.unboundedMap(SPELL_LEVEL_KEY, Codec.intRange(0, 99))
                     .optionalFieldOf("used_spell_slots", Map.of())
-                    .forGetter(CharacterSheet::usedSpellSlots)
+                    .forGetter(CharacterSheet::usedSpellSlots),
+            ClassFeature.Type.CODEC.listOf().xmap(Set::copyOf, List::copyOf)
+                    .optionalFieldOf("used_features", Set.of())
+                    .forGetter(CharacterSheet::usedFeatures)
     ).apply(instance, CharacterSheet::new));
 
     public CharacterSheet {
@@ -77,12 +84,14 @@ public record CharacterSheet(Optional<Identifier> characterClass, int level, Abi
         Objects.requireNonNull(abilities, "abilities");
         Objects.requireNonNull(race, "race");
         usedSpellSlots = Map.copyOf(Objects.requireNonNull(usedSpellSlots, "usedSpellSlots"));
+        usedFeatures = Set.copyOf(Objects.requireNonNull(usedFeatures, "usedFeatures"));
         Proficiency.validateLevel(level);
     }
 
     /** A fresh, classless level 1 character with average scores. */
     public static CharacterSheet initial() {
-        return new CharacterSheet(Optional.empty(), 1, AbilityScores.defaults(), Optional.empty(), Map.of());
+        return new CharacterSheet(Optional.empty(), 1, AbilityScores.defaults(), Optional.empty(),
+                Map.of(), Set.of());
     }
 
     public int proficiencyBonus() {
@@ -107,22 +116,22 @@ public record CharacterSheet(Optional<Identifier> characterClass, int level, Abi
     public CharacterSheet withClass(Identifier id, CharacterClass definition) {
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(definition, "definition");
-        return new CharacterSheet(Optional.of(id), level, abilities, race, usedSpellSlots);
+        return new CharacterSheet(Optional.of(id), level, abilities, race, usedSpellSlots, usedFeatures);
     }
 
     public CharacterSheet withAbilities(AbilityScores scores) {
-        return new CharacterSheet(characterClass, level, scores, race, usedSpellSlots);
+        return new CharacterSheet(characterClass, level, scores, race, usedSpellSlots, usedFeatures);
     }
 
     public CharacterSheet withLevel(int newLevel) {
-        return new CharacterSheet(characterClass, newLevel, abilities, race, usedSpellSlots);
+        return new CharacterSheet(characterClass, newLevel, abilities, race, usedSpellSlots, usedFeatures);
     }
 
     /** Returns a copy that has picked a race, with the race's bonuses applied to its scores. */
     public CharacterSheet withRace(Identifier id, Race definition) {
         Objects.requireNonNull(id, "id");
         return new CharacterSheet(characterClass, level, definition.applyTo(abilities),
-                Optional.of(id), usedSpellSlots);
+                Optional.of(id), usedSpellSlots, usedFeatures);
     }
 
     /** How many slots of a spell level have been spent since the last rest. */
@@ -134,12 +143,27 @@ public record CharacterSheet(Optional<Identifier> characterClass, int level, Abi
     public CharacterSheet withSlotSpent(int spellLevel) {
         Map<Integer, Integer> spent = new java.util.HashMap<>(usedSpellSlots);
         spent.merge(spellLevel, 1, Integer::sum);
-        return new CharacterSheet(characterClass, level, abilities, race, spent);
+        return new CharacterSheet(characterClass, level, abilities, race, spent, usedFeatures);
     }
 
-    /** Returns a copy rested: every slot back. Health is restored by {@link HealthService}. */
+    /**
+     * Returns a copy rested: every slot and every once-per-rest feature back. Health is restored by
+     * {@link HealthService}.
+     */
     public CharacterSheet rested() {
-        return new CharacterSheet(characterClass, level, abilities, race, Map.of());
+        return new CharacterSheet(characterClass, level, abilities, race, Map.of(), Set.of());
+    }
+
+    /** Whether a once-per-rest feature has been spent since the last rest. */
+    public boolean hasUsedFeature(ClassFeature.Type feature) {
+        return usedFeatures.contains(feature);
+    }
+
+    /** Returns a copy with a once-per-rest feature spent. */
+    public CharacterSheet withFeatureUsed(ClassFeature.Type feature) {
+        Set<ClassFeature.Type> used = new java.util.HashSet<>(usedFeatures);
+        used.add(feature);
+        return new CharacterSheet(characterClass, level, abilities, race, usedSpellSlots, used);
     }
 
     public boolean hasRace() {
