@@ -14,6 +14,8 @@ import com.ddc.command.RollCommand;
 import com.ddc.core.dice.DiceRoller;
 import com.ddc.dice.DiceRollService;
 import com.ddc.gm.NarrationService;
+import com.ddc.gm.WorldControlService;
+import com.ddc.command.WorldCommand;
 import com.ddc.spell.SpellService;
 import com.ddc.network.DDCNetwork;
 import com.ddc.registry.DDCItems;
@@ -64,7 +66,8 @@ public final class DDC {
                 DDCRegistries.RACES, new NarrateCommand(new NarrationService()),
                 new SpellCommand(characters, DDCRegistries.SPELLS, DDCRegistries.CLASSES, spellService),
                 new FeatureCommand(new FeatureService(characters, diceRolls)),
-                new CheckCommand(characters, diceRolls));
+                new CheckCommand(characters, diceRolls),
+                new WorldCommand(new WorldControlService()));
 
         CommandRegistrationEvent.EVENT.register((dispatcher, registry, selection) -> {
             rollCommand.register(dispatcher);

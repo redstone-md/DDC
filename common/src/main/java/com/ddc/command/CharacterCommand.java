@@ -46,10 +46,11 @@ public final class CharacterCommand {
     private final SpellCommand spells;
     private final FeatureCommand features;
     private final CheckCommand checks;
+    private final WorldCommand world;
 
     public CharacterCommand(CharacterService characters, DataRegistry<CharacterClass> classes,
             DataRegistry<Race> races, NarrateCommand narration, SpellCommand spells,
-            FeatureCommand features, CheckCommand checks) {
+            FeatureCommand features, CheckCommand checks, WorldCommand world) {
         this.characters = characters;
         this.classes = classes;
         this.races = races;
@@ -57,6 +58,7 @@ public final class CharacterCommand {
         this.spells = spells;
         this.features = features;
         this.checks = checks;
+        this.world = world;
     }
 
     public void register(CommandDispatcher<CommandSourceStack> dispatcher) {
@@ -76,7 +78,8 @@ public final class CharacterCommand {
                 .then(checks.branch())
                 .then(features.secondWindBranch())
                 .then(features.channelDivinityBranch())
-                .then(narration.branch()));
+                .then(narration.branch())
+                .then(world.branch()));
     }
 
     private SuggestionProvider<CommandSourceStack> classSuggestions() {

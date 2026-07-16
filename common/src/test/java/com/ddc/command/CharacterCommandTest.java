@@ -48,7 +48,8 @@ class CharacterCommandTest {
                 new SpellCommand(characters, spells, classes,
                         new SpellService(characters, diceRolls, DiceRoller.replaying(1L))),
                 new FeatureCommand(new FeatureService(characters, diceRolls)),
-                new CheckCommand(characters, diceRolls))
+                new CheckCommand(characters, diceRolls),
+                new WorldCommand(new com.ddc.gm.WorldControlService()))
                 .register(dispatcher);
     }
 
@@ -101,6 +102,34 @@ class CharacterCommandTest {
         assertFalse(results.getReader().canRead());
         assertEquals("the walls tremble", results.getContext().getArguments().get("text").getResult(),
                 "narration takes the rest of the line, spaces and all");
+    }
+
+    @Test
+    @DisplayName("world control is a Game Master branch")
+    void worldControlIsGameMasterOnly() {
+        CommandNode<CommandSourceStack> world = node("ddc", "world");
+
+        assertFalse(world.canUse(source(PermissionSet.NO_PERMISSIONS)));
+        assertTrue(world.canUse(source(PermissionSet.ALL_PERMISSIONS)));
+    }
+
+    @Test
+    void everyWorldChangeHasABranch() {
+        CommandNode<CommandSourceStack> world = node("ddc", "world");
+
+        for (com.ddc.gm.WorldControlService.Change change : com.ddc.gm.WorldControlService.Change.values()) {
+            String name = change.name().toLowerCase(java.util.Locale.ROOT).replace('_', '-');
+            assertNotNull(world.getChild(name), "no branch for " + change);
+        }
+    }
+
+    @Test
+    void everyPlayerCanRollAnAbilityCheckAndUseTheirFeatures() {
+        assertTrue(node("ddc", "check").canUse(source(PermissionSet.NO_PERMISSIONS)));
+        assertTrue(node("ddc", "second-wind").canUse(source(PermissionSet.NO_PERMISSIONS)));
+        assertTrue(node("ddc", "channel-divinity").canUse(source(PermissionSet.NO_PERMISSIONS)));
+        assertTrue(node("ddc", "cast").canUse(source(PermissionSet.NO_PERMISSIONS)));
+        assertTrue(node("ddc", "rest").canUse(source(PermissionSet.NO_PERMISSIONS)));
     }
 
     @Test
