@@ -1,6 +1,9 @@
 package com.ddc.client;
 
 import com.ddc.client.dice.RollCache;
+import com.ddc.client.stream.OverlayCommand;
+import com.ddc.client.stream.OverlayEvents;
+import com.ddc.client.stream.OverlayServer;
 import com.ddc.network.CharacterSheetPayload;
 import com.ddc.network.DiceResultPayload;
 import com.ddc.network.NarrationPayload;
@@ -25,6 +28,13 @@ public final class DDCClient {
     private static final CharacterHud CHARACTER_HUD = new CharacterHud();
     private static final NarrationOverlay NARRATION = new NarrationOverlay();
     private static final Fanfare FANFARE = new Fanfare();
+
+    /**
+     * The stream overlay. Off until a streamer asks for it: a mod that opens a socket on every
+     * machine that installs it, for a feature most players never use, has helped itself to something
+     * it was not given.
+     */
+    private static final OverlayServer OVERLAY = new OverlayServer();
 
     private DDCClient() {
     }
@@ -51,6 +61,7 @@ public final class DDCClient {
                     // The dice standing in the world find their faces here, by seed.
                     RollCache.put(payload.result());
                     FANFARE.accept(payload.result(), isMine(payload.roller()), now);
+                    OVERLAY.broadcast(OverlayEvents.diceRoll(payload.rollerName(), payload.result()));
                 }));
 
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, CharacterSheetPayload.TYPE,
@@ -62,7 +73,13 @@ public final class DDCClient {
                 NarrationPayload.STREAM_CODEC,
                 (payload, context) -> context.queue(() -> NARRATION.accept(payload.text(), Util.getMillis())));
 
-        ClientPlayerEvent.CLIENT_PLAYER_QUIT.register(player -> RollCache.clear());
+        new OverlayCommand(OVERLAY).register();
+
+        ClientPlayerEvent.CLIENT_PLAYER_QUIT.register(player -> {
+            RollCache.clear();
+            // Leaving a world drops the widgets: what they were watching is gone.
+            OVERLAY.stop();
+        });
 
         // The shake moves the player's own head, so it has to happen on the client tick rather than
         // during rendering, where the camera has already been placed for the frame.
