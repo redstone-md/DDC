@@ -40,23 +40,28 @@ public final class SpellService {
         this.roller = roller;
     }
 
-    /** Why a cast could not happen. Each maps to something the caster can act on. */
+    /**
+      * Why a cast could not happen. Each maps to something the caster can act on.
+      *
+      * <p>A key rather than a sentence: the server decides what happened, and only the player's own
+      * client knows what language to say it in.
+      */
     public enum Failure {
-        NO_CLASS("You have no class yet. Pick one with /ddc class <id>."),
-        CLASS_CANNOT_CAST("Your class cannot cast spells."),
-        SPELL_TOO_HIGH("You cannot cast a spell of that level yet."),
-        NO_SLOTS("You have no spell slots of that level left. Rest with /ddc rest."),
-        NOT_PREPARED("That spell is not in your spellbook. Write it in with /ddc prepare <spell>."),
-        OUT_OF_RANGE("That target is out of range.");
+        NO_CLASS("ddc.error.no_class"),
+        CLASS_CANNOT_CAST("ddc.error.cannot_cast"),
+        SPELL_TOO_HIGH("ddc.error.spell_too_high"),
+        NO_SLOTS("ddc.error.no_slots"),
+        NOT_PREPARED("ddc.error.not_prepared"),
+        OUT_OF_RANGE("ddc.error.out_of_range");
 
-        private final String message;
+        private final String key;
 
-        Failure(String message) {
-            this.message = message;
+        Failure(String key) {
+            this.key = key;
         }
 
-        public String message() {
-            return message;
+        public net.minecraft.network.chat.Component message() {
+            return net.minecraft.network.chat.Component.translatable(key);
         }
     }
 

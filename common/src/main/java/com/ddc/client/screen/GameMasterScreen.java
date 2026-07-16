@@ -41,7 +41,7 @@ public class GameMasterScreen extends Screen {
     private EditBox narration;
 
     public GameMasterScreen() {
-        super(Component.literal("Game Master"));
+        super(Component.translatable("ddc.screen.gm"));
     }
 
     /** The table does not stop while the GM works. */
@@ -56,12 +56,12 @@ public class GameMasterScreen extends Screen {
         int top = height / 2 - 70;
 
         narration = new EditBox(font, left, top + 14, PANEL_WIDTH, BUTTON_HEIGHT,
-                Component.literal("Narration"));
+                Component.translatable("ddc.screen.narrate"));
         narration.setMaxLength(com.ddc.network.NarrationPayload.MAX_LENGTH);
-        narration.setHint(Component.literal("The walls begin to tremble..."));
+        narration.setHint(Component.translatable("ddc.screen.narrate.hint"));
         addRenderableWidget(narration);
 
-        addRenderableWidget(Button.builder(Component.literal("Narrate"), button -> narrate())
+        addRenderableWidget(Button.builder(Component.translatable("ddc.screen.narrate"), button -> narrate())
                 .bounds(left, top + 14 + BUTTON_HEIGHT + GAP, PANEL_WIDTH, BUTTON_HEIGHT)
                 .build());
 
@@ -69,7 +69,8 @@ public class GameMasterScreen extends Screen {
         int buttonWidth = (PANEL_WIDTH - GAP) / 2;
         for (int i = 0; i < WORLD_CHANGES.size(); i++) {
             String change = WORLD_CHANGES.get(i);
-            addRenderableWidget(Button.builder(Component.literal(change),
+            addRenderableWidget(Button.builder(
+                            Component.translatable("ddc.world." + change.replace('-', '_')),
                             button -> send("ddc world " + change))
                     .bounds(left + (i % 2) * (buttonWidth + GAP), y + (i / 2) * (BUTTON_HEIGHT + GAP),
                             buttonWidth, BUTTON_HEIGHT)
@@ -99,12 +100,10 @@ public class GameMasterScreen extends Screen {
         int panelHeight = 14 + (BUTTON_HEIGHT + GAP) * 2 + 8
                 + (WORLD_CHANGES.size() / 2) * (BUTTON_HEIGHT + GAP) + 12;
 
-        graphics.nextStratum();
-        graphics.blurBeforeThisStratum();
-
+        // A Screen already blurs what is behind it; a second blur in one frame is an error.
         graphics.fill(left - 8, top, left + PANEL_WIDTH + 8, top + panelHeight, BACKDROP);
         graphics.outline(left - 8, top, PANEL_WIDTH + 16, panelHeight, BORDER);
-        graphics.text(font, Component.literal("GAME MASTER"), left, top + 6, BRASS);
+        graphics.text(font, Component.translatable("ddc.screen.gm"), left, top + 6, BRASS);
 
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }

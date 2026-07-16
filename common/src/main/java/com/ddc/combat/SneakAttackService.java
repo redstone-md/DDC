@@ -76,7 +76,7 @@ public final class SneakAttackService {
     }
 
     private static void announce(ServerPlayer attacker, RollResult damage) {
-        attacker.sendSystemMessage(Component.literal("Sneak attack: " + damage.total() + " extra damage")
+        attacker.sendSystemMessage(Component.translatable("ddc.combat.sneak_attack", damage.total())
                 .withStyle(ChatFormatting.DARK_RED), true);
     }
 }

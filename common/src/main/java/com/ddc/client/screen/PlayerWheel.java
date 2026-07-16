@@ -1,7 +1,9 @@
 package com.ddc.client.screen;
 
 import com.ddc.character.CharacterSheet;
+import com.ddc.client.ClientRules;
 import com.ddc.network.ClassSummary;
+import com.ddc.network.RulesPayload;
 import com.ddc.rules.ClassFeature;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,18 +11,22 @@ import java.util.Optional;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 
 /**
  * What goes on a player's wheel.
  *
- * <p>Built from the sheet and the class summary the server sent, so a wizard is not offered Second
- * Wind and a fighter is not offered Cast. A wheel of things that will not work is worse than no wheel.
+ * <p>Two wheels, really. A character who has not been made yet gets the one that makes them: pick a
+ * class, pick a race, and nothing else, because nothing else works yet. A character who exists gets
+ * the one that plays them.
  *
- * <p>Spells need a target, and the target is whatever the player is looking at. Sending its UUID is
- * what makes that work: the entity selector takes one, so the command the wheel sends is the command
- * the player could have typed.
+ * <p>Everything a player can do is here, so nothing has to be typed. The lists come from the server's
+ * own data packs, which is why an addon's class appears on the wheel with no client update.
+ *
+ * <p>Spells are aimed at whatever the player is looking at, and its UUID goes in the command, because
+ * that is what the entity selector takes: the wheel sends a command a player could have typed.
  */
 @Environment(EnvType.CLIENT)
 public final class PlayerWheel {
@@ -28,51 +34,102 @@ public final class PlayerWheel {
     private PlayerWheel() {
     }
 
-    /** The wheel for a character, or an empty one when they have not made a character yet. */
-    public static List<WheelOption> optionsFor(CharacterSheet sheet, Optional<ClassSummary> summary) {
-        List<WheelOption> options = new ArrayList<>();
+    /** The wheel a player sees when they press the key. */
+    public static WheelScreen forPlayer(CharacterSheet sheet, Optional<ClassSummary> summary) {
         if (sheet == null || !sheet.hasClass() || summary.isEmpty()) {
-            return options;
+            return new WheelScreen(Component.translatable("ddc.wheel.create"), creation());
         }
-        ClassSummary klass = summary.get();
-
-        options.add(new WheelOption("Roll", "1d20", "roll 1d20"));
-        options.add(WheelOption.of("Sheet", "ddc sheet"));
-
-        if (klass.canCast()) {
-            spellOptions(sheet, options);
-        }
-        if (klass.has(ClassFeature.Type.SECOND_WIND)) {
-            options.add(new WheelOption("Second Wind", "heal", "ddc second-wind"));
-        }
-        if (klass.has(ClassFeature.Type.CHANNEL_DIVINITY)) {
-            options.add(new WheelOption("Channel", "turn undead", "ddc channel-divinity"));
-        }
-        options.add(new WheelOption("Rest", "slots back", "ddc rest"));
-        return options;
+        return new WheelScreen(Component.literal(summary.get().name()), actions(sheet, summary.get()));
     }
 
     /**
-     * A slice per prepared spell, aimed at whatever the player is looking at.
+     * The wheel for a character who does not exist yet.
      *
-     * <p>Only prepared spells: cantrips are known rather than written down, and the client is not
-     * told which spells exist -- that lives in the server's data packs. A caster with an empty book
-     * is told to fill it rather than shown an empty wheel.
+     * <p>Only the two things that do anything. Offering Cast to someone with no class would be
+     * offering a button that fails, and a menu that lies is worse than a command that at least says
+     * what it wanted.
      */
-    private static void spellOptions(CharacterSheet sheet, List<WheelOption> options) {
-        Optional<Entity> target = lookingAt();
-        if (sheet.preparedSpells().isEmpty()) {
-            options.add(new WheelOption("No spells", "use /ddc prepare", "ddc sheet"));
-            return;
+    private static List<WheelOption> creation() {
+        List<WheelOption> options = new ArrayList<>();
+        options.add(new WheelOption(Component.translatable("ddc.wheel.class"),
+                Component.translatable("ddc.wheel.class.detail"), Wheels.CLASS_MENU));
+        options.add(new WheelOption(Component.translatable("ddc.wheel.race"),
+                Component.translatable("ddc.wheel.race.detail"), Wheels.RACE_MENU));
+        return options;
+    }
+
+    /** The wheel for a character who does. */
+    private static List<WheelOption> actions(CharacterSheet sheet, ClassSummary klass) {
+        List<WheelOption> options = new ArrayList<>();
+        options.add(new WheelOption(Component.translatable("ddc.wheel.roll"),
+                Component.literal("1d20"), "roll 1d20"));
+
+        if (klass.canCast()) {
+            options.add(new WheelOption(Component.translatable("ddc.wheel.cast"),
+                    Component.translatable("ddc.wheel.cast.detail"), Wheels.SPELL_MENU));
         }
+        if (klass.has(ClassFeature.Type.SECOND_WIND)) {
+            options.add(new WheelOption(Component.translatable("ddc.wheel.second_wind"),
+                    Component.translatable("ddc.wheel.second_wind.detail"), "ddc second-wind"));
+        }
+        if (klass.has(ClassFeature.Type.CHANNEL_DIVINITY)) {
+            options.add(new WheelOption(Component.translatable("ddc.wheel.channel"),
+                    Component.translatable("ddc.wheel.channel.detail"), "ddc channel-divinity"));
+        }
+        options.add(new WheelOption(Component.translatable("ddc.wheel.rest"),
+                Component.translatable("ddc.wheel.rest.detail"), "ddc rest"));
+        options.add(new WheelOption(Component.translatable("ddc.wheel.sheet"),
+                Component.empty(), Wheels.SHEET_SCREEN));
+        options.add(new WheelOption(Component.translatable("ddc.wheel.race"),
+                Component.translatable("ddc.wheel.race.detail"), Wheels.RACE_MENU));
+        return options;
+    }
+
+    /** The classes a player may pick, as the server's packs define them. */
+    public static List<WheelOption> classes() {
+        return ClientRules.classes().stream()
+                .map(entry -> new WheelOption(Component.literal(entry.name()),
+                        Component.translatable("ddc.wheel.pick"), "ddc class " + entry.id()))
+                .toList();
+    }
+
+    /** The races a player may pick. */
+    public static List<WheelOption> races() {
+        return ClientRules.races().stream()
+                .map(entry -> new WheelOption(Component.literal(entry.name()),
+                        Component.translatable("ddc.wheel.pick"), "ddc race " + entry.id()))
+                .toList();
+    }
+
+    /**
+     * The spells this character can cast at what they are looking at.
+     *
+     * <p>Prepared spells and cantrips: a cantrip is known rather than written down, so it is on the
+     * wheel whether or not the book has it. Without a target there is nothing to aim at, and the
+     * wheel says so rather than sending a command that cannot work.
+     */
+    public static List<WheelOption> spells(CharacterSheet sheet) {
+        Optional<Entity> target = lookingAt();
         if (target.isEmpty()) {
-            options.add(new WheelOption("Cast", "look at a target", "ddc sheet"));
-            return;
+            return List.of(new WheelOption(Component.translatable("ddc.wheel.no_target"),
+                    Component.translatable("ddc.wheel.no_target.detail"), ""));
         }
         String selector = target.get().getUUID().toString();
-        for (Identifier spell : sheet.preparedSpells()) {
-            options.add(new WheelOption(name(spell), "cast", "ddc cast " + spell + " " + selector));
-        }
+
+        List<WheelOption> options = ClientRules.spells().stream()
+                .filter(spell -> spell.level() == 0 || sheet.hasPrepared(spell.id()))
+                .map(spell -> new WheelOption(
+                        Component.literal(spell.name()),
+                        spell.level() == 0
+                                ? Component.translatable("ddc.wheel.cantrip")
+                                : Component.translatable("ddc.wheel.level", spell.level()),
+                        "ddc cast " + spell.id() + " " + selector))
+                .toList();
+
+        return options.isEmpty()
+                ? List.of(new WheelOption(Component.translatable("ddc.wheel.no_spells"),
+                        Component.translatable("ddc.wheel.no_spells.detail"), ""))
+                : options;
     }
 
     /** The entity under the crosshair, if the player is looking at one. */
@@ -84,9 +141,30 @@ public final class PlayerWheel {
         return Optional.empty();
     }
 
-    /** A spell's id, tidied for a label: the client is never told the name its pack gave it. */
+    /** A spell's id, tidied for a label, for when the server never told us its name. */
     static String name(Identifier spell) {
         String path = spell.getPath().replace('_', ' ');
         return Character.toUpperCase(path.charAt(0)) + path.substring(1);
+    }
+
+    /** The commands that open another wheel instead of being sent. */
+    public static final class Wheels {
+        public static final String CLASS_MENU = "@class";
+        public static final String RACE_MENU = "@race";
+        public static final String SPELL_MENU = "@spell";
+        public static final String SHEET_SCREEN = "@sheet";
+
+        private Wheels() {
+        }
+
+        /** Whether an option opens something rather than sending a command. */
+        public static boolean isMenu(String command) {
+            return command.startsWith("@");
+        }
+    }
+
+    /** Unused ids fall back to this so a stale prepared spell still reads as a name. */
+    static Component labelFor(RulesPayload.Entry entry) {
+        return Component.literal(entry.name());
     }
 }

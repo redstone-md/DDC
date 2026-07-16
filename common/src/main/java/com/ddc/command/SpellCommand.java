@@ -35,10 +35,10 @@ public final class SpellCommand {
     private static final String ARG_TARGET = "target";
 
     private static final DynamicCommandExceptionType UNKNOWN_SPELL = new DynamicCommandExceptionType(
-            id -> Component.literal("No loaded data pack defines the spell '" + id + "'"));
+            id -> Component.translatable("ddc.error.unknown_spell", id));
 
     private static final SimpleCommandExceptionType NOT_A_CREATURE =
-            new SimpleCommandExceptionType(Component.literal("You can only cast that at a creature."));
+            new SimpleCommandExceptionType(Component.translatable("ddc.error.not_a_creature"));
 
     private final CharacterService characters;
     private final DataRegistry<Spell> spells;
@@ -80,44 +80,42 @@ public final class SpellCommand {
 
         return switch (spellService.cast(caster, spell, id, living)) {
             case SpellService.Either.Left<SpellService.Failure, SpellService.Cast> left -> {
-                context.getSource().sendFailure(Component.literal(left.value().message()));
+                context.getSource().sendFailure(left.value().message());
                 yield 0;
             }
             case SpellService.Either.Right<SpellService.Failure, SpellService.Cast> right -> {
-                context.getSource().sendSuccess(() -> Component.literal(describe(right.value(), living)),
-                        false);
+                context.getSource().sendSuccess(() -> describe(right.value(), living), false);
                 yield Math.max(1, right.value().damageDealt());
             }
         };
     }
 
-    private String describe(SpellService.Cast cast, LivingEntity target) {
-        StringBuilder sb = new StringBuilder(cast.spell().name())
-                .append(" on ").append(target.getName().getString());
-        cast.save().ifPresent(save -> sb.append(save.isSuccess() ? " - saved" : " - failed the save")
-                .append(" (").append(save.total()).append(" vs DC ").append(save.difficultyClass())
-                .append(')'));
+    /** What the cast did, in the caster's own language. */
+    private Component describe(SpellService.Cast cast, LivingEntity target) {
+        net.minecraft.network.chat.MutableComponent message = Component.translatable("ddc.spell.cast",
+                cast.spell().name(), target.getName());
+
+        cast.save().ifPresent(save -> message.append(" — ")
+                .append(Component.translatable(save.isSuccess()
+                        ? "ddc.spell.saved" : "ddc.spell.failed_save"))
+                .append(" (" + save.total() + " / DC " + save.difficultyClass() + ")"));
         if (cast.damageDealt() > 0) {
-            sb.append(" for ").append(cast.damageDealt()).append(" damage");
+            message.append(" ").append(Component.translatable("ddc.spell.damage", cast.damageDealt()));
         }
-        return sb.toString();
+        return message;
     }
 
     private int rest(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = context.getSource().getPlayerOrException();
         CharacterSheet sheet = characters.get(player);
         if (!sheet.hasClass()) {
-            context.getSource().sendFailure(
-                    Component.literal("You have no class yet. Pick one with /ddc class <id>."));
+            context.getSource().sendFailure(Component.translatable("ddc.error.no_class"));
             return 0;
         }
         characters.update(player, CharacterSheet::rested);
         characters.health().applyAndHeal(player);
 
-        int hitPoints = HealthService.currentHitPoints(player);
-        context.getSource().sendSuccess(
-                () -> Component.literal("You take a long rest. Hit points and spell slots restored ("
-                        + hitPoints + " HP)."), false);
-        return hitPoints;
+        context.getSource().sendSuccess(() -> Component.translatable("ddc.rest.taken"), false);
+        return HealthService.currentHitPoints(player);
     }
 }

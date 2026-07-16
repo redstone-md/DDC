@@ -34,24 +34,24 @@ public final class WorldControlService {
 
     /** What a GM can do to the world. */
     public enum Change {
-        DAY("The sun rises."),
-        NIGHT("Night falls."),
-        STORM("Thunder rolls in."),
-        CLEAR("The sky clears."),
-        PAUSE_TIME("Time stands still."),
-        RESUME_TIME("Time moves again."),
-        FREEZE("The party is rooted where they stand."),
-        RELEASE("The party can move again.");
+        DAY("ddc.world.day"),
+        NIGHT("ddc.world.night"),
+        STORM("ddc.world.storm"),
+        CLEAR("ddc.world.clear"),
+        PAUSE_TIME("ddc.world.pause_time"),
+        RESUME_TIME("ddc.world.resume_time"),
+        FREEZE("ddc.world.freeze"),
+        RELEASE("ddc.world.release");
 
-        private final String narration;
+        private final String key;
 
-        Change(String narration) {
-            this.narration = narration;
+        Change(String key) {
+            this.key = key;
         }
 
-        /** What the GM is told, and what reads well if they pass it on. */
-        public String narration() {
-            return narration;
+        /** What the GM is told, in their own language, and what reads well if they pass it on. */
+        public net.minecraft.network.chat.Component narration() {
+            return net.minecraft.network.chat.Component.translatable(key);
         }
     }
 
@@ -60,9 +60,9 @@ public final class WorldControlService {
      *
      * @return the reason nothing happened, or empty once it has
      */
-    public Optional<String> apply(ServerPlayer gameMaster, Change change) {
+    public Optional<net.minecraft.network.chat.Component> apply(ServerPlayer gameMaster, Change change) {
         if (!GameMasters.isGameMaster(gameMaster)) {
-            return Optional.of("Only a Game Master can do that.");
+            return Optional.of(net.minecraft.network.chat.Component.translatable("ddc.error.not_gm"));
         }
         ServerLevel level = gameMaster.level();
 

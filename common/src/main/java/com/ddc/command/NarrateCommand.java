@@ -24,10 +24,10 @@ public final class NarrateCommand {
     private static final String ARG_TEXT = "text";
 
     private static final SimpleCommandExceptionType NOT_A_GAME_MASTER =
-            new SimpleCommandExceptionType(Component.literal("Only a Game Master can narrate."));
+            new SimpleCommandExceptionType(Component.translatable("ddc.gm.narrate_only"));
 
     private static final SimpleCommandExceptionType TOO_LONG = new SimpleCommandExceptionType(
-            Component.literal("That narration is too long."));
+            Component.translatable("ddc.gm.narration_long"));
 
     private final NarrationService narration;
 
@@ -54,7 +54,7 @@ public final class NarrateCommand {
         }
         int audience = narration.narrate(player, text);
         context.getSource().sendSuccess(
-                () -> Component.literal("Narrated to " + audience + " player(s)."), true);
+                () -> Component.translatable("ddc.gm.narrated", audience), true);
         return audience;
     }
 }

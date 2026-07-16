@@ -47,21 +47,21 @@ public final class PossessionService {
 
     private final Map<UUID, Possession> possessions = new ConcurrentHashMap<>();
 
-    /** Why a possession did not happen. */
+    /** Why a possession did not happen. A key: the client picks the language. */
     public enum Failure {
-        NOT_A_GAME_MASTER("Only a Game Master can possess a creature."),
-        NOT_A_MOB("You can only possess a creature with a mind of its own."),
-        ALREADY_POSSESSED("Someone is already driving that one."),
-        ALREADY_DRIVING("You are already possessing something. Sneak to let go.");
+        NOT_A_GAME_MASTER("ddc.error.not_gm"),
+        NOT_A_MOB("ddc.error.not_a_mob"),
+        ALREADY_POSSESSED("ddc.error.already_possessed"),
+        ALREADY_DRIVING("ddc.error.already_driving");
 
-        private final String message;
+        private final String key;
 
-        Failure(String message) {
-            this.message = message;
+        Failure(String key) {
+            this.key = key;
         }
 
-        public String message() {
-            return message;
+        public net.minecraft.network.chat.Component message() {
+            return net.minecraft.network.chat.Component.translatable(key);
         }
     }
 
@@ -99,8 +99,7 @@ public final class PossessionService {
 
         gameMaster.setGameMode(GameType.SPECTATOR);
         gameMaster.setCamera(mob);
-        gameMaster.sendSystemMessage(Component.literal(
-                        "You are " + mob.getName().getString() + ". Sneak to let go.")
+        gameMaster.sendSystemMessage(Component.translatable("ddc.gm.possessing", mob.getName())
                 .withStyle(ChatFormatting.GOLD), true);
         return Optional.empty();
     }
@@ -127,7 +126,7 @@ public final class PossessionService {
         gameMaster.setGameMode(possession.previousMode());
         gameMaster.teleportTo(possession.mob().getX(), possession.mob().getY() + 1,
                 possession.mob().getZ());
-        gameMaster.sendSystemMessage(Component.literal("You let go.")
+        gameMaster.sendSystemMessage(Component.translatable("ddc.gm.released")
                 .withStyle(ChatFormatting.GRAY), true);
     }
 
@@ -147,7 +146,7 @@ public final class PossessionService {
                 continue;
             }
             if (!possession.isAlive()) {
-                gameMaster.sendSystemMessage(Component.literal("Your monster died. You are yourself again.")
+                gameMaster.sendSystemMessage(Component.translatable("ddc.gm.mob_died")
                         .withStyle(ChatFormatting.RED), true);
                 release(gameMaster);
                 continue;

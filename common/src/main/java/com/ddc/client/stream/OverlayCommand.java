@@ -67,7 +67,7 @@ public final class OverlayCommand {
 
     private int start(CommandContext<ClientCommandSourceStack> context, int port) {
         if (server.isRunning()) {
-            context.getSource().arch$sendFailure(Component.literal("The overlay is already running."));
+            context.getSource().arch$sendFailure(Component.translatable("ddc.stream.overlay_already"));
             return 0;
         }
         OverlayServer.Result result = server.start(port);
@@ -75,22 +75,22 @@ public final class OverlayCommand {
             context.getSource().arch$sendFailure(Component.literal(result.message()));
             return 0;
         }
-        context.getSource().arch$sendSuccess(() -> Component.literal(result.message()
-                + " — add that URL to OBS as a Browser Source.").withStyle(ChatFormatting.GOLD), false);
+        context.getSource().arch$sendSuccess(() -> Component.translatable("ddc.stream.overlay_running",
+                result.message()).withStyle(ChatFormatting.GOLD), false);
         return port;
     }
 
     private int stop(CommandContext<ClientCommandSourceStack> context) {
         server.stop();
-        context.getSource().arch$sendSuccess(() -> Component.literal("Overlay stopped."), false);
+        context.getSource().arch$sendSuccess(() -> Component.translatable("ddc.stream.overlay_stopped"), false);
         return 1;
     }
 
     private int status(CommandContext<ClientCommandSourceStack> context) {
-        String message = server.isRunning()
-                ? "Overlay running, " + server.connected() + " widget(s) connected."
-                : "Overlay stopped. Start it with /ddcstream overlay start.";
-        context.getSource().arch$sendSuccess(() -> Component.literal(message), false);
+        Component message = server.isRunning()
+                ? Component.translatable("ddc.stream.overlay_status", server.connected())
+                : Component.translatable("ddc.stream.overlay_off");
+        context.getSource().arch$sendSuccess(() -> message, false);
         return server.isRunning() ? 1 : 0;
     }
 }

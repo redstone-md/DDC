@@ -44,13 +44,11 @@ public final class FeatureCommand {
 
         return switch (action.apply(player)) {
             case FeatureService.Either.Left<FeatureService.Failure, FeatureService.Used> left -> {
-                context.getSource().sendFailure(Component.literal(left.value().message()));
+                context.getSource().sendFailure(left.value().message());
                 yield 0;
             }
             case FeatureService.Either.Right<FeatureService.Failure, FeatureService.Used> right -> {
-                FeatureService.Used used = right.value();
-                context.getSource().sendSuccess(
-                        () -> Component.literal(used.name() + ": " + used.detail()), false);
+                context.getSource().sendSuccess(() -> right.value().message(), false);
                 yield 1;
             }
         };

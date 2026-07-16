@@ -87,8 +87,8 @@ public final class CombatListener {
         if (!(attacker instanceof ServerPlayer player)) {
             return;
         }
-        Component message = Component.literal(
-                        "Miss: " + outcome.roll().describe() + " vs AC " + outcome.difficultyClass())
+        Component message = Component.translatable("ddc.combat.miss",
+                        outcome.roll().describe(), outcome.difficultyClass())
                 .withStyle(outcome.degree() == CheckOutcome.Degree.CRITICAL_FAILURE
                         ? ChatFormatting.RED
                         : ChatFormatting.GRAY);

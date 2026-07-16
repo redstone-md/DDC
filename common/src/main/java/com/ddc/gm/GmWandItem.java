@@ -52,7 +52,7 @@ public class GmWandItem extends Item {
         }
         Optional<PossessionService.Failure> failure = possessions.possess(player, target);
         failure.ifPresent(reason -> player.sendSystemMessage(
-                Component.literal(reason.message()).withStyle(ChatFormatting.RED), true));
+                reason.message().copy().withStyle(ChatFormatting.RED), true));
         return failure.isEmpty() ? InteractionResult.SUCCESS : InteractionResult.FAIL;
     }
 
@@ -64,16 +64,15 @@ public class GmWandItem extends Item {
             return InteractionResult.CONSUME;
         }
         if (!GameMasters.isGameMaster(player)) {
-            player.sendSystemMessage(
-                    Component.literal(EncounterService.Failure.NOT_A_GAME_MASTER.message())
-                            .withStyle(ChatFormatting.RED), true);
+            player.sendSystemMessage(EncounterService.Failure.NOT_A_GAME_MASTER.message()
+                    .copy().withStyle(ChatFormatting.RED), true);
             return InteractionResult.FAIL;
         }
 
         List<Identifier> available = availableEncounters();
         if (available.isEmpty()) {
-            player.sendSystemMessage(Component.literal(
-                    "No data pack defines any encounters.").withStyle(ChatFormatting.RED), true);
+            player.sendSystemMessage(Component.translatable("ddc.error.no_encounters")
+                    .withStyle(ChatFormatting.RED), true);
             return InteractionResult.FAIL;
         }
 
@@ -91,8 +90,8 @@ public class GmWandItem extends Item {
     private InteractionResult cycle(ServerPlayer player, List<Identifier> available) {
         Identifier next = GmWandSelection.next(player, available);
         DDCRegistries.ENCOUNTERS.get(next).ifPresent(encounter ->
-                player.sendSystemMessage(Component.literal("Selected: " + encounter.name()
-                        + " (" + encounter.total() + " mobs)").withStyle(ChatFormatting.GOLD), true));
+                player.sendSystemMessage(Component.translatable("ddc.gm.selected",
+                        encounter.name(), encounter.total()).withStyle(ChatFormatting.GOLD), true));
         return InteractionResult.SUCCESS;
     }
 
@@ -106,9 +105,9 @@ public class GmWandItem extends Item {
 
         EncounterService.Result result = encounters.spawn(player, encounter.get(), level, at);
         Component message = result.isSuccess()
-                ? Component.literal("Spawned " + encounter.get().name() + ": " + result.spawned() + " mobs")
+                ? Component.translatable("ddc.gm.spawned", encounter.get().name(), result.spawned())
                         .withStyle(ChatFormatting.GOLD)
-                : Component.literal(result.failure().orElseThrow().message()).withStyle(ChatFormatting.RED);
+                : result.failure().orElseThrow().message().copy().withStyle(ChatFormatting.RED);
         player.sendSystemMessage(message, true);
         return result.isSuccess() ? InteractionResult.SUCCESS : InteractionResult.FAIL;
     }

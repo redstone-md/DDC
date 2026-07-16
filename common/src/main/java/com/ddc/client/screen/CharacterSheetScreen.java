@@ -17,8 +17,9 @@ import net.minecraft.network.chat.Component;
  * asked the server nicely would be a lie about where the rules live. Choices are made with commands,
  * which the server can check.
  *
- * <p>PRD 3.1's glassmorphic panel: the world behind the card is blurred by the renderer's own pass,
- * which is what {@link GuiGraphicsExtractor#blurBeforeThisStratum()} is for.
+ * <p>PRD 3.1's glassmorphic panel: a Screen blurs the world behind itself, and the card is drawn on
+ * top of that. The blur is the renderer's, not this class's -- asking for one here as well crashed
+ * the game with "can only blur once per frame".
  */
 @Environment(EnvType.CLIENT)
 public class CharacterSheetScreen extends Screen {
@@ -39,7 +40,7 @@ public class CharacterSheetScreen extends Screen {
     private final String className;
 
     public CharacterSheetScreen(CharacterSheet sheet, String className) {
-        super(Component.literal("Character Sheet"));
+        super(Component.translatable("ddc.screen.sheet"));
         this.sheet = sheet;
         this.className = className;
     }
@@ -61,38 +62,36 @@ public class CharacterSheetScreen extends Screen {
         int left = (width - CARD_WIDTH) / 2;
         int top = (height - CARD_HEIGHT) / 2;
 
-        // The world behind the card is blurred; the card is drawn on the stratum above it, sharp.
-        graphics.nextStratum();
-        graphics.blurBeforeThisStratum();
-
+        // A Screen already blurs what is behind it, so the card only has to be drawn on top. Asking
+        // for a second blur in one frame is an error the renderer throws on.
         graphics.fill(left, top, left + CARD_WIDTH, top + CARD_HEIGHT, BACKDROP);
         graphics.outline(left, top, CARD_WIDTH, CARD_HEIGHT, BORDER);
 
         LocalPlayer player = minecraft == null ? null : minecraft.player;
         int y = top + 8;
 
-        graphics.text(font, Component.literal(className.toUpperCase(java.util.Locale.ROOT)
-                + "  ·  LEVEL " + sheet.level()), left + 10, y, BRASS);
+        graphics.text(font, Component.translatable("ddc.screen.level",
+                className.toUpperCase(java.util.Locale.ROOT), sheet.level()), left + 10, y, BRASS);
         y += LINE + 2;
 
         if (player != null) {
-            graphics.text(font, Component.literal("Hit points  "
-                            + Math.round(player.getHealth()) + " / " + Math.round(player.getMaxHealth())),
+            graphics.text(font, Component.translatable("ddc.screen.hit_points",
+                            Math.round(player.getHealth()), Math.round(player.getMaxHealth())),
                     left + 10, y, TEXT);
             y += LINE;
         }
-        graphics.text(font, Component.literal("Proficiency  +" + sheet.proficiencyBonus()),
+        graphics.text(font, Component.translatable("ddc.screen.proficiency", sheet.proficiencyBonus()),
                 left + 10, y, TEXT);
         y += LINE + 6;
 
         y = renderAbilities(graphics, left, y);
 
-        graphics.text(font, Component.literal(sheet.preparedSpells().isEmpty()
-                        ? "No spells prepared"
-                        : sheet.preparedSpells().size() + " spell(s) prepared"),
+        graphics.text(font, sheet.preparedSpells().isEmpty()
+                        ? Component.translatable("ddc.screen.no_prepared")
+                        : Component.translatable("ddc.screen.prepared", sheet.preparedSpells().size()),
                 left + 10, y, MUTED);
         y += LINE;
-        graphics.text(font, Component.literal("Roll with /roll, act with /ddc"), left + 10, y, MUTED);
+        graphics.text(font, Component.translatable("ddc.screen.hint"), left + 10, y, MUTED);
     }
 
     /** The six abilities as score and modifier, two columns, the way a paper sheet reads. */

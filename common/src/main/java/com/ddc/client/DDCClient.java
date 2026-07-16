@@ -18,6 +18,7 @@ import com.ddc.client.stream.OverlayServer;
 import com.ddc.network.CharacterSheetPayload;
 import com.ddc.network.DiceResultPayload;
 import com.ddc.network.NarrationPayload;
+import com.ddc.network.RulesPayload;
 import dev.architectury.event.events.client.ClientGuiEvent;
 import dev.architectury.event.events.client.ClientPlayerEvent;
 import dev.architectury.networking.NetworkManager;
@@ -76,15 +77,23 @@ public final class DDCClient {
      * round trip would open on a stale one anyway.
      */
     private static void openSheet(Minecraft client) {
-        CHARACTER_HUD.sheet().ifPresent(sheet -> client.setScreen(
-                new CharacterSheetScreen(sheet, CHARACTER_HUD.className())));
+        CHARACTER_HUD.sheet().ifPresent(sheet -> client.setScreen(sheetScreen()));
     }
 
-    /** Opens the wheel with whatever this character can actually do. */
+    /** Opens the wheel: the one that makes a character, or the one that plays them. */
     private static void openWheel(Minecraft client) {
-        CHARACTER_HUD.sheet().ifPresent(sheet -> client.setScreen(new WheelScreen(
-                CHARACTER_HUD.className(),
-                PlayerWheel.optionsFor(sheet, CHARACTER_HUD.summary()))));
+        client.setScreen(PlayerWheel.forPlayer(CHARACTER_HUD.sheet().orElse(null),
+                CHARACTER_HUD.summary()));
+    }
+
+    /** The sheet this client was last sent, for the menus that draw from it. */
+    public static java.util.Optional<com.ddc.character.CharacterSheet> sheet() {
+        return CHARACTER_HUD.sheet();
+    }
+
+    /** The sheet screen, for the wheel slice that opens it. */
+    public static net.minecraft.client.gui.screens.Screen sheetScreen() {
+        return new CharacterSheetScreen(CHARACTER_HUD.sheet().orElse(null), CHARACTER_HUD.className());
     }
 
     /** The fanfare, for the loader hooks that have to drive the camera themselves. */
@@ -117,6 +126,10 @@ public final class DDCClient {
                 (payload, context) -> context.queue(() ->
                         CHARACTER_HUD.accept(payload.sheet(), payload.summary())));
 
+        NetworkManager.registerReceiver(NetworkManager.Side.S2C, RulesPayload.TYPE,
+                RulesPayload.STREAM_CODEC,
+                (payload, context) -> context.queue(() -> ClientRules.accept(payload)));
+
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, NarrationPayload.TYPE,
                 NarrationPayload.STREAM_CODEC,
                 (payload, context) -> context.queue(() -> NARRATION.accept(payload.text(), Util.getMillis())));
@@ -129,6 +142,7 @@ public final class DDCClient {
 
         ClientPlayerEvent.CLIENT_PLAYER_QUIT.register(player -> {
             RollCache.clear();
+            ClientRules.clear();
             // Leaving a world drops the widgets and the chat: what they were watching is gone.
             OVERLAY.stop();
             TWITCH.close();

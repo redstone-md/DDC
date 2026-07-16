@@ -33,5 +33,23 @@ public final class DDCRegistries {
         for (DataRegistry<?> registry : new DataRegistry<?>[] {CLASSES, RACES, SPELLS, ENCOUNTERS}) {
             ReloadListenerRegistry.register(PackType.SERVER_DATA, registry, DDC.id(registry.directory()));
         }
+        // A reload can add a class or retire one, and a client whose menu still offers the old list
+        // would be offering something that no longer exists.
+        dev.architectury.event.events.common.LifecycleEvent.SERVER_LEVEL_LOAD.register(
+                level -> sendTo(level.getServer()));
+        dev.architectury.event.events.common.PlayerEvent.PLAYER_JOIN.register(DDCRegistries::sendTo);
+    }
+
+    /** Tells every player what the packs define. */
+    public static void sendTo(net.minecraft.server.MinecraftServer server) {
+        if (server != null) {
+            server.getPlayerList().getPlayers().forEach(DDCRegistries::sendTo);
+        }
+    }
+
+    /** Tells one player what the packs define. */
+    public static void sendTo(net.minecraft.server.level.ServerPlayer player) {
+        dev.architectury.networking.NetworkManager.sendToPlayer(player,
+                com.ddc.network.RulesPayload.of(CLASSES, RACES, SPELLS));
     }
 }

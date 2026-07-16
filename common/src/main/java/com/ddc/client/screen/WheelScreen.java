@@ -42,13 +42,13 @@ public class WheelScreen extends Screen {
     /** Nothing is chosen until the mouse leaves the middle: releasing on the spot cancels. */
     private static final double DEAD_ZONE = 18;
 
-    private final String title;
+    private final Component heading;
     private final List<WheelOption> options;
     private int chosen = -1;
 
-    public WheelScreen(String title, List<WheelOption> options) {
-        super(Component.literal(title));
-        this.title = title;
+    public WheelScreen(Component heading, List<WheelOption> options) {
+        super(heading);
+        this.heading = heading;
         this.options = List.copyOf(options);
     }
 
@@ -106,11 +106,41 @@ public class WheelScreen extends Screen {
         return true;
     }
 
+    /**
+     * Runs the choice: another wheel, a screen, a command, or nothing.
+     *
+     * <p>A wheel that opens a wheel replaces this one rather than stacking, so a player who picks a
+     * class ends up back in the world rather than three menus deep.
+     */
     private void run() {
-        if (chosen >= 0 && chosen < options.size() && minecraft != null && minecraft.player != null) {
-            minecraft.player.connection.sendCommand(options.get(chosen).command());
+        if (chosen < 0 || chosen >= options.size() || minecraft == null || minecraft.player == null) {
+            onClose();
+            return;
         }
-        onClose();
+        WheelOption option = options.get(chosen);
+        if (option.isInert()) {
+            onClose();
+        } else if (PlayerWheel.Wheels.isMenu(option.command())) {
+            minecraft.setScreen(submenu(option.command()));
+        } else {
+            minecraft.player.connection.sendCommand(option.command());
+            onClose();
+        }
+    }
+
+    /** Opens whatever a menu slice names. */
+    private Screen submenu(String command) {
+        return switch (command) {
+            case PlayerWheel.Wheels.CLASS_MENU -> new WheelScreen(
+                    Component.translatable("ddc.wheel.class"), PlayerWheel.classes());
+            case PlayerWheel.Wheels.RACE_MENU -> new WheelScreen(
+                    Component.translatable("ddc.wheel.race"), PlayerWheel.races());
+            case PlayerWheel.Wheels.SPELL_MENU -> new WheelScreen(
+                    Component.translatable("ddc.wheel.cast"),
+                    com.ddc.client.DDCClient.sheet().map(PlayerWheel::spells).orElse(List.of()));
+            case PlayerWheel.Wheels.SHEET_SCREEN -> com.ddc.client.DDCClient.sheetScreen();
+            default -> this;
+        };
     }
 
     @Override
@@ -118,13 +148,13 @@ public class WheelScreen extends Screen {
         // Follows the mouse even when it has not moved since the wheel opened.
         chosen = pointingAt(mouseX - width / 2.0, mouseY - height / 2.0, options.size()).orElse(-1);
 
-        graphics.nextStratum();
-        graphics.blurBeforeThisStratum();
+        // No blur is asked for here: a Screen already blurs what is behind it, and asking twice in
+        // one frame is an error the renderer throws on. That crash is how this was found.
         graphics.fill(0, 0, width, height, BACKDROP);
 
-        graphics.centeredText(font, Component.literal(title), width / 2, height / 2 - 5, TITLE);
+        graphics.centeredText(font, heading, width / 2, height / 2 - 5, TITLE);
         if (options.isEmpty()) {
-            graphics.centeredText(font, Component.literal("Nothing to do yet — pick a class"),
+            graphics.centeredText(font, Component.translatable("ddc.wheel.empty"),
                     width / 2, height / 2 + 8, TEXT_DETAIL);
             return;
         }
@@ -143,12 +173,11 @@ public class WheelScreen extends Screen {
         graphics.fill(at[0], at[1], at[0] + CARD_WIDTH, at[1] + CARD_HEIGHT, picked ? CARD_CHOSEN : CARD);
         graphics.outline(at[0], at[1], CARD_WIDTH, CARD_HEIGHT, picked ? BORDER_CHOSEN : BORDER);
 
-        int textY = option.detail().isEmpty() ? at[1] + 8 : at[1] + 4;
-        graphics.centeredText(font, Component.literal(option.label()),
-                at[0] + CARD_WIDTH / 2, textY, TEXT);
-        if (!option.detail().isEmpty()) {
-            graphics.centeredText(font, Component.literal(option.detail()),
-                    at[0] + CARD_WIDTH / 2, textY + 10, TEXT_DETAIL);
+        boolean hasDetail = !option.detail().getString().isEmpty();
+        int textY = hasDetail ? at[1] + 4 : at[1] + 8;
+        graphics.centeredText(font, option.label(), at[0] + CARD_WIDTH / 2, textY, TEXT);
+        if (hasDetail) {
+            graphics.centeredText(font, option.detail(), at[0] + CARD_WIDTH / 2, textY + 10, TEXT_DETAIL);
         }
     }
 }

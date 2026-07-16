@@ -62,9 +62,9 @@ public final class TwitchCommand {
                     return 0;
                 })
                 .orElseGet(() -> {
-                    context.getSource().arch$sendSuccess(() -> Component.literal(
-                            "Reading " + channel + "'s chat. Open a vote with /ddcstream twitch vote.")
-                            .withStyle(ChatFormatting.GOLD), false);
+                    context.getSource().arch$sendSuccess(
+                            () -> Component.translatable("ddc.stream.twitch_reading", channel)
+                                    .withStyle(ChatFormatting.GOLD), false);
                     return 1;
                 });
     }
@@ -72,35 +72,31 @@ public final class TwitchCommand {
     private int disconnect(CommandContext<ClientCommandSourceStack> context) {
         chat.close();
         vote.close();
-        context.getSource().arch$sendSuccess(() -> Component.literal("Stopped reading chat."), false);
+        context.getSource().arch$sendSuccess(() -> Component.translatable("ddc.stream.twitch_stopped"), false);
         return 1;
     }
 
     private int openVote(CommandContext<ClientCommandSourceStack> context) {
         if (!chat.isConnected()) {
-            context.getSource().arch$sendFailure(Component.literal(
-                    "Not reading any chat. Connect with /ddcstream twitch connect <channel>."));
+            context.getSource().arch$sendFailure(Component.translatable("ddc.stream.twitch_none"));
             return 0;
         }
         vote.open();
-        context.getSource().arch$sendSuccess(() -> Component.literal(
-                        "Vote open. Chat types " + String.join(" or ", ChatVote.words()) + ".")
-                .withStyle(ChatFormatting.GOLD), false);
+        context.getSource().arch$sendSuccess(() -> Component.translatable("ddc.stream.vote_open",
+                String.join(" / ", ChatVote.words())).withStyle(ChatFormatting.GOLD), false);
         return 1;
     }
 
     private int closeVote(CommandContext<ClientCommandSourceStack> context) {
         vote.close();
-        String verdict = vote.result()
-                .map(choice -> "chat says " + choice.name().toLowerCase(java.util.Locale.ROOT)
-                        + " — roll it with /roll 1d20 "
-                        + choice.name().toLowerCase(java.util.Locale.ROOT))
-                .orElse("chat could not agree — roll it straight");
+        Component verdict = vote.result()
+                .map(choice -> (Component) Component.translatable("ddc.stream.vote_says",
+                        choice.name().toLowerCase(java.util.Locale.ROOT)))
+                .orElseGet(() -> Component.translatable("ddc.stream.vote_tie"));
 
-        context.getSource().arch$sendSuccess(() -> Component.literal(
-                        "Vote closed: " + vote.count(ChatVote.Choice.ADVANTAGE) + " advantage, "
-                                + vote.count(ChatVote.Choice.DISADVANTAGE) + " disadvantage. " + verdict)
-                .withStyle(ChatFormatting.GOLD), false);
+        context.getSource().arch$sendSuccess(() -> Component.translatable("ddc.stream.vote_closed",
+                        vote.count(ChatVote.Choice.ADVANTAGE), vote.count(ChatVote.Choice.DISADVANTAGE),
+                        verdict).withStyle(ChatFormatting.GOLD), false);
         return vote.total();
     }
 }

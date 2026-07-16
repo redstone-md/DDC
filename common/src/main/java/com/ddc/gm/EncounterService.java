@@ -22,19 +22,19 @@ public final class EncounterService {
     /** How far apart the group is scattered, in blocks, so they do not spawn inside each other. */
     private static final double SPREAD = 1.5;
 
-    /** Why a spawn did not happen. */
+    /** Why a spawn did not happen. A key: the client picks the language. */
     public enum Failure {
-        NOT_A_GAME_MASTER("Only a Game Master can spawn encounters."),
-        UNKNOWN_ENTITY("That encounter names an entity this server does not have.");
+        NOT_A_GAME_MASTER("ddc.error.not_gm"),
+        UNKNOWN_ENTITY("ddc.error.unknown_entity");
 
-        private final String message;
+        private final String key;
 
-        Failure(String message) {
-            this.message = message;
+        Failure(String key) {
+            this.key = key;
         }
 
-        public String message() {
-            return message;
+        public net.minecraft.network.chat.Component message() {
+            return net.minecraft.network.chat.Component.translatable(key);
         }
     }
 

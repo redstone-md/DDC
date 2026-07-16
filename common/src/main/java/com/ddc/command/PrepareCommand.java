@@ -34,19 +34,19 @@ public final class PrepareCommand {
     private static final String ARG_SPELL = "spell";
 
     private static final DynamicCommandExceptionType UNKNOWN_SPELL = new DynamicCommandExceptionType(
-            id -> Component.literal("No loaded data pack defines the spell '" + id + "'"));
+            id -> Component.translatable("ddc.error.unknown_spell", id));
 
     private static final SimpleCommandExceptionType NO_BOOK = new SimpleCommandExceptionType(
-            Component.literal("You need a spellbook in hand to write in it."));
+            Component.translatable("ddc.error.no_book"));
 
     private static final SimpleCommandExceptionType CANNOT_CAST = new SimpleCommandExceptionType(
-            Component.literal("Your class does not prepare spells."));
+            Component.translatable("ddc.error.cannot_cast"));
 
     private static final SimpleCommandExceptionType TOO_HIGH = new SimpleCommandExceptionType(
-            Component.literal("That spell is beyond you: you have no slots of its level."));
+            Component.translatable("ddc.error.spell_too_high"));
 
     private static final SimpleCommandExceptionType BOOK_FULL = new SimpleCommandExceptionType(
-            Component.literal("Your book is full. Forget a spell first with /ddc forget <spell>."));
+            Component.translatable("ddc.error.book_full"));
 
     private final CharacterService characters;
     private final DataRegistry<Spell> spells;
@@ -89,8 +89,8 @@ public final class PrepareCommand {
                 .orElseThrow(CANNOT_CAST::create);
 
         if (spell.isCantrip()) {
-            context.getSource().sendSuccess(() -> Component.literal(
-                    spell.name() + " is a cantrip: you already know it."), false);
+            context.getSource().sendSuccess(
+                    () -> Component.translatable("ddc.spell.cantrip_known", spell.name()), false);
             return 0;
         }
         if (casting.slotsFor(sheet.level(), spell.level()) == 0) {
@@ -102,9 +102,9 @@ public final class PrepareCommand {
         }
 
         CharacterSheet updated = characters.update(player, current -> current.withPrepared(id));
-        context.getSource().sendSuccess(() -> Component.literal("Written into your spellbook: "
-                + spell.name() + " (" + updated.preparedSpells().size() + "/"
-                + updated.preparedSpellLimit(casting.ability()) + ")"), false);
+        context.getSource().sendSuccess(() -> Component.translatable("ddc.spell.prepared",
+                spell.name(), updated.preparedSpells().size(),
+                updated.preparedSpellLimit(casting.ability())), false);
         return updated.preparedSpells().size();
     }
 
@@ -116,7 +116,7 @@ public final class PrepareCommand {
         }
 
         characters.update(player, current -> current.withoutPrepared(id));
-        context.getSource().sendSuccess(() -> Component.literal("Scrubbed out: " + id), false);
+        context.getSource().sendSuccess(() -> Component.translatable("ddc.spell.forgotten", id), false);
         return 1;
     }
 

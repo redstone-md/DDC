@@ -31,25 +31,25 @@ public final class FeatureService {
         this.rolls = rolls;
     }
 
-    /** Why a feature could not be used. */
+    /** Why a feature could not be used. A key: the client picks the language. */
     public enum Failure {
-        NO_CLASS("You have no class yet. Pick one with /ddc class <id>."),
-        NOT_YOURS("Your class does not have that feature."),
-        ALREADY_USED("You have used that already. Rest with /ddc rest.");
+        NO_CLASS("ddc.error.no_class"),
+        NOT_YOURS("ddc.error.feature_not_yours"),
+        ALREADY_USED("ddc.error.feature_used");
 
-        private final String message;
+        private final String key;
 
-        Failure(String message) {
-            this.message = message;
+        Failure(String key) {
+            this.key = key;
         }
 
-        public String message() {
-            return message;
+        public net.minecraft.network.chat.Component message() {
+            return net.minecraft.network.chat.Component.translatable(key);
         }
     }
 
     /** What using a feature did, for the player's feedback. */
-    public record Used(String name, String detail) {
+    public record Used(net.minecraft.network.chat.Component message) {
     }
 
     /**
@@ -65,8 +65,8 @@ public final class FeatureService {
             player.heal(healed);
             player.level().playSound(null, player.blockPosition(), SoundEvents.PLAYER_LEVELUP,
                     SoundSource.PLAYERS, 0.5f, 1.6f);
-            return new Used("Second Wind", "healed " + healed + " (" + roll.describe()
-                    + " + level " + sheet.level() + ")");
+            return new Used(net.minecraft.network.chat.Component.translatable(
+                    "ddc.feature.second_wind", healed));
         });
     }
 
@@ -82,20 +82,21 @@ public final class FeatureService {
                 (sheet, feature) -> {
                     ServerLevel level = player.level();
                     int ticks = feature.seconds() * 20;
-                    int turned = 0;
+                    int turnedCount = 0;
                     for (LivingEntity undead : level.getEntitiesOfClass(LivingEntity.class,
                             player.getBoundingBox().inflate(feature.radius()),
                             entity -> entity != player && isUndead(entity))) {
                         undead.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, ticks, 2));
                         undead.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, ticks, 1));
                         undead.addEffect(new MobEffectInstance(MobEffects.GLOWING, ticks, 0));
-                        turned++;
+                        turnedCount++;
                     }
                     level.sendParticles(ParticleTypes.END_ROD, player.getX(), player.getY() + 1,
                             player.getZ(), 60, feature.radius() / 2, 1.0, feature.radius() / 2, 0.05);
                     level.playSound(null, player.blockPosition(), SoundEvents.BEACON_ACTIVATE,
                             SoundSource.PLAYERS, 1.0f, 1.4f);
-                    return new Used("Channel Divinity", "turned " + turned + " undead");
+                    return new Used(net.minecraft.network.chat.Component.translatable(
+                            "ddc.feature.channel_divinity", turnedCount));
                 });
     }
 

@@ -27,8 +27,7 @@ public final class RollCommand {
     private static final String ARG_EXPRESSION = "expression";
 
     private static final SimpleCommandExceptionType INVALID_EXPRESSION =
-            new SimpleCommandExceptionType(Component.literal(
-                    "Not a dice expression. Try something like 1d20+3, 2d6 or 8d6."));
+            new SimpleCommandExceptionType(Component.translatable("ddc.error.bad_dice"));
 
     private final DiceRollService rolls;
 
@@ -86,9 +85,8 @@ public final class RollCommand {
             throw INVALID_EXPRESSION.create();
         }
         if (!mode.isNormal() && !expression.isSingleD20()) {
-            throw new SimpleCommandExceptionType(Component.literal(
-                    mode.name().toLowerCase(java.util.Locale.ROOT)
-                            + " applies only to a single d20 roll, not to " + expression)).create();
+            throw new SimpleCommandExceptionType(Component.translatable("ddc.error.mode_needs_d20",
+                    mode.name().toLowerCase(java.util.Locale.ROOT))).create();
         }
         return expression;
     }

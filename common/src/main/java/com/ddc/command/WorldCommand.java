@@ -47,12 +47,12 @@ public final class WorldCommand {
 
         return world.apply(player, change)
                 .map(failure -> {
-                    context.getSource().sendFailure(Component.literal(failure));
+                    context.getSource().sendFailure(failure);
                     return 0;
                 })
                 .orElseGet(() -> {
-                    context.getSource().sendSuccess(() -> Component.literal(change.narration())
-                            .withStyle(ChatFormatting.GOLD), true);
+                    context.getSource().sendSuccess(
+                            () -> change.narration().copy().withStyle(ChatFormatting.GOLD), true);
                     return 1;
                 });
     }

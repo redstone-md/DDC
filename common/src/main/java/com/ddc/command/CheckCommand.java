@@ -44,7 +44,7 @@ public final class CheckCommand {
     private static final int MAX_DC = 30;
 
     private static final DynamicCommandExceptionType UNKNOWN_ABILITY = new DynamicCommandExceptionType(
-            key -> Component.literal("No such ability: '" + key + "'. Try strength, or DEX."));
+            key -> Component.translatable("ddc.error.unknown_ability", key));
 
     private final CharacterService characters;
     private final DiceRollService rolls;
@@ -106,15 +106,14 @@ public final class CheckCommand {
     }
 
     private void announce(ServerPlayer subject, Ability ability, CheckOutcome outcome) {
-        String verdict = switch (outcome.degree()) {
-            case CRITICAL_SUCCESS -> "critical success";
-            case SUCCESS -> "success";
-            case FAILURE -> "failure";
-            case CRITICAL_FAILURE -> "critical failure";
-        };
-        Component message = Component.literal(subject.getGameProfile().name() + "'s "
-                        + ability.abbreviation() + " check vs DC " + outcome.difficultyClass()
-                        + ": " + verdict)
+        Component verdict = Component.translatable(switch (outcome.degree()) {
+            case CRITICAL_SUCCESS -> "ddc.check.critical_success";
+            case SUCCESS -> "ddc.check.success";
+            case FAILURE -> "ddc.check.failure";
+            case CRITICAL_FAILURE -> "ddc.check.critical_failure";
+        });
+        Component message = Component.translatable("ddc.check.result", subject.getGameProfile().name(),
+                        ability.abbreviation(), outcome.difficultyClass(), verdict)
                 .withStyle(outcome.isSuccess() ? ChatFormatting.GREEN : ChatFormatting.RED);
 
         // Everyone who saw the dice should hear the verdict, so the audience is the roll's audience.

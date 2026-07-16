@@ -18,6 +18,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.IdentifierArgument;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -32,12 +33,12 @@ public final class CharacterCommand {
     private static final String ARG_CLASS = "class";
 
     private static final DynamicCommandExceptionType UNKNOWN_CLASS = new DynamicCommandExceptionType(
-            id -> Component.literal("No loaded data pack defines the class '" + id + "'"));
+            id -> Component.translatable("ddc.error.unknown_class", id));
 
     private static final String ARG_RACE = "race";
 
     private static final DynamicCommandExceptionType UNKNOWN_RACE = new DynamicCommandExceptionType(
-            id -> Component.literal("No loaded data pack defines the race '" + id + "'"));
+            id -> Component.translatable("ddc.error.unknown_race", id));
 
     private final CharacterService characters;
     private final DataRegistry<CharacterClass> classes;
@@ -99,9 +100,8 @@ public final class CharacterCommand {
                 .orElseThrow(() -> UNKNOWN_CLASS.create(id));
 
         int hitPoints = HealthService.maxHitPoints(player);
-        context.getSource().sendSuccess(() -> Component.literal(
-                "You are now a " + characters.definitionFor(sheet).orElseThrow().name()
-                        + " with " + hitPoints + " hit points."), false);
+        context.getSource().sendSuccess(() -> Component.translatable("ddc.class.chosen",
+                characters.definitionFor(sheet).orElseThrow().name(), hitPoints), false);
         return hitPoints;
     }
 
@@ -111,44 +111,47 @@ public final class CharacterCommand {
         Race race = races.get(id).orElseThrow(() -> UNKNOWN_RACE.create(id));
 
         characters.update(player, sheet -> sheet.withRace(id, race));
-        context.getSource().sendSuccess(() -> Component.literal(
-                "You are now a " + race.name() + ". " + describeRace(race)), false);
+        context.getSource().sendSuccess(
+                () -> Component.translatable("ddc.race.chosen", race.name(), race.speed()), false);
         return 1;
-    }
-
-    private static String describeRace(Race race) {
-        StringBuilder sb = new StringBuilder("Speed ").append(race.speed()).append(" ft");
-        if (!race.traits().isEmpty()) {
-            sb.append(", traits: ").append(String.join(", ", race.traits()));
-        }
-        return sb.append('.').toString();
     }
 
     private int showSheet(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = context.getSource().getPlayerOrException();
         CharacterSheet sheet = characters.get(player);
 
-        context.getSource().sendSuccess(() -> Component.literal(describe(sheet, player)), false);
+        // Two lines rather than one with a newline in it: chat shows a component's newline as the
+        // two characters, which is how "proficiency +2\nSTR 10" reached a player's screen.
+        context.getSource().sendSuccess(() -> headline(sheet, player), false);
+        context.getSource().sendSuccess(() -> abilities(sheet), false);
         return sheet.level();
     }
 
-    private String describe(CharacterSheet sheet, ServerPlayer player) {
-        String className = characters.definitionFor(sheet)
-                .map(definition -> definition.name())
-                .orElse("no class yet, pick one with /ddc class <id>");
-        StringBuilder sb = new StringBuilder(className)
-                .append(" - level ").append(sheet.level())
-                .append(", HP ").append(HealthService.currentHitPoints(player))
-                .append('/').append(HealthService.maxHitPoints(player));
+    /** The first line: who the character is and how they are doing. */
+    private Component headline(CharacterSheet sheet, ServerPlayer player) {
+        MutableComponent line = Component.literal(characters.definitionFor(sheet)
+                        .map(CharacterClass::name)
+                        .orElse(Component.translatable("ddc.screen.no_class").getString()))
+                .append(" · ")
+                .append(Component.translatable("ddc.screen.hit_points",
+                        HealthService.currentHitPoints(player), HealthService.maxHitPoints(player)))
+                .append(" · ")
+                .append(Component.translatable("ddc.screen.proficiency", sheet.proficiencyBonus()));
+
         characters.definitionFor(sheet).flatMap(CharacterClass::spellcasting).ifPresent(casting ->
-                sb.append(", slots ").append(describeSlots(sheet, casting)));
-        sb.append(", proficiency +").append(sheet.proficiencyBonus()).append('\n');
+                line.append(" · ").append(describeSlots(sheet, casting)));
+        return line;
+    }
+
+    /** The second line: the six abilities, the way a paper sheet reads them. */
+    private static Component abilities(CharacterSheet sheet) {
+        StringBuilder sb = new StringBuilder();
         for (Ability ability : Ability.values()) {
             int modifier = sheet.modifier(ability);
             sb.append(ability.abbreviation()).append(' ').append(sheet.scores().get(ability))
-                    .append(" (").append(modifier >= 0 ? "+" : "").append(modifier).append(") ");
+                    .append(" (").append(modifier >= 0 ? "+" : "").append(modifier).append(")  ");
         }
-        return sb.toString().trim();
+        return Component.literal(sb.toString().trim());
     }
 
     /** Slots as remaining-of-total per spell level, so a caster can see what they have left. */
