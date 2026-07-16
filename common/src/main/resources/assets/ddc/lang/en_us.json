@@ -1,5 +1,7 @@
 {
   "item.ddc.gm_wand": "Game Master's Wand",
   "itemGroup.ddc.ddc": "Dungeons, Dragons & Crafting",
-  "item.ddc.spellbook": "Spellbook"
+  "item.ddc.spellbook": "Spellbook",
+  "key.ddc.sheet": "Open character sheet",
+  "key.categories.ddc.keys": "Dungeons, Dragons & Crafting"
 }

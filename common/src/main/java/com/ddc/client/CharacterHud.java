@@ -40,6 +40,22 @@ public final class CharacterHud {
         this.sheet = sheet;
     }
 
+    /**
+     * The class's display name.
+     *
+     * <p>The id, tidied: the client has no data packs, so the name a pack gave the class never
+     * reaches it. "ddc:fighter" becomes "Fighter", which is right for every class DDC ships and a
+     * fair guess for the rest.
+     */
+    public String className() {
+        return sheet == null ? "" : sheet.characterClass()
+                .map(id -> {
+                    String path = id.getPath().replace('_', ' ');
+                    return Character.toUpperCase(path.charAt(0)) + path.substring(1);
+                })
+                .orElse("No class");
+    }
+
     public Optional<CharacterSheet> sheet() {
         return Optional.ofNullable(sheet);
     }

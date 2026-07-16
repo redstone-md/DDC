@@ -1,5 +1,7 @@
 {
   "item.ddc.gm_wand": "Жезл Гейм-Мастера",
   "itemGroup.ddc.ddc": "Dungeons, Dragons & Crafting",
-  "item.ddc.spellbook": "Книга заклинаний"
+  "item.ddc.spellbook": "Книга заклинаний",
+  "key.ddc.sheet": "Открыть лист персонажа",
+  "key.categories.ddc.keys": "Dungeons, Dragons & Crafting"
 }

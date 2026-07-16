@@ -1,6 +1,11 @@
 package com.ddc.client;
 
 import com.ddc.client.dice.RollCache;
+import com.ddc.client.screen.CharacterSheetScreen;
+import com.mojang.blaze3d.platform.InputConstants;
+import dev.architectury.registry.client.keymappings.KeyMappingRegistry;
+import net.minecraft.client.KeyMapping;
+import org.lwjgl.glfw.GLFW;
 import com.ddc.client.stream.OverlayCommand;
 import com.ddc.client.stream.OverlayEvents;
 import com.ddc.client.stream.OverlayServer;
@@ -24,6 +29,9 @@ import net.minecraft.util.Util;
 @Environment(EnvType.CLIENT)
 public final class DDCClient {
 
+    private static final KeyMapping.Category KEY_CATEGORY =
+            KeyMapping.Category.register(com.ddc.DDC.id("keys"));
+
     private static final RollLog ROLL_LOG = new RollLog();
     private static final CharacterHud CHARACTER_HUD = new CharacterHud();
     private static final NarrationOverlay NARRATION = new NarrationOverlay();
@@ -36,7 +44,22 @@ public final class DDCClient {
      */
     private static final OverlayServer OVERLAY = new OverlayServer();
 
+    /** PRD 3.1's sheet key. */
+    private static final KeyMapping SHEET_KEY = new KeyMapping("key.ddc.sheet",
+            InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_C, KEY_CATEGORY);
+
     private DDCClient() {
+    }
+
+    /**
+     * Opens the sheet the server last sent.
+     *
+     * <p>Nothing is asked of the server: the client already has the sheet, and a key that made a
+     * round trip would open on a stale one anyway.
+     */
+    private static void openSheet(Minecraft client) {
+        CHARACTER_HUD.sheet().ifPresent(sheet -> client.setScreen(
+                new CharacterSheetScreen(sheet, CHARACTER_HUD.className())));
     }
 
     /** The fanfare, for the loader hooks that have to drive the camera themselves. */
@@ -74,6 +97,7 @@ public final class DDCClient {
                 (payload, context) -> context.queue(() -> NARRATION.accept(payload.text(), Util.getMillis())));
 
         new OverlayCommand(OVERLAY).register();
+        KeyMappingRegistry.register(SHEET_KEY);
 
         ClientPlayerEvent.CLIENT_PLAYER_QUIT.register(player -> {
             RollCache.clear();
@@ -83,8 +107,12 @@ public final class DDCClient {
 
         // The shake moves the player's own head, so it has to happen on the client tick rather than
         // during rendering, where the camera has already been placed for the frame.
-        dev.architectury.event.events.client.ClientTickEvent.CLIENT_POST.register(
-                client -> FANFARE.applyShake(Util.getMillis()));
+        dev.architectury.event.events.client.ClientTickEvent.CLIENT_POST.register(client -> {
+            FANFARE.applyShake(Util.getMillis());
+            while (SHEET_KEY.consumeClick()) {
+                openSheet(client);
+            }
+        });
 
         ClientGuiEvent.RENDER_HUD.register((graphics, delta) -> {
             Minecraft client = Minecraft.getInstance();
