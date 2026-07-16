@@ -1,9 +1,12 @@
 package com.ddc;
 
 import com.ddc.character.CharacterService;
+import com.ddc.combat.CombatListener;
+import com.ddc.combat.CombatRules;
 import com.ddc.command.CharacterCommand;
 import com.ddc.command.NarrateCommand;
 import com.ddc.command.RollCommand;
+import com.ddc.core.dice.DiceRoller;
 import com.ddc.dice.DiceRollService;
 import com.ddc.gm.NarrationService;
 import com.ddc.network.DDCNetwork;
@@ -48,6 +51,10 @@ public final class DDC {
 
         CharacterService characters = new CharacterService(CHARACTER_CLASSES);
         RollCommand rollCommand = new RollCommand(DiceRollService.serverSide());
+
+        // Attack rolls are hidden, so they never reach the roll log: this roller answers only to the
+        // combat listener.
+        new CombatListener(new CombatRules(characters), DiceRoller.random()).register();
         CharacterCommand characterCommand = new CharacterCommand(characters, CHARACTER_CLASSES,
                 new NarrateCommand(new NarrationService()));
 

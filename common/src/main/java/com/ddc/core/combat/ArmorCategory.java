@@ -30,6 +30,27 @@ public enum ArmorCategory {
         return dexterityCap == null ? OptionalInt.empty() : OptionalInt.of(dexterityCap);
     }
 
+    /**
+     * The category a suit of vanilla Minecraft armour falls into, from its armour points.
+     *
+     * <p>Minecraft describes armour as points from 0 to 20; the SRD describes it as light, medium or
+     * heavy. Nothing in either system maps them, so DDC picks the boundaries and states them here:
+     * leather (7) is light, chain and iron (12 and 15) are medium, diamond and netherite (20) are
+     * heavy. The effect a player feels is how much of their Dexterity still counts, which is what
+     * makes plate feel like plate.
+     *
+     * @param armorPoints vanilla armour points, as an entity reports them
+     */
+    public static ArmorCategory forArmorPoints(int armorPoints) {
+        if (armorPoints <= 0) {
+            return UNARMORED;
+        }
+        if (armorPoints <= 8) {
+            return LIGHT;
+        }
+        return armorPoints <= 16 ? MEDIUM : HEAVY;
+    }
+
     /** Applies the cap to a Dexterity modifier. Negative modifiers always apply in full. */
     public int applyDexterityCap(int dexterityModifier) {
         return dexterityCap == null ? dexterityModifier : Math.min(dexterityModifier, dexterityCap);

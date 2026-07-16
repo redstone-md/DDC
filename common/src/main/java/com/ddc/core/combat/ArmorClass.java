@@ -39,6 +39,21 @@ public record ArmorClass(int armorBonus, ArmorCategory category, int shieldBonus
         return new ArmorClass(armorBonus, category, 0, 0);
     }
 
+    /**
+     * The armour class of whatever a suit of vanilla armour is worth.
+     *
+     * <p>Vanilla armour points run 0 to 20 and are added straight onto AC in no system at all: full
+     * diamond would read as AC 30 and nothing could ever hit it. Halving them lands the familiar
+     * suits close to their SRD counterparts -- iron (15 points) gives +7 for AC 17 before Dexterity,
+     * against chain mail's 16 -- and keeps the ceiling at the SRD's own plate-and-shield range.
+     *
+     * @param armorPoints vanilla armour points, as an entity reports them
+     */
+    public static ArmorClass fromVanillaArmor(int armorPoints) {
+        int points = Math.max(0, armorPoints);
+        return new ArmorClass(points / 2, ArmorCategory.forArmorPoints(points), 0, 0);
+    }
+
     public ArmorClass withShield(int shieldBonus) {
         return new ArmorClass(armorBonus, category, shieldBonus, miscBonus);
     }
