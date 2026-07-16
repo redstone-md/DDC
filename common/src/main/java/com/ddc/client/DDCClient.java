@@ -7,7 +7,10 @@ import com.mojang.blaze3d.platform.InputConstants;
 import dev.architectury.registry.client.keymappings.KeyMappingRegistry;
 import net.minecraft.client.KeyMapping;
 import org.lwjgl.glfw.GLFW;
+import com.ddc.client.stream.ChatVote;
 import com.ddc.client.stream.OverlayCommand;
+import com.ddc.client.stream.TwitchChat;
+import com.ddc.client.stream.TwitchCommand;
 import com.ddc.client.stream.OverlayEvents;
 import com.ddc.client.stream.OverlayServer;
 import com.ddc.network.CharacterSheetPayload;
@@ -44,6 +47,10 @@ public final class DDCClient {
      * it was not given.
      */
     private static final OverlayServer OVERLAY = new OverlayServer();
+
+    /** Twitch chat, for PRD 4.4's viewer votes. Reads nothing until a streamer asks it to. */
+    private static final TwitchChat TWITCH = new TwitchChat();
+    private static final ChatVote VOTE = new ChatVote();
 
     /** PRD 3.1's sheet key. */
     private static final KeyMapping SHEET_KEY = new KeyMapping("key.ddc.sheet",
@@ -102,13 +109,15 @@ public final class DDCClient {
                 (payload, context) -> context.queue(() -> NARRATION.accept(payload.text(), Util.getMillis())));
 
         new OverlayCommand(OVERLAY).register();
+        new TwitchCommand(TWITCH, VOTE).register();
         KeyMappingRegistry.register(SHEET_KEY);
         KeyMappingRegistry.register(PANEL_KEY);
 
         ClientPlayerEvent.CLIENT_PLAYER_QUIT.register(player -> {
             RollCache.clear();
-            // Leaving a world drops the widgets: what they were watching is gone.
+            // Leaving a world drops the widgets and the chat: what they were watching is gone.
             OVERLAY.stop();
+            TWITCH.close();
         });
 
         // The shake moves the player's own head, so it has to happen on the client tick rather than
