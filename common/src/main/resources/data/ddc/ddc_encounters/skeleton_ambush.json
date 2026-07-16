@@ -1,0 +1,7 @@
+{
+  "name": "Skeleton Ambush",
+  "members": [
+    { "entity": "minecraft:skeleton", "count": 4 },
+    { "entity": "minecraft:spider", "count": 1 }
+  ]
+}

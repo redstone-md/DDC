@@ -103,4 +103,19 @@ class SpellcastingTest {
 
         assertThrows(IllegalArgumentException.class, () -> new Spellcasting(Ability.WISDOM, tooLong));
     }
+
+    /**
+     * A pack author's mistake has to come back as an error against their file. If the codec let the
+     * constructor throw instead, one broken addon would take down the whole reload.
+     */
+    @Test
+    @DisplayName("a broken slot table is reported, not thrown")
+    void reportsABrokenTableRatherThanThrowing() {
+        var result = CharacterClass.CODEC.parse(JsonOps.INSTANCE, JsonParser.parseString("""
+                {"name": "Broken", "hit_die": "d8", "primary_ability": "wisdom",
+                 "spellcasting": {"ability": "wisdom", "slots": []}}"""));
+
+        assertTrue(result.isError());
+        assertTrue(result.error().orElseThrow().message().contains("slot table"));
+    }
 }

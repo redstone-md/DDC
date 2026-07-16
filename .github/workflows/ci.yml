@@ -86,7 +86,7 @@ jobs:
 
           grep -q "Initialising Dungeons, Dragons & Crafting" server.log \
             || { echo "::error::the mod did not initialise"; exit 1; }
-          for line in "Loaded 4 character classes" "Loaded 4 races" "Loaded 5 spells"; do
+          for line in "Loaded 4 character classes" "Loaded 4 races" "Loaded 5 spells" "Loaded 3 encounters"; do
             grep -q "$line" server.log \
               || { echo "::error::the built-in data pack did not load: expected '$line'"; exit 1; }
           done

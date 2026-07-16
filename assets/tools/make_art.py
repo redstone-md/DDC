@@ -334,6 +334,39 @@ def make_icon(size=128, ss=8):
         print(f"wrote {target} ({target.stat().st_size // 1024} KB)")
 
 
+
+
+
+def make_wand_texture(size=16, ss=16):
+    """The GM wand's item texture: a brass rod with a d20 head, in the banner's palette.
+
+    Drawn at 16x16 because that is Minecraft's item grid; anything else looks foreign next to
+    vanilla items no matter how nicely it renders.
+    """
+    s = size * ss
+    img = Image.new("RGBA", (s, s), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img, "RGBA")
+
+    # The rod, running corner to corner as vanilla tools do.
+    rod = s * 0.09
+    for i in range(int(s * 0.52)):
+        t = i / (s * 0.52)
+        x = s * 0.16 + i * 0.86
+        y = s * 0.84 - i * 0.86
+        colour = ramp(0.30 + t * 0.25, low=(60, 40, 18), mid=BRASS_DARK, high=BRASS)
+        draw.ellipse([x - rod, y - rod, x + rod, y + rod], fill=(*colour, 255))
+
+    # The d20 head, the same solid the banner and the icon use.
+    draw_die(draw, s * 0.66, s * 0.32, s * 0.28, edge_alpha=210)
+
+    img = img.resize((size, size), Image.NEAREST if ss == 1 else Image.LANCZOS)
+    target = Path("common/src/main/resources/assets/ddc/textures/item/gm_wand.png")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    img.save(target, optimize=True)
+    print(f"wrote {target}")
+
+
 if __name__ == "__main__":
     make_banner(OUT_DIR / "banner.png")
     make_icon()
+    make_wand_texture()

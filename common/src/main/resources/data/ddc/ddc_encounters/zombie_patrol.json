@@ -1,0 +1,6 @@
+{
+  "name": "Zombie Patrol",
+  "members": [
+    { "entity": "minecraft:zombie", "count": 3 }
+  ]
+}

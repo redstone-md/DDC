@@ -12,6 +12,7 @@ import com.ddc.dice.DiceRollService;
 import com.ddc.gm.NarrationService;
 import com.ddc.spell.SpellService;
 import com.ddc.network.DDCNetwork;
+import com.ddc.registry.DDCItems;
 import com.ddc.rules.DDCRegistries;
 import dev.architectury.event.events.common.CommandRegistrationEvent;
 import dev.architectury.event.events.common.PlayerEvent;
@@ -44,6 +45,7 @@ public final class DDC {
         LOGGER.info("Initialising {}", MOD_NAME);
         DDCNetwork.register();
         DDCRegistries.register();
+        DDCItems.register();
 
         CharacterService characters = new CharacterService(DDCRegistries.CLASSES);
         DiceRollService diceRolls = DiceRollService.serverSide();

@@ -30,9 +30,26 @@ public record Spellcasting(Ability ability, List<List<Integer>> slots) {
     /** The SRD's highest spell level. */
     public static final int MAX_SPELL_LEVEL = 9;
 
+    /**
+     * Validated before the record is built, so a broken slot table is reported against its own file
+     * rather than thrown during a data pack reload. See the note on {@link Encounter}.
+     */
+    private static final Codec<List<List<Integer>>> SLOTS =
+            Codec.intRange(0, 9).listOf().listOf().validate(slots -> {
+                if (slots.isEmpty()) {
+                    return com.mojang.serialization.DataResult.error(
+                            () -> "A spellcasting class needs a slot table");
+                }
+                if (slots.size() > Proficiency.MAX_LEVEL) {
+                    return com.mojang.serialization.DataResult.error(
+                            () -> "A slot table cannot go past level " + Proficiency.MAX_LEVEL);
+                }
+                return com.mojang.serialization.DataResult.success(slots);
+            });
+
     public static final Codec<Spellcasting> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             DDCCodecs.ABILITY.fieldOf("ability").forGetter(Spellcasting::ability),
-            Codec.intRange(0, 9).listOf().listOf().fieldOf("slots").forGetter(Spellcasting::slots)
+            SLOTS.fieldOf("slots").forGetter(Spellcasting::slots)
     ).apply(instance, Spellcasting::new));
 
     public Spellcasting {

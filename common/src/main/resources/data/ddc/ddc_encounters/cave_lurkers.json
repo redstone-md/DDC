@@ -1,0 +1,7 @@
+{
+  "name": "Cave Lurkers",
+  "members": [
+    { "entity": "minecraft:cave_spider", "count": 2 },
+    { "entity": "minecraft:silverfish", "count": 3 }
+  ]
+}
