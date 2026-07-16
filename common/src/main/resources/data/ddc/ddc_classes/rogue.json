@@ -1,0 +1,6 @@
+{
+  "name": "Rogue",
+  "hit_die": "d8",
+  "primary_ability": "dexterity",
+  "saving_throws": ["dexterity", "intelligence"]
+}

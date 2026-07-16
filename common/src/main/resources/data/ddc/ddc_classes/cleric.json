@@ -1,0 +1,6 @@
+{
+  "name": "Cleric",
+  "hit_die": "d8",
+  "primary_ability": "wisdom",
+  "saving_throws": ["wisdom", "charisma"]
+}

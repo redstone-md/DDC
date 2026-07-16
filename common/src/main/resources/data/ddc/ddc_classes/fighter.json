@@ -1,0 +1,6 @@
+{
+  "name": "Fighter",
+  "hit_die": "d10",
+  "primary_ability": "strength",
+  "saving_throws": ["strength", "constitution"]
+}

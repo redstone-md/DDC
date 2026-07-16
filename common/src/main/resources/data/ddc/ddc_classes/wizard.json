@@ -1,0 +1,6 @@
+{
+  "name": "Wizard",
+  "hit_die": "d6",
+  "primary_ability": "intelligence",
+  "saving_throws": ["intelligence", "wisdom"]
+}
