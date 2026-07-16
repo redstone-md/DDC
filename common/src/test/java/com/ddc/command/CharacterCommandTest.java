@@ -8,7 +8,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.ddc.MinecraftBootstrapExtension;
 import com.ddc.character.CharacterService;
 import com.ddc.gm.NarrationService;
-import com.ddc.rules.CharacterClassRegistry;
+import com.ddc.command.SpellCommand;
+import com.ddc.rules.CharacterClass;
+import com.ddc.rules.DDCRegistries;
+import com.ddc.rules.DataRegistry;
+import com.ddc.rules.Race;
+import com.ddc.rules.Spell;
+import com.ddc.spell.SpellService;
+import com.ddc.dice.DiceRollService;
+import com.ddc.core.dice.DiceRoller;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.tree.CommandNode;
 import net.minecraft.commands.CommandSource;
@@ -30,9 +38,15 @@ class CharacterCommandTest {
     static void setUp() {
         MinecraftBootstrapExtension.bootstrap();
         dispatcher = new CommandDispatcher<>();
-        CharacterClassRegistry classes = new CharacterClassRegistry();
-        new CharacterCommand(new CharacterService(classes), classes,
-                new NarrateCommand(new NarrationService())).register(dispatcher);
+        DataRegistry<CharacterClass> classes = DDCRegistries.CLASSES;
+        DataRegistry<Race> races = DDCRegistries.RACES;
+        DataRegistry<Spell> spells = DDCRegistries.SPELLS;
+        CharacterService characters = new CharacterService(classes);
+        DiceRollService diceRolls = new DiceRollService(DiceRoller.replaying(1L));
+        new CharacterCommand(characters, classes, races, new NarrateCommand(new NarrationService()),
+                new SpellCommand(characters, spells, classes,
+                        new SpellService(characters, diceRolls, DiceRoller.replaying(1L))))
+                .register(dispatcher);
     }
 
     private static CommandSourceStack source(PermissionSet permissions) {

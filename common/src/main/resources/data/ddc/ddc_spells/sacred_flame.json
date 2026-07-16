@@ -1,0 +1,8 @@
+{
+  "name": "Sacred Flame",
+  "level": 0,
+  "school": "evocation",
+  "range": 60,
+  "damage_dice": "1d8",
+  "saving_throw": { "ability": "dexterity", "effect_on_success": "none" }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Halfling",
+  "ability_bonuses": { "dexterity": 2 },
+  "speed": 25,
+  "traits": ["lucky", "brave", "halfling nimbleness"]
+}

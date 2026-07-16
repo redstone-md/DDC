@@ -1,0 +1,8 @@
+{
+  "name": "Fireball",
+  "level": 3,
+  "school": "evocation",
+  "range": 150,
+  "damage_dice": "8d6",
+  "saving_throw": { "ability": "dexterity", "effect_on_success": "half_damage" }
+}

@@ -6,6 +6,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -29,8 +30,10 @@ import java.util.Set;
  * @param hitDie        the die this class rolls for hit points
  * @param primaryAbility the ability the class is built around
  * @param savingThrows  the saving throws the class is proficient in
+ * @param spellcasting  what it can cast, absent for a class with no magic
  */
-public record CharacterClass(String name, HitDie hitDie, Ability primaryAbility, Set<Ability> savingThrows) {
+public record CharacterClass(String name, HitDie hitDie, Ability primaryAbility, Set<Ability> savingThrows,
+        Optional<Spellcasting> spellcasting) {
 
     public static final Codec<CharacterClass> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.STRING.fieldOf("name").forGetter(CharacterClass::name),
@@ -38,7 +41,8 @@ public record CharacterClass(String name, HitDie hitDie, Ability primaryAbility,
             DDCCodecs.ABILITY.fieldOf("primary_ability").forGetter(CharacterClass::primaryAbility),
             DDCCodecs.ABILITY.listOf().xmap(Set::copyOf, List::copyOf)
                     .optionalFieldOf("saving_throws", Set.of())
-                    .forGetter(CharacterClass::savingThrows)
+                    .forGetter(CharacterClass::savingThrows),
+            Spellcasting.CODEC.optionalFieldOf("spellcasting").forGetter(CharacterClass::spellcasting)
     ).apply(instance, CharacterClass::new));
 
     public CharacterClass {
@@ -46,6 +50,12 @@ public record CharacterClass(String name, HitDie hitDie, Ability primaryAbility,
         Objects.requireNonNull(hitDie, "hitDie");
         Objects.requireNonNull(primaryAbility, "primaryAbility");
         savingThrows = Set.copyOf(Objects.requireNonNull(savingThrows, "savingThrows"));
+        Objects.requireNonNull(spellcasting, "spellcasting");
+    }
+
+    /** Whether this class casts spells at all. */
+    public boolean canCast() {
+        return spellcasting.isPresent();
     }
 
     /** Whether this class adds its proficiency bonus to a saving throw. */

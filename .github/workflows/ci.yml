@@ -86,11 +86,13 @@ jobs:
 
           grep -q "Initialising Dungeons, Dragons & Crafting" server.log \
             || { echo "::error::the mod did not initialise"; exit 1; }
-          grep -q "Loaded 4 character class(es)" server.log \
-            || { echo "::error::the built-in data pack did not load"; exit 1; }
+          for line in "Loaded 4 character classes" "Loaded 4 races" "Loaded 5 spells"; do
+            grep -q "$line" server.log \
+              || { echo "::error::the built-in data pack did not load: expected '$line'"; exit 1; }
+          done
           grep -q "Done (" server.log \
             || { echo "::error::the server never finished starting"; exit 1; }
-          echo "$(grep -o 'Loaded 4 character class(es).*' server.log)"
+          grep -o 'Loaded [0-9]* [a-z ]*: \[.*' server.log
 
       - name: Upload server log
         if: failure()

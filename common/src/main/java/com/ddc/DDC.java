@@ -5,17 +5,17 @@ import com.ddc.combat.CombatListener;
 import com.ddc.combat.CombatRules;
 import com.ddc.command.CharacterCommand;
 import com.ddc.command.NarrateCommand;
+import com.ddc.command.SpellCommand;
 import com.ddc.command.RollCommand;
 import com.ddc.core.dice.DiceRoller;
 import com.ddc.dice.DiceRollService;
 import com.ddc.gm.NarrationService;
+import com.ddc.spell.SpellService;
 import com.ddc.network.DDCNetwork;
-import com.ddc.rules.CharacterClassRegistry;
+import com.ddc.rules.DDCRegistries;
 import dev.architectury.event.events.common.CommandRegistrationEvent;
 import dev.architectury.event.events.common.PlayerEvent;
-import dev.architectury.registry.ReloadListenerRegistry;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.packs.PackType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,9 +31,6 @@ public final class DDC {
     public static final String MOD_NAME = "Dungeons, Dragons & Crafting";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_NAME);
 
-    /** The classes the loaded data packs define. Reloads with {@code /reload}. */
-    public static final CharacterClassRegistry CHARACTER_CLASSES = new CharacterClassRegistry();
-
     private DDC() {
     }
 
@@ -46,17 +43,19 @@ public final class DDC {
     public static void init() {
         LOGGER.info("Initialising {}", MOD_NAME);
         DDCNetwork.register();
-        ReloadListenerRegistry.register(PackType.SERVER_DATA, CHARACTER_CLASSES,
-                id(CharacterClassRegistry.DIRECTORY));
+        DDCRegistries.register();
 
-        CharacterService characters = new CharacterService(CHARACTER_CLASSES);
-        RollCommand rollCommand = new RollCommand(DiceRollService.serverSide());
+        CharacterService characters = new CharacterService(DDCRegistries.CLASSES);
+        DiceRollService diceRolls = DiceRollService.serverSide();
+        RollCommand rollCommand = new RollCommand(diceRolls);
 
         // Attack rolls are hidden, so they never reach the roll log: this roller answers only to the
         // combat listener.
         new CombatListener(new CombatRules(characters), DiceRoller.random()).register();
-        CharacterCommand characterCommand = new CharacterCommand(characters, CHARACTER_CLASSES,
-                new NarrateCommand(new NarrationService()));
+        SpellService spellService = new SpellService(characters, diceRolls, DiceRoller.random());
+        CharacterCommand characterCommand = new CharacterCommand(characters, DDCRegistries.CLASSES,
+                DDCRegistries.RACES, new NarrateCommand(new NarrationService()),
+                new SpellCommand(characters, DDCRegistries.SPELLS, DDCRegistries.CLASSES, spellService));
 
         CommandRegistrationEvent.EVENT.register((dispatcher, registry, selection) -> {
             rollCommand.register(dispatcher);

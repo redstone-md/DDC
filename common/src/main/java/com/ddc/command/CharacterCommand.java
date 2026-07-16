@@ -3,7 +3,9 @@ package com.ddc.command;
 import com.ddc.character.CharacterService;
 import com.ddc.character.CharacterSheet;
 import com.ddc.core.character.Ability;
-import com.ddc.rules.CharacterClassRegistry;
+import com.ddc.rules.CharacterClass;
+import com.ddc.rules.DataRegistry;
+import com.ddc.rules.Race;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -30,15 +32,24 @@ public final class CharacterCommand {
     private static final DynamicCommandExceptionType UNKNOWN_CLASS = new DynamicCommandExceptionType(
             id -> Component.literal("No loaded data pack defines the class '" + id + "'"));
 
-    private final CharacterService characters;
-    private final CharacterClassRegistry classes;
-    private final NarrateCommand narration;
+    private static final String ARG_RACE = "race";
 
-    public CharacterCommand(CharacterService characters, CharacterClassRegistry classes,
-            NarrateCommand narration) {
+    private static final DynamicCommandExceptionType UNKNOWN_RACE = new DynamicCommandExceptionType(
+            id -> Component.literal("No loaded data pack defines the race '" + id + "'"));
+
+    private final CharacterService characters;
+    private final DataRegistry<CharacterClass> classes;
+    private final DataRegistry<Race> races;
+    private final NarrateCommand narration;
+    private final SpellCommand spells;
+
+    public CharacterCommand(CharacterService characters, DataRegistry<CharacterClass> classes,
+            DataRegistry<Race> races, NarrateCommand narration, SpellCommand spells) {
         this.characters = characters;
         this.classes = classes;
+        this.races = races;
         this.narration = narration;
+        this.spells = spells;
     }
 
     public void register(CommandDispatcher<CommandSourceStack> dispatcher) {
@@ -48,6 +59,13 @@ public final class CharacterCommand {
                         .then(Commands.argument(ARG_CLASS, IdentifierArgument.id())
                                 .suggests(classSuggestions())
                                 .executes(this::chooseClass)))
+                .then(Commands.literal("race")
+                        .then(Commands.argument(ARG_RACE, IdentifierArgument.id())
+                                .suggests((context, builder) ->
+                                        SharedSuggestionProvider.suggestResource(races.ids(), builder))
+                                .executes(this::chooseRace)))
+                .then(spells.castBranch())
+                .then(spells.restBranch())
                 .then(narration.branch()));
     }
 
@@ -66,6 +84,25 @@ public final class CharacterCommand {
                 "You are now a " + characters.definitionFor(sheet).orElseThrow().name()
                         + " with " + sheet.currentHitPoints() + " hit points."), false);
         return sheet.currentHitPoints();
+    }
+
+    private int chooseRace(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = context.getSource().getPlayerOrException();
+        Identifier id = IdentifierArgument.getId(context, ARG_RACE);
+        Race race = races.get(id).orElseThrow(() -> UNKNOWN_RACE.create(id));
+
+        characters.update(player, sheet -> sheet.withRace(id, race));
+        context.getSource().sendSuccess(() -> Component.literal(
+                "You are now a " + race.name() + ". " + describeRace(race)), false);
+        return 1;
+    }
+
+    private static String describeRace(Race race) {
+        StringBuilder sb = new StringBuilder("Speed ").append(race.speed()).append(" ft");
+        if (!race.traits().isEmpty()) {
+            sb.append(", traits: ").append(String.join(", ", race.traits()));
+        }
+        return sb.append('.').toString();
     }
 
     private int showSheet(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {

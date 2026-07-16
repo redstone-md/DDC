@@ -2,7 +2,7 @@ package com.ddc.character;
 
 import com.ddc.network.CharacterSheetPayload;
 import com.ddc.rules.CharacterClass;
-import com.ddc.rules.CharacterClassRegistry;
+import com.ddc.rules.DataRegistry;
 import dev.architectury.networking.NetworkManager;
 import java.util.Optional;
 import java.util.OptionalInt;
@@ -18,9 +18,9 @@ import net.minecraft.server.level.ServerPlayer;
  */
 public final class CharacterService {
 
-    private final CharacterClassRegistry classes;
+    private final DataRegistry<CharacterClass> classes;
 
-    public CharacterService(CharacterClassRegistry classes) {
+    public CharacterService(DataRegistry<CharacterClass> classes) {
         this.classes = classes;
     }
 

@@ -1,0 +1,6 @@
+{
+  "name": "Dwarf",
+  "ability_bonuses": { "constitution": 2 },
+  "speed": 25,
+  "traits": ["darkvision", "dwarven resilience", "stonecunning"]
+}

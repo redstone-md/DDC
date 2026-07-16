@@ -1,0 +1,8 @@
+{
+  "name": "Burning Hands",
+  "level": 1,
+  "school": "evocation",
+  "range": 15,
+  "damage_dice": "3d6",
+  "saving_throw": { "ability": "dexterity", "effect_on_success": "half_damage" }
+}
