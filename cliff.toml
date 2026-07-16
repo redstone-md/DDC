@@ -1,0 +1,73 @@
+# git-cliff configuration: turns the commit history into release notes.
+#
+# The release workflow runs this with `--latest` to write the body of a GitHub release, and it is
+# what keeps CHANGELOG.md honest between hand-written releases. Commits follow Conventional Commits;
+# anything that does not is grouped under "Other" rather than dropped, so nothing goes missing.
+
+[changelog]
+header = ""
+
+# Tera template. The summary line is derived from the commits themselves, so it cannot claim
+# something the history does not contain.
+body = """
+{% if version %}\
+## {{ version | trim_start_matches(pat="v") }} <sub>{{ timestamp | date(format="%d %B %Y") }}</sub>
+{% else %}\
+## Unreleased
+{% endif %}
+{%- set contributors = commits | map(attribute="author.name") | unique | length -%}
+{%- set_global tally = [] -%}
+{%- for group, group_commits in commits | group_by(attribute="group") -%}
+  {%- set heading = group | split(pat="-->") | last | trim -%}
+  {# Drop the leading emoji for the prose summary; it belongs in the heading, not mid-sentence. #}
+  {%- set label = heading | split(pat=" ") | slice(start=1) | join(sep=" ") | lower -%}
+  {%- set count = group_commits | length -%}
+  {%- set entry = count ~ " " ~ label -%}
+  {%- set_global tally = tally | concat(with=entry) -%}
+{%- endfor %}
+
+**{{ commits | length }} commits** from **{{ contributors }} contributor{{ contributors | pluralize }}**: {{ tally | join(sep=", ") }}.
+{% for group, group_commits in commits | group_by(attribute="group") %}
+### {{ group | split(pat="-->") | last | trim }}
+{% for commit in group_commits %}\
+- {% if commit.scope %}**{{ commit.scope }}** — {% endif %}\
+{{ commit.message | split(pat="\n") | first | trim | upper_first }} \
+([`{{ commit.id | truncate(length=7, end="") }}`](https://github.com/redstone-md/DDC/commit/{{ commit.id }}))
+{% endfor %}\
+{% endfor %}
+"""
+
+footer = """
+{% if previous.version and version -%}
+**Full changelog**: https://github.com/redstone-md/DDC/compare/{{ previous.version }}...{{ version }}
+{% endif -%}
+"""
+
+trim = true
+
+[git]
+conventional_commits = true
+filter_unconventional = false
+split_commits = false
+protect_breaking_commits = true
+filter_commits = false
+topo_order = false
+sort_commits = "oldest"
+
+# HTML comments force the order; git-cliff sorts groups alphabetically otherwise.
+commit_parsers = [
+  { message = "^feat", group = "<!-- 0 -->🎲 Features" },
+  { message = "^fix", group = "<!-- 1 -->🐛 Fixes" },
+  { message = "^perf", group = "<!-- 2 -->⚡ Performance" },
+  { message = "^refactor", group = "<!-- 3 -->🧹 Refactoring" },
+  { message = "^test", group = "<!-- 4 -->🧪 Tests" },
+  { message = "^build|^ci", group = "<!-- 5 -->🧱 Build & CI" },
+  { message = "^docs", group = "<!-- 6 -->📖 Documentation" },
+  { message = "^chore\\(release\\)", skip = true },
+  { message = "^chore|^style", group = "<!-- 7 -->🔧 Chores" },
+  { message = ".*", group = "<!-- 8 -->📦 Other" },
+]
+
+[bump]
+features_always_bump_minor = true
+breaking_always_bump_major = true

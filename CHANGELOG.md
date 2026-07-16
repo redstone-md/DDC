@@ -4,6 +4,11 @@ All notable changes to DDC are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+Each GitHub release carries notes generated from that release's commits by
+[git-cliff](https://git-cliff.org) (see `cliff.toml`), so they always match what shipped. This file
+is written by hand for what the commits cannot say: why a release is shaped the way it is, and what
+it deliberately leaves out.
+
 ## [1.0.0] - 2026-07-16
 
 The first release: the rules engine, dice, character sheets, a data-driven class registry, and the

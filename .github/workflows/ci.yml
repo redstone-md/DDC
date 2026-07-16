@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # Minecraft 26.1.2 runs on Java 25 and the mod is compiled for it.
+      - name: Set up JDK 25
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Build and test
+        run: ./gradlew build --stacktrace
+
+      - name: Upload test report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: common/build/reports/tests/test
+          retention-days: 7
+
+      - name: Upload jars
+        uses: actions/upload-artifact@v4
+        with:
+          name: jars
+          path: |
+            fabric/build/libs/*.jar
+            neoforge/build/libs/*.jar
+            !**/*-raw.jar
+          retention-days: 14
+
+  boot:
+    name: Boot ${{ matrix.loader }} server
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        loader: [fabric, neoforge]
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Accept the Minecraft EULA for this run
+        run: |
+          mkdir -p ${{ matrix.loader }}/run
+          echo "eula=true" > ${{ matrix.loader }}/run/eula.txt
+
+      # Compiling proves the mod builds; only booting proves it loads. The data pack pipeline is the
+      # part most likely to break silently, so the log line it prints is the assertion.
+      - name: Boot the server and check the mod loads
+        run: |
+          set -o pipefail
+          timeout 480 ./gradlew :${{ matrix.loader }}:runServer --console=plain < /dev/null \
+            2>&1 | tee server.log || true
+
+          grep -q "Initialising Dungeons, Dragons & Crafting" server.log \
+            || { echo "::error::the mod did not initialise"; exit 1; }
+          grep -q "Loaded 4 character class(es)" server.log \
+            || { echo "::error::the built-in data pack did not load"; exit 1; }
+          grep -q "Done (" server.log \
+            || { echo "::error::the server never finished starting"; exit 1; }
+          echo "$(grep -o 'Loaded 4 character class(es).*' server.log)"
+
+      - name: Upload server log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-log-${{ matrix.loader }}
+          path: server.log
+          retention-days: 7
