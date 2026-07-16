@@ -9,6 +9,37 @@ Each GitHub release carries notes generated from that release's commits by
 is written by hand for what the commits cannot say: why a release is shaped the way it is, and what
 it deliberately leaves out.
 
+## [1.6.0] - 2026-07-17
+
+The last two things the documentation asked for that I had written off as impossible. Both were, it
+turns out, only impossible the way I had been thinking about them.
+
+### Added
+- **A natural 20 slows the world down** (PRD 4.4). I had called this a shader problem and shelved it,
+  because the post-processing hook is private. It is not a shader problem: the game can be told to run
+  its world slower — that is what `/tick rate` does — so the whole table shares the moment rather than
+  one client pretending while everyone else's world carries on. It lasts under a second, because a
+  table that had to wait out a cinematic every good roll would stop rolling well on purpose, and it
+  refuses when a Game Master has stopped the clock themselves: a fanfare must never quietly undo
+  something the GM did on purpose.
+- **The GM wand's radial menu** (PRD 3.2). Holding the wand and pressing the wheel key gives a Game
+  Master their encounters; a GM playing a character presses the same key and gets their character,
+  because holding the wand is the ask. Picking one only selects it — the wand still places it where
+  the GM points, since choosing a fight and choosing where it happens are two decisions, and a menu
+  that did both would drop a patrol wherever the GM was standing.
+- **`/ddc encounter <id>`**, which is what the wheel sends. Everything the wheel does is a command a
+  player could have typed, so it goes through the same permission check rather than a second door.
+
+### Changed
+- The rules sent to the client now carry the encounters and whether this player is a Game Master. The
+  encounters go only to a GM — not because they are a secret, the server refuses the spawn either way,
+  but because a wheel that offers a player something they cannot do is a wheel that lies to them.
+
+### Still not done
+- **Colour grading on a natural 20.** `GameRenderer.setPostEffect` is private, and reaching it needs a
+  mixin. Worth doing; not worth pretending it is done.
+- **Modrinth.** The workflow is written. Publishing is the owner's call, not mine.
+
 ## [1.5.0] - 2026-07-17
 
 Everything in this release came from someone playing the mod and saying what was wrong with it.

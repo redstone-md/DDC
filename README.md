@@ -13,16 +13,18 @@
 
 DDC introduces an **asymmetric gameplay model**. Players explore the world as heroic characters with D&D classes, spell slots, and dice checks, while a **Game Master (GM)** controls the environment, possesses monsters, triggers sounds, and narrates the adventure in real-time.
 
-> ### Status: 1.5.0
+> ### Status: 1.6.0
 >
 > **This page describes the full design. The released mod is smaller.** Shipping today: the rules
 > engine, `/roll`, character sheets whose hit points are the player's real health, attack rolls
 > against armour class, spells with slots, class mechanics, ability checks, classes, races, spells and
 > encounters from data packs, the GM's wand, mob possession, world control, and GM narration.
-> Almost all of the PRD is now built: dice tumble in the world, the sheet is on `C`, the GM panel is
-> on `G`, and the OBS overlay feeds a browser source. **Most of the client side has never been looked
-> at** — see the changelog before trusting how anything looks. Not built: the glassmorphic blur, slow
-> motion, spell runes, Twitch chat, and Modrinth publishing.
+> The PRD is built: dice tumble in the world, the action wheel is on `R` so nothing has to be typed,
+> the sheet is on `C`, the GM panel is on `G`, the OBS overlay is a browser source you can paste a URL
+> into, Twitch chat votes, and a natural 20 slows the world down. Everything the mod says is
+> translated into English and Russian. Not built: colour grading on a natural 20, which needs a mixin
+> to reach a private renderer hook, and Modrinth publishing — that is the repository owner's decision
+> to make, not mine.
 >
 > [**CHANGELOG.md**](CHANGELOG.md) lists exactly what is in the release and what is not. Sections
 > below marked _(planned)_ are design intent, not behaviour.
@@ -52,7 +54,7 @@ DDC introduces an **asymmetric gameplay model**. Players explore the world as he
 
 ---
 
-## 🎲 What 1.5.0 actually does
+## 🎲 What 1.6.0 actually does
 
 | Command | Who | What |
 |---|---|---|
@@ -68,10 +70,15 @@ DDC introduces an **asymmetric gameplay model**. Players explore the world as he
 | `/ddc channel-divinity` | Cleric | Turns the undead within 30 feet. |
 | `/ddc narrate <text>` | Game Master | Letterboxed cinematic narration on every screen. |
 | `/ddc world <change>` | Game Master | Day, night, storm, stop the clock, freeze the party. |
+| `/ddc encounter <id>` | Game Master | Sets what the wand will place. The wand still chooses where. |
 
 **Nothing has to be typed.** Press `R` for the wheel: it makes your character, and then it plays
-them. `C` is your sheet, `G` is the Game Master's panel. The commands below still work, and the wheel
-sends them for you.
+them. A Game Master holding the wand gets the wand's wheel instead — their encounters, one press away.
+`C` is your sheet, `G` is the Game Master's panel. The commands below still work, and the wheel sends
+them for you.
+
+A **natural 20 slows the whole world** for a moment, so the table sees it happen rather than reading
+about it in chat.
 
 Attacks are resolved with the SRD's d20 against armour class: a miss cancels the damage and shows a
 dodge, and the roll is hidden so only the attacker sees the numbers. The **Game Master's Wand** places encounters (right-click the ground, sneak-right-click to change
