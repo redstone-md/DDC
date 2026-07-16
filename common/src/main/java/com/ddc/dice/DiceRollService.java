@@ -11,6 +11,7 @@ import java.util.Objects;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * Rolls dice on the server and tells the right people about it.
@@ -47,7 +48,19 @@ public final class DiceRollService {
             viewer.sendSystemMessage(message);
         }
         NetworkManager.sendToPlayers(audience, DiceResultPayload.of(player.getUUID(), displayName(player), result));
+        throwDice(player, result);
         return result;
+    }
+
+    /**
+     * Puts the dice in the world in front of the roller, for PRD 4.1.
+     *
+     * <p>The entity carries the seed and nothing else: the faces went out in the payload above, and
+     * the tumble comes out of the seed on each client.
+     */
+    private static void throwDice(ServerPlayer player, RollResult result) {
+        Vec3 at = player.position().add(player.getLookAngle().scale(0.8)).add(0, 1.2, 0);
+        DiceEntity.spawn(player.level(), at, result.seed());
     }
 
     /**

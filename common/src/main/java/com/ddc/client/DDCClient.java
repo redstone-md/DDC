@@ -1,9 +1,11 @@
 package com.ddc.client;
 
+import com.ddc.client.dice.RollCache;
 import com.ddc.network.CharacterSheetPayload;
 import com.ddc.network.DiceResultPayload;
 import com.ddc.network.NarrationPayload;
 import dev.architectury.event.events.client.ClientGuiEvent;
+import dev.architectury.event.events.client.ClientPlayerEvent;
 import dev.architectury.networking.NetworkManager;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -31,7 +33,11 @@ public final class DDCClient {
         // game state.
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, DiceResultPayload.TYPE,
                 DiceResultPayload.STREAM_CODEC,
-                (payload, context) -> context.queue(() -> ROLL_LOG.accept(payload, Util.getMillis())));
+                (payload, context) -> context.queue(() -> {
+                    ROLL_LOG.accept(payload, Util.getMillis());
+                    // The dice standing in the world find their faces here, by seed.
+                    RollCache.put(payload.result());
+                }));
 
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, CharacterSheetPayload.TYPE,
                 CharacterSheetPayload.STREAM_CODEC,
@@ -41,6 +47,8 @@ public final class DDCClient {
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, NarrationPayload.TYPE,
                 NarrationPayload.STREAM_CODEC,
                 (payload, context) -> context.queue(() -> NARRATION.accept(payload.text(), Util.getMillis())));
+
+        ClientPlayerEvent.CLIENT_PLAYER_QUIT.register(player -> RollCache.clear());
 
         ClientGuiEvent.RENDER_HUD.register((graphics, delta) -> {
             Minecraft client = Minecraft.getInstance();

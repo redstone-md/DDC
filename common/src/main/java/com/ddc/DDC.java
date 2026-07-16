@@ -18,6 +18,7 @@ import com.ddc.gm.WorldControlService;
 import com.ddc.command.WorldCommand;
 import com.ddc.spell.SpellService;
 import com.ddc.network.DDCNetwork;
+import com.ddc.registry.DDCEntities;
 import com.ddc.registry.DDCItems;
 import com.ddc.rules.DDCRegistries;
 import dev.architectury.event.events.common.CommandRegistrationEvent;
@@ -52,6 +53,7 @@ public final class DDC {
         DDCNetwork.register();
         DDCRegistries.register();
         DDCItems.register();
+        DDCEntities.register();
 
         CharacterService characters = new CharacterService(DDCRegistries.CLASSES);
         DiceRollService diceRolls = DiceRollService.serverSide();
