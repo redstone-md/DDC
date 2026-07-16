@@ -2,6 +2,7 @@ package com.ddc.client;
 
 import com.ddc.client.dice.RollCache;
 import com.ddc.client.screen.CharacterSheetScreen;
+import com.ddc.client.screen.GameMasterScreen;
 import com.mojang.blaze3d.platform.InputConstants;
 import dev.architectury.registry.client.keymappings.KeyMappingRegistry;
 import net.minecraft.client.KeyMapping;
@@ -47,6 +48,10 @@ public final class DDCClient {
     /** PRD 3.1's sheet key. */
     private static final KeyMapping SHEET_KEY = new KeyMapping("key.ddc.sheet",
             InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_C, KEY_CATEGORY);
+
+    /** PRD 3.2's control panel key. Bound for everyone; every button it sends is GM-gated. */
+    private static final KeyMapping PANEL_KEY = new KeyMapping("key.ddc.panel",
+            InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_G, KEY_CATEGORY);
 
     private DDCClient() {
     }
@@ -98,6 +103,7 @@ public final class DDCClient {
 
         new OverlayCommand(OVERLAY).register();
         KeyMappingRegistry.register(SHEET_KEY);
+        KeyMappingRegistry.register(PANEL_KEY);
 
         ClientPlayerEvent.CLIENT_PLAYER_QUIT.register(player -> {
             RollCache.clear();
@@ -111,6 +117,9 @@ public final class DDCClient {
             FANFARE.applyShake(Util.getMillis());
             while (SHEET_KEY.consumeClick()) {
                 openSheet(client);
+            }
+            while (PANEL_KEY.consumeClick()) {
+                client.setScreen(new GameMasterScreen());
             }
         });
 
