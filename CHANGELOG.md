@@ -9,6 +9,39 @@ Each GitHub release carries notes generated from that release's commits by
 is written by hand for what the commits cannot say: why a release is shaped the way it is, and what
 it deliberately leaves out.
 
+## [1.3.0] - 2026-07-16
+
+### Added
+- **The dice are in the world** (PRD 4.1). A roll throws them in front of the roller; they tumble,
+  bounce, settle, and are read by everyone nearby. A natural 20 lands gold and a natural 1 red. A
+  discarded advantage die is drawn faint: it was thrown, it just did not count.
+- The flight is a function of `(seed, die, time)` and nothing else. Nothing is ticked and nothing
+  about the tumble is sent, so every client draws the same throw and a hundred dice cost the server
+  nothing. That is ARCHITECTURE.md's deterministic replay.
+- The faces are looked up from the roll's payload by seed rather than recomputed, so the die showing
+  a 17 and the roll log saying 17 cannot disagree.
+
+### Changed
+- **Two things ARCHITECTURE.md describes do not exist in Minecraft 26, and the design changed to
+  suit.**
+  - It draws the dice from "a custom client-side render layer" with no entity behind them. Minecraft
+    26's renderer extracts state and submits geometry to be drawn later rather than drawing in place,
+    and neither Fabric's API nor Architectury still exposes a hook for arbitrary world geometry. So
+    there is an entity: one per roll rather than one per die, no AI, no collision, no gravity, never
+    saved, and gone in four seconds.
+  - Architectury has no entity-renderer registry, so each loader registers the shared renderer for
+    itself.
+
+### Known issues
+- **The dice have never been looked at.** They compile, both servers load them, and the physics is
+  covered by tests -- the same seed tumbles identically, no die falls through the floor, every throw
+  settles, a landed die stops spinning exactly when it stops moving. None of that is the same as
+  having seen one land. Report anything that looks wrong.
+- Every die is drawn as an icosahedron, whatever it is. A d6 that is really a d20 is a lie the eye
+  can see, and the other solids are not built yet.
+- The faces carry no numbers: the die's colour says whether it was a natural 20 or a 1, and the roll
+  log says what it was.
+
 ## [1.2.0] - 2026-07-16
 
 Everything PRD 3.1 and 3.2 describe that does not need a screen. The classes have
@@ -225,6 +258,7 @@ describes intent rather than behaviour:
 - The development server's console cannot run commands, including vanilla ones. It is an environment
   fault rather than a mod fault; use a client to try the commands.
 
+[1.3.0]: https://github.com/redstone-md/DDC/releases/tag/v1.3.0
 [1.2.0]: https://github.com/redstone-md/DDC/releases/tag/v1.2.0
 [1.1.1]: https://github.com/redstone-md/DDC/releases/tag/v1.1.1
 [1.1.0]: https://github.com/redstone-md/DDC/releases/tag/v1.1.0
