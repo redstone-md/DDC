@@ -78,7 +78,7 @@ public final class SpellCommand {
             throw NOT_A_CREATURE.create();
         }
 
-        return switch (spellService.cast(caster, spell, living)) {
+        return switch (spellService.cast(caster, spell, id, living)) {
             case SpellService.Either.Left<SpellService.Failure, SpellService.Cast> left -> {
                 context.getSource().sendFailure(Component.literal(left.value().message()));
                 yield 0;

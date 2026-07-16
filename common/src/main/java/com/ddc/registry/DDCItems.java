@@ -3,6 +3,7 @@ package com.ddc.registry;
 import com.ddc.DDC;
 import com.ddc.gm.GmWandItem;
 import com.ddc.gm.PossessionService;
+import com.ddc.spell.SpellbookItem;
 import dev.architectury.registry.CreativeTabRegistry;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
@@ -42,6 +43,13 @@ public final class DDCItems {
                     .rarity(Rarity.EPIC)
                     .setId(ResourceKey.create(Registries.ITEM, DDC.id("gm_wand"))), POSSESSIONS));
 
+    /** The wizard's spellbook. What is written in it lives on the sheet; see {@link SpellbookItem}. */
+    public static final RegistrySupplier<Item> SPELLBOOK = ITEMS.register("spellbook",
+            () -> new SpellbookItem(new Item.Properties()
+                    .stacksTo(1)
+                    .rarity(Rarity.UNCOMMON)
+                    .setId(ResourceKey.create(Registries.ITEM, DDC.id("spellbook")))));
+
     public static final RegistrySupplier<CreativeModeTab> TAB = TABS.register("ddc",
             () -> CreativeTabRegistry.create(
                     Component.literal(DDC.MOD_NAME),
@@ -54,7 +62,7 @@ public final class DDCItems {
     public static void register() {
         ITEMS.register();
         TABS.register();
-        CreativeTabRegistry.append(TAB, GM_WAND);
+        CreativeTabRegistry.append(TAB, GM_WAND, SPELLBOOK);
         POSSESSIONS.register();
     }
 

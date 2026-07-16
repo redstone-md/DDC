@@ -47,10 +47,12 @@ public final class CharacterCommand {
     private final FeatureCommand features;
     private final CheckCommand checks;
     private final WorldCommand world;
+    private final PrepareCommand preparation;
 
     public CharacterCommand(CharacterService characters, DataRegistry<CharacterClass> classes,
             DataRegistry<Race> races, NarrateCommand narration, SpellCommand spells,
-            FeatureCommand features, CheckCommand checks, WorldCommand world) {
+            FeatureCommand features, CheckCommand checks, WorldCommand world,
+            PrepareCommand preparation) {
         this.characters = characters;
         this.classes = classes;
         this.races = races;
@@ -59,6 +61,7 @@ public final class CharacterCommand {
         this.features = features;
         this.checks = checks;
         this.world = world;
+        this.preparation = preparation;
     }
 
     public void register(CommandDispatcher<CommandSourceStack> dispatcher) {
@@ -73,6 +76,8 @@ public final class CharacterCommand {
                                 .suggests((context, builder) ->
                                         SharedSuggestionProvider.suggestResource(races.ids(), builder))
                                 .executes(this::chooseRace)))
+                .then(preparation.prepareBranch())
+                .then(preparation.forgetBranch())
                 .then(spells.castBranch())
                 .then(spells.restBranch())
                 .then(checks.branch())

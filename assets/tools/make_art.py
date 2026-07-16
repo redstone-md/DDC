@@ -366,7 +366,32 @@ def make_wand_texture(size=16, ss=16):
     print(f"wrote {target}")
 
 
+def make_spellbook_texture(size=16, ss=16):
+    """The spellbook's item texture: a closed tome with a brass clasp, in the banner's palette."""
+    s = size * ss
+    img = Image.new("RGBA", (s, s), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img, "RGBA")
+
+    # Cover, spine to the left, the oxblood of the GM screen.
+    draw.rounded_rectangle([s * 0.16, s * 0.10, s * 0.86, s * 0.90], radius=s * 0.06,
+                           fill=(*OXBLOOD, 255), outline=(*INK, 255), width=max(1, s // 40))
+    draw.rectangle([s * 0.16, s * 0.10, s * 0.30, s * 0.90], fill=(60, 22, 29, 255))
+    # Pages.
+    draw.rectangle([s * 0.32, s * 0.16, s * 0.82, s * 0.84], fill=(*PARCHMENT, 255))
+    draw.rectangle([s * 0.32, s * 0.16, s * 0.36, s * 0.84], fill=(200, 188, 160, 255))
+    # Clasp.
+    draw.rectangle([s * 0.62, s * 0.44, s * 0.90, s * 0.56], fill=(*BRASS, 255),
+                   outline=(*BRASS_DARK, 255), width=max(1, s // 48))
+
+    img = img.resize((size, size), Image.LANCZOS)
+    target = Path("common/src/main/resources/assets/ddc/textures/item/spellbook.png")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    img.save(target, optimize=True)
+    print(f"wrote {target}")
+
+
 if __name__ == "__main__":
     make_banner(OUT_DIR / "banner.png")
     make_icon()
     make_wand_texture()
+    make_spellbook_texture()

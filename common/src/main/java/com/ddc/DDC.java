@@ -3,6 +3,7 @@ package com.ddc;
 import com.ddc.character.CharacterService;
 import com.ddc.character.FeatureService;
 import com.ddc.command.CheckCommand;
+import com.ddc.command.PrepareCommand;
 import com.ddc.command.FeatureCommand;
 import com.ddc.combat.CombatListener;
 import com.ddc.combat.CombatRules;
@@ -69,7 +70,8 @@ public final class DDC {
                 new SpellCommand(characters, DDCRegistries.SPELLS, DDCRegistries.CLASSES, spellService),
                 new FeatureCommand(new FeatureService(characters, diceRolls)),
                 new CheckCommand(characters, diceRolls),
-                new WorldCommand(new WorldControlService()));
+                new WorldCommand(new WorldControlService()),
+                new PrepareCommand(characters, DDCRegistries.SPELLS));
 
         CommandRegistrationEvent.EVENT.register((dispatcher, registry, selection) -> {
             rollCommand.register(dispatcher);

@@ -11,6 +11,7 @@ import com.ddc.dice.DiceRollService;
 import com.ddc.rules.CharacterClass;
 import com.ddc.rules.Spell;
 import com.ddc.rules.Spellcasting;
+import net.minecraft.resources.Identifier;
 import java.util.Optional;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -45,6 +46,7 @@ public final class SpellService {
         CLASS_CANNOT_CAST("Your class cannot cast spells."),
         SPELL_TOO_HIGH("You cannot cast a spell of that level yet."),
         NO_SLOTS("You have no spell slots of that level left. Rest with /ddc rest."),
+        NOT_PREPARED("That spell is not in your spellbook. Write it in with /ddc prepare <spell>."),
         OUT_OF_RANGE("That target is out of range.");
 
         private final String message;
@@ -67,7 +69,8 @@ public final class SpellService {
      *
      * @return the cast, or the reason it could not happen; nothing has changed in the failure case
      */
-    public Either<Failure, Cast> cast(ServerPlayer caster, Spell spell, LivingEntity target) {
+    public Either<Failure, Cast> cast(ServerPlayer caster, Spell spell, Identifier spellId,
+            LivingEntity target) {
         CharacterSheet sheet = characters.get(caster);
         Optional<CharacterClass> definition = characters.definitionFor(sheet);
         if (definition.isEmpty()) {
@@ -79,6 +82,11 @@ public final class SpellService {
         }
         if (caster.distanceTo(target) > spell.rangeInBlocks()) {
             return Either.left(Failure.OUT_OF_RANGE);
+        }
+        // A cantrip is known rather than prepared, which is the SRD's own rule and the reason a
+        // wizard is not made to write down fire bolt every morning.
+        if (!spell.isCantrip() && !sheet.hasPrepared(spellId)) {
+            return Either.left(Failure.NOT_PREPARED);
         }
 
         Optional<Failure> payment = paySlot(caster, sheet, casting.get(), spell);

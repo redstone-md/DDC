@@ -49,7 +49,8 @@ class CharacterCommandTest {
                         new SpellService(characters, diceRolls, DiceRoller.replaying(1L))),
                 new FeatureCommand(new FeatureService(characters, diceRolls)),
                 new CheckCommand(characters, diceRolls),
-                new WorldCommand(new com.ddc.gm.WorldControlService()))
+                new WorldCommand(new com.ddc.gm.WorldControlService()),
+                new PrepareCommand(characters, spells))
                 .register(dispatcher);
     }
 
