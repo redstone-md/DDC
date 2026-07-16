@@ -1,11 +1,13 @@
 package com.ddc.command;
 
 import com.ddc.character.CharacterService;
+import com.ddc.character.HealthService;
 import com.ddc.character.CharacterSheet;
 import com.ddc.core.character.Ability;
 import com.ddc.rules.CharacterClass;
 import com.ddc.rules.DataRegistry;
 import com.ddc.rules.Race;
+import com.ddc.rules.Spellcasting;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -80,10 +82,11 @@ public final class CharacterCommand {
         CharacterSheet sheet = characters.chooseClass(player, id)
                 .orElseThrow(() -> UNKNOWN_CLASS.create(id));
 
+        int hitPoints = HealthService.maxHitPoints(player);
         context.getSource().sendSuccess(() -> Component.literal(
                 "You are now a " + characters.definitionFor(sheet).orElseThrow().name()
-                        + " with " + sheet.currentHitPoints() + " hit points."), false);
-        return sheet.currentHitPoints();
+                        + " with " + hitPoints + " hit points."), false);
+        return hitPoints;
     }
 
     private int chooseRace(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
@@ -109,18 +112,20 @@ public final class CharacterCommand {
         ServerPlayer player = context.getSource().getPlayerOrException();
         CharacterSheet sheet = characters.get(player);
 
-        context.getSource().sendSuccess(() -> Component.literal(describe(sheet)), false);
+        context.getSource().sendSuccess(() -> Component.literal(describe(sheet, player)), false);
         return sheet.level();
     }
 
-    private String describe(CharacterSheet sheet) {
+    private String describe(CharacterSheet sheet, ServerPlayer player) {
         String className = characters.definitionFor(sheet)
                 .map(definition -> definition.name())
                 .orElse("no class yet, pick one with /ddc class <id>");
         StringBuilder sb = new StringBuilder(className)
                 .append(" - level ").append(sheet.level())
-                .append(", HP ").append(sheet.currentHitPoints());
-        characters.maxHitPoints(sheet).ifPresent(max -> sb.append('/').append(max));
+                .append(", HP ").append(HealthService.currentHitPoints(player))
+                .append('/').append(HealthService.maxHitPoints(player));
+        characters.definitionFor(sheet).flatMap(CharacterClass::spellcasting).ifPresent(casting ->
+                sb.append(", slots ").append(describeSlots(sheet, casting)));
         sb.append(", proficiency +").append(sheet.proficiencyBonus()).append('\n');
         for (Ability ability : Ability.values()) {
             int modifier = sheet.modifier(ability);
@@ -128,5 +133,22 @@ public final class CharacterCommand {
                     .append(" (").append(modifier >= 0 ? "+" : "").append(modifier).append(") ");
         }
         return sb.toString().trim();
+    }
+
+    /** Slots as remaining-of-total per spell level, so a caster can see what they have left. */
+    private static String describeSlots(CharacterSheet sheet, Spellcasting casting) {
+        StringBuilder sb = new StringBuilder();
+        for (int spellLevel = 1; spellLevel <= casting.highestSlotLevel(sheet.level()); spellLevel++) {
+            int total = casting.slotsFor(sheet.level(), spellLevel);
+            if (total == 0) {
+                continue;
+            }
+            if (!sb.isEmpty()) {
+                sb.append(' ');
+            }
+            sb.append(spellLevel).append(':').append(total - sheet.usedSlots(spellLevel))
+                    .append('/').append(total);
+        }
+        return sb.isEmpty() ? "none" : sb.toString();
     }
 }

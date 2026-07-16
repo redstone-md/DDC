@@ -36,7 +36,7 @@ public final class DDCClient {
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, CharacterSheetPayload.TYPE,
                 CharacterSheetPayload.STREAM_CODEC,
                 (payload, context) -> context.queue(() ->
-                        CHARACTER_HUD.accept(payload.sheet(), payload.maxHitPoints())));
+                        CHARACTER_HUD.accept(payload.sheet())));
 
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, NarrationPayload.TYPE,
                 NarrationPayload.STREAM_CODEC,
@@ -45,7 +45,7 @@ public final class DDCClient {
         ClientGuiEvent.RENDER_HUD.register((graphics, delta) -> {
             Minecraft client = Minecraft.getInstance();
             long now = Util.getMillis();
-            CHARACTER_HUD.render(graphics, client.font);
+            CHARACTER_HUD.render(graphics, client.font, client.player);
             ROLL_LOG.render(graphics, client.font, now);
             NARRATION.render(graphics, client.font, now);
         });

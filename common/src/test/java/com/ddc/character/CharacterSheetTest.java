@@ -11,6 +11,7 @@ import com.ddc.core.character.HitDie;
 import com.ddc.core.dice.Die;
 import com.ddc.rules.CharacterClass;
 import com.mojang.serialization.JsonOps;
+import net.minecraft.nbt.NbtOps;
 import java.util.Optional;
 import java.util.Set;
 import net.minecraft.resources.Identifier;
@@ -51,35 +52,39 @@ class CharacterSheetTest {
     }
 
     @Test
-    @DisplayName("picking a class fills in hit points from the class's die")
-    void choosingAClassSetsFullHitPoints() {
+    @DisplayName("picking a class decides how many hit points the class is worth")
+    void choosingAClassSetsTheMaximum() {
         CharacterSheet sheet = prdFighter();
 
         assertTrue(sheet.hasClass());
         assertEquals(Optional.of(FIGHTER_ID), sheet.characterClass());
         assertEquals(44, sheet.maxHitPoints(FIGHTER), "the PRD's level 5 fighter");
-        assertEquals(44, sheet.currentHitPoints());
-    }
-
-    @Test
-    void hitPointsNeverGoNegative() {
-        assertEquals(0, prdFighter().withCurrentHitPoints(-20).currentHitPoints());
     }
 
     @Test
     void everyChangeReturnsACopy() {
         CharacterSheet original = prdFighter();
 
-        original.withLevel(9).withCurrentHitPoints(1);
+        original.withLevel(9).withSlotSpent(1);
 
         assertEquals(5, original.level());
-        assertEquals(44, original.currentHitPoints());
+        assertEquals(0, original.usedSlots(1));
+    }
+
+    @Test
+    @DisplayName("a rest gives every slot back")
+    void restingClearsSpentSlots() {
+        CharacterSheet spent = prdFighter().withSlotSpent(1).withSlotSpent(1).withSlotSpent(3);
+
+        assertEquals(2, spent.usedSlots(1));
+        assertEquals(0, spent.rested().usedSlots(1));
+        assertEquals(0, spent.rested().usedSlots(3));
     }
 
     @Test
     @DisplayName("a sheet survives a save and load unchanged")
     void roundTripsThroughItsCodec() {
-        CharacterSheet original = prdFighter().withCurrentHitPoints(17);
+        CharacterSheet original = prdFighter().withSlotSpent(2);
 
         var encoded = CharacterSheet.CODEC.encodeStart(JsonOps.INSTANCE, original)
                 .getOrThrow(message -> new AssertionError(message));
@@ -88,7 +93,7 @@ class CharacterSheetTest {
 
         assertEquals(original, loaded);
         assertEquals(16, loaded.abilities().score(Ability.STRENGTH));
-        assertEquals(17, loaded.currentHitPoints());
+        assertEquals(1, loaded.usedSlots(2));
         assertEquals(Optional.of(FIGHTER_ID), loaded.characterClass());
     }
 
@@ -106,9 +111,36 @@ class CharacterSheetTest {
         assertTrue(CharacterSheet.CODEC.parse(JsonOps.INSTANCE,
                         com.google.gson.JsonParser.parseString("""
                                 {"level": 25, "abilities": {"strength": 10, "dexterity": 10,
-                                 "constitution": 10, "intelligence": 10, "wisdom": 10, "charisma": 10},
-                                 "current_hit_points": 5}"""))
+                                 "constitution": 10, "intelligence": 10, "wisdom": 10, "charisma": 10}}"""))
                 .isError());
+    }
+
+    /**
+     * The world saves as NBT, not JSON, and the two disagree about what a map key may be. Round
+     * tripping through JsonOps alone missed exactly that: 1.1.0 shipped with an int-keyed slot map
+     * that threw "Not a string" the first time a caster's sheet was saved.
+     */
+    @Test
+    @DisplayName("a sheet with spent slots survives the format the world actually saves in")
+    void roundTripsThroughNbtAsTheWorldSavesIt() {
+        CharacterSheet original = prdFighter().withSlotSpent(1).withSlotSpent(3);
+
+        var encoded = CharacterSheet.CODEC.encodeStart(NbtOps.INSTANCE, original)
+                .getOrThrow(message -> new AssertionError("saving a sheet failed: " + message));
+        CharacterSheet loaded = CharacterSheet.CODEC.parse(NbtOps.INSTANCE, encoded)
+                .getOrThrow(message -> new AssertionError("loading a sheet failed: " + message));
+
+        assertEquals(original, loaded);
+        assertEquals(1, loaded.usedSlots(1));
+        assertEquals(1, loaded.usedSlots(3));
+    }
+
+    @Test
+    void refusesASpellLevelThatIsNotOne() {
+        assertTrue(CharacterSheet.CODEC.parse(JsonOps.INSTANCE, com.google.gson.JsonParser.parseString("""
+                {"level": 5, "abilities": {"strength": 10, "dexterity": 10, "constitution": 10,
+                 "intelligence": 10, "wisdom": 10, "charisma": 10},
+                 "used_spell_slots": {"banana": 1}}""")).isError());
     }
 
     @Test

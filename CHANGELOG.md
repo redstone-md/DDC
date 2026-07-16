@@ -9,6 +9,34 @@ Each GitHub release carries notes generated from that release's commits by
 is written by hand for what the commits cannot say: why a release is shaped the way it is, and what
 it deliberately leaves out.
 
+## [1.1.1] - 2026-07-16
+
+### Fixed
+- **Casting a spell broke the character sheet's save.** Spent spell slots were keyed by an int, and a
+  map key has to be a string: the world saves as NBT, and the first save after a cast failed with
+  "Not a string". Sheets round trip through NBT now, and a test pins it in the format the world
+  actually uses rather than in JSON, which is what let this through in 1.1.0.
+- **Hit points were a number in a panel.** `/ddc sheet` said 44/44 while the player walked around
+  with vanilla's 20 and died at 20: the sheet's hit points and the player's health were two separate
+  lives, and the rules cared about the fiction. There is one now. Vanilla health is the health, and
+  the class's hit die sizes it through a transient modifier on max health, re-applied on join,
+  respawn and every change. A player with no class keeps vanilla's 20: taking someone's hearts away
+  for not having filled in a character sheet would be a strange welcome.
+- **Saving throws ignored class proficiency.** `CharacterClass.isProficientInSave` had no callers, so
+  listing a class's saving throws did nothing at all. A wizard now adds proficiency to Intelligence
+  saves, which is the point of the field.
+
+### Changed
+- The sheet no longer stores current hit points, and its payload no longer carries them: the client
+  reads its own health. Sheets saved by 1.1.0 still load.
+- `/ddc sheet` shows spell slots as remaining-of-total per level. There was previously no way to see
+  them.
+
+### Removed
+- Nothing shipped uses `HealthService` to hide vanilla's hearts yet: 44 hit points render as 22
+  hearts. The numeric panel is in the HUD; replacing the hearts bar needs the client work that is
+  still outstanding.
+
 ## [1.1.0] - 2026-07-16
 
 The mod starts playing like D&D rather than describing it: attacks roll against
@@ -158,6 +186,7 @@ describes intent rather than behaviour:
 - The development server's console cannot run commands, including vanilla ones. It is an environment
   fault rather than a mod fault; use a client to try the commands.
 
+[1.1.1]: https://github.com/redstone-md/DDC/releases/tag/v1.1.1
 [1.1.0]: https://github.com/redstone-md/DDC/releases/tag/v1.1.0
 [1.0.1]: https://github.com/redstone-md/DDC/releases/tag/v1.0.1
 [1.0.0]: https://github.com/redstone-md/DDC/releases/tag/v1.0.0

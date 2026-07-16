@@ -131,14 +131,23 @@ public final class SpellService {
     /**
      * The target's saving throw.
      *
-     * <p>A player rolls their own ability modifier. A mob has no sheet, so it rolls flat: DDC has no
-     * monster stat blocks yet, and inventing one per mob would be a rule nobody wrote down.
+     * <p>A player rolls their ability modifier, plus their proficiency bonus when their class is
+     * proficient in that save -- which is the whole point of a class listing its saving throws, and
+     * is what makes a wizard hard to out-think and a fighter hard to knock down.
+     *
+     * <p>A mob has no sheet, so it rolls flat: DDC has no monster stat blocks yet, and inventing one
+     * per mob would be a rule nobody wrote down.
      */
     private CheckOutcome rollSave(LivingEntity target, Ability ability, int dc) {
-        int modifier = target instanceof ServerPlayer player
-                ? characters.get(player).modifier(ability)
-                : 0;
-        return D20Check.of(modifier, dc).resolve(roller);
+        if (!(target instanceof ServerPlayer player)) {
+            return D20Check.of(0, dc).resolve(roller);
+        }
+        CharacterSheet sheet = characters.get(player);
+        D20Check check = D20Check.ability(sheet.abilities(), ability, dc);
+        boolean proficient = characters.definitionFor(sheet)
+                .filter(definition -> definition.isProficientInSave(ability))
+                .isPresent();
+        return (proficient ? check.plusProficiency(sheet.level()) : check).resolve(roller);
     }
 
     private int applyDamage(ServerPlayer caster, LivingEntity target, Spell spell,

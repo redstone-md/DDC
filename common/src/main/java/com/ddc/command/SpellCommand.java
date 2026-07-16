@@ -1,6 +1,7 @@
 package com.ddc.command;
 
 import com.ddc.character.CharacterService;
+import com.ddc.character.HealthService;
 import com.ddc.character.CharacterSheet;
 import com.ddc.rules.CharacterClass;
 import com.ddc.rules.DataRegistry;
@@ -110,12 +111,13 @@ public final class SpellCommand {
                     Component.literal("You have no class yet. Pick one with /ddc class <id>."));
             return 0;
         }
-        int max = characters.maxHitPoints(sheet).orElse(sheet.currentHitPoints());
-        CharacterSheet rested = characters.update(player, current -> current.rested(max));
+        characters.update(player, CharacterSheet::rested);
+        characters.health().applyAndHeal(player);
 
+        int hitPoints = HealthService.currentHitPoints(player);
         context.getSource().sendSuccess(
                 () -> Component.literal("You take a long rest. Hit points and spell slots restored ("
-                        + rested.currentHitPoints() + " HP)."), false);
-        return rested.currentHitPoints();
+                        + hitPoints + " HP)."), false);
+        return hitPoints;
     }
 }
