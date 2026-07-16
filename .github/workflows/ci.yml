@@ -52,13 +52,14 @@ jobs:
           retention-days: 14
 
   boot:
-    name: Boot ${{ matrix.loader }} server
+    name: Boot ${{ matrix.loader }} ${{ matrix.side }}
     needs: build
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         loader: [fabric, neoforge]
+        side: [server]
     steps:
       - uses: actions/checkout@v5
 
@@ -94,10 +95,10 @@ jobs:
             || { echo "::error::the server never finished starting"; exit 1; }
           grep -o 'Loaded [0-9]* [a-z ]*: \[.*' server.log
 
-      - name: Upload server log
+      - name: Upload the log
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: server-log-${{ matrix.loader }}
+          name: ${{ matrix.side }}-log-${{ matrix.loader }}
           path: server.log
           retention-days: 7
