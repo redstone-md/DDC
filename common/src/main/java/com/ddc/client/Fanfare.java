@@ -20,9 +20,9 @@ import net.minecraft.world.entity.player.Player;
  * a comic thud. Both are short: the moment is the roll, and a five-second cutscene would be in the
  * way of the game the table is playing.
  *
- * <p>The PRD also asks for slow motion and a colour-grading shader. Neither is here: Minecraft 26's
- * renderer would need a post-processing pass of its own, and a shake plus particles plus a sound
- * carries the moment without one.
+ * <p>The rest of the moment is elsewhere, because it belongs elsewhere: {@link ColourGrade} owns the
+ * screen's colour and {@code SlowMotion} owns the world's speed, which is the server's to change and
+ * so cannot live in a client class at all.
  */
 @Environment(EnvType.CLIENT)
 public final class Fanfare {

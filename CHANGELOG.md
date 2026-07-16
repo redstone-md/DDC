@@ -9,6 +9,27 @@ Each GitHub release carries notes generated from that release's commits by
 is written by hand for what the commits cannot say: why a release is shaped the way it is, and what
 it deliberately leaves out.
 
+## [1.6.1] - 2026-07-17
+
+### Fixed
+- **Joining a world disconnected you immediately.** The rules the server sends on join were built with
+  a null id in every entry and the real one patched in a line later; the entry refuses to exist
+  without one, so the payload threw while the player was being placed. Present since 1.5.0, which
+  makes 1.5.0 and 1.6.0 unplayable — use this one. Nothing caught it because the tests had registries
+  with nothing in them, and an empty registry describes nothing, so no test ever built the entry that
+  throws. Registries can be filled in a test now, and the payload is tested with things in them.
+
+### Added
+- **Colour grading on a natural 20** (PRD 4.4) — gold on a 20, grey on a 1, for the length of the
+  shake. It is the game's own `post/color_convolve` with a different matrix in the pack file, because
+  a colour grade *is* a matrix and Minecraft already ships a shader that multiplies by one. It will
+  not start when something else is grading the screen: a player spectating a creeper chose that, and
+  a good roll must not take it away.
+- **One mixin**, and only one: the renderer's `setPostEffect` is private and the public ways in pick
+  the effect from an entity type, so there is no vanilla road from "rolled a 20" to "grade the
+  screen". It injects nothing and changes no behaviour — it makes an existing method callable. This
+  is the last thing in the PRD that had no API to go through.
+
 ## [1.6.0] - 2026-07-17
 
 The last two things the documentation asked for that I had written off as impossible. Both were, it

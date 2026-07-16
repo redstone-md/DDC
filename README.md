@@ -13,7 +13,7 @@
 
 DDC introduces an **asymmetric gameplay model**. Players explore the world as heroic characters with D&D classes, spell slots, and dice checks, while a **Game Master (GM)** controls the environment, possesses monsters, triggers sounds, and narrates the adventure in real-time.
 
-> ### Status: 1.6.0
+> ### Status: 1.6.1
 >
 > **This page describes the full design. The released mod is smaller.** Shipping today: the rules
 > engine, `/roll`, character sheets whose hit points are the player's real health, attack rolls
@@ -21,10 +21,9 @@ DDC introduces an **asymmetric gameplay model**. Players explore the world as he
 > encounters from data packs, the GM's wand, mob possession, world control, and GM narration.
 > The PRD is built: dice tumble in the world, the action wheel is on `R` so nothing has to be typed,
 > the sheet is on `C`, the GM panel is on `G`, the OBS overlay is a browser source you can paste a URL
-> into, Twitch chat votes, and a natural 20 slows the world down. Everything the mod says is
-> translated into English and Russian. Not built: colour grading on a natural 20, which needs a mixin
-> to reach a private renderer hook, and Modrinth publishing — that is the repository owner's decision
-> to make, not mine.
+> into, Twitch chat votes, and a natural 20 slows the world down and grades the screen gold.
+> Everything the mod says is translated into English and Russian. Not built: Modrinth publishing —
+> that is the repository owner's decision to make, not mine.
 >
 > [**CHANGELOG.md**](CHANGELOG.md) lists exactly what is in the release and what is not. Sections
 > below marked _(planned)_ are design intent, not behaviour.
@@ -54,7 +53,7 @@ DDC introduces an **asymmetric gameplay model**. Players explore the world as he
 
 ---
 
-## 🎲 What 1.6.0 actually does
+## 🎲 What 1.6.1 actually does
 
 | Command | Who | What |
 |---|---|---|
@@ -77,8 +76,8 @@ them. A Game Master holding the wand gets the wand's wheel instead — their enc
 `C` is your sheet, `G` is the Game Master's panel. The commands below still work, and the wheel sends
 them for you.
 
-A **natural 20 slows the whole world** for a moment, so the table sees it happen rather than reading
-about it in chat.
+A **natural 20 slows the whole world** for a moment and grades the screen gold, so the table sees it
+happen rather than reading about it in chat.
 
 Attacks are resolved with the SRD's d20 against armour class: a miss cancels the damage and shows a
 dodge, and the roll is hidden so only the attacker sees the numbers. The **Game Master's Wand** places encounters (right-click the ground, sneak-right-click to change
