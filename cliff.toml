@@ -15,6 +15,7 @@ body = """
 {% else %}\
 ## Unreleased
 {% endif %}
+{%- set total = commits | length -%}
 {%- set contributors = commits | map(attribute="author.name") | unique | length -%}
 {%- set_global tally = [] -%}
 {%- for group, group_commits in commits | group_by(attribute="group") -%}
@@ -22,11 +23,13 @@ body = """
   {# Drop the leading emoji for the prose summary; it belongs in the heading, not mid-sentence. #}
   {%- set label = heading | split(pat=" ") | slice(start=1) | join(sep=" ") | lower -%}
   {%- set count = group_commits | length -%}
-  {%- set entry = count ~ " " ~ label -%}
+  {# "features (6)" rather than "6 features": the group names are plural, and a release with one
+     commit in a group would otherwise read "1 fixes". #}
+  {%- set entry = label ~ " (" ~ count ~ ")" -%}
   {%- set_global tally = tally | concat(with=entry) -%}
 {%- endfor %}
 
-**{{ commits | length }} commits** from **{{ contributors }} contributor{{ contributors | pluralize }}**: {{ tally | join(sep=", ") }}.
+**{{ total }} commit{{ total | pluralize }}** from **{{ contributors }} contributor{{ contributors | pluralize }}** — {{ tally | join(sep=", ") }}.
 {% for group, group_commits in commits | group_by(attribute="group") %}
 ### {{ group | split(pat="-->") | last | trim }}
 {% for commit in group_commits %}\
