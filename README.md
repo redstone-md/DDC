@@ -13,14 +13,16 @@
 
 DDC introduces an **asymmetric gameplay model**. Players explore the world as heroic characters with D&D classes, spell slots, and dice checks, while a **Game Master (GM)** controls the environment, possesses monsters, triggers sounds, and narrates the adventure in real-time.
 
-> ### Status: 1.3.0
+> ### Status: 1.4.0
 >
 > **This page describes the full design. The released mod is smaller.** Shipping today: the rules
 > engine, `/roll`, character sheets whose hit points are the player's real health, attack rolls
 > against armour class, spells with slots, class mechanics, ability checks, classes, races, spells and
 > encounters from data packs, the GM's wand, mob possession, world control, and GM narration.
-> 3D dice now tumble in the world, though nobody has looked at them yet — see the changelog. Still
-> missing: the sheet on `C`, the GM panel, the Nat 20 fanfare, and the Twitch/OBS integration.
+> Almost all of the PRD is now built: dice tumble in the world, the sheet is on `C`, the GM panel is
+> on `G`, and the OBS overlay feeds a browser source. **Most of the client side has never been looked
+> at** — see the changelog before trusting how anything looks. Not built: the glassmorphic blur, slow
+> motion, spell runes, Twitch chat, and Modrinth publishing.
 >
 > [**CHANGELOG.md**](CHANGELOG.md) lists exactly what is in the release and what is not. Sections
 > below marked _(planned)_ are design intent, not behaviour.
@@ -50,7 +52,7 @@ DDC introduces an **asymmetric gameplay model**. Players explore the world as he
 
 ---
 
-## 🎲 What 1.3.0 actually does
+## 🎲 What 1.4.0 actually does
 
 | Command | Who | What |
 |---|---|---|

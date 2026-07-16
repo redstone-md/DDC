@@ -9,6 +9,40 @@ Each GitHub release carries notes generated from that release's commits by
 is written by hand for what the commits cannot say: why a release is shaped the way it is, and what
 it deliberately leaves out.
 
+## [1.4.0] - 2026-07-16
+
+Everything left in the PRD that DDC can build for itself.
+
+### Added
+- **The wizard's spellbook** (PRD 3.1). Craft it from a book, an amethyst shard and an ink sac.
+  `/ddc prepare` writes a spell in and `/ddc forget` scrubs one out, both with the book in hand;
+  casting an unprepared spell now fails and says why. Cantrips need no preparation — the SRD knows
+  them rather than prepares them. The book holds Intelligence plus level spells, and never fewer than
+  one. What is written in it lives on the sheet: a book left in a chest should not take a wizard's
+  magic with it.
+- **The Nat 20 and Nat 1 fanfare** (PRD 4.4). Your own natural 20 shakes the camera, throws gold and
+  sounds a note; a natural 1 puffs ash. Only your own dice: a screen that shook whenever anyone rolled
+  would be unplayable in a party of five.
+- **The character sheet on `C`** (PRD 3.1). A page, not a form — DDC has no way for a client to change
+  a sheet, and buttons that asked the server nicely would be a lie about where the rules live.
+- **The Game Master panel on `G`** (PRD 3.2). Narration and world control, one click each. Every button
+  sends the command it names, so the permission checks ADR-0003 insists on are the ones already there.
+- **The OBS overlay's WebSocket feed** (ARCHITECTURE.md 5). `/ddc overlay start` opens
+  `ws://localhost:8082` and every roll goes out as JSON in the shape that document promises. Off until
+  asked for, bound to loopback, and stopped when you leave a world.
+
+### Known issues
+- **Only the overlay was verified.** It is tested against a real WebSocket client on a real socket. The
+  fanfare's shake curve and the dice physics are tested as maths. Everything else on the screen — the
+  sheet, the panel, the dice as they look, the particles — has only been checked as far as "the client
+  boots clean with it, no missing models, no errors". Nobody has looked at any of it.
+- **Not built, and not pretended**: the glassmorphic blur and the Nat 20 slow motion (both want a
+  post-processing pass Minecraft 26's renderer would have to be given), spell runes, the GM's radial
+  menu and encounter preview grid, the streamer HUD layout, and Twitch chat integration.
+- **Modrinth publishing is not wired up** (PRD 5). The project does not exist yet — the `ddc` slug
+  belongs to another mod — and arming a publish-to-the-world pipeline is the owner's call, not the
+  build's.
+
 ## [1.3.0] - 2026-07-16
 
 ### Added
@@ -258,6 +292,7 @@ describes intent rather than behaviour:
 - The development server's console cannot run commands, including vanilla ones. It is an environment
   fault rather than a mod fault; use a client to try the commands.
 
+[1.4.0]: https://github.com/redstone-md/DDC/releases/tag/v1.4.0
 [1.3.0]: https://github.com/redstone-md/DDC/releases/tag/v1.3.0
 [1.2.0]: https://github.com/redstone-md/DDC/releases/tag/v1.2.0
 [1.1.1]: https://github.com/redstone-md/DDC/releases/tag/v1.1.1
