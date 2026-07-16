@@ -3,6 +3,8 @@ package com.ddc.client;
 import com.ddc.client.dice.RollCache;
 import com.ddc.client.screen.CharacterSheetScreen;
 import com.ddc.client.screen.GameMasterScreen;
+import com.ddc.client.screen.PlayerWheel;
+import com.ddc.client.screen.WheelScreen;
 import com.mojang.blaze3d.platform.InputConstants;
 import dev.architectury.registry.client.keymappings.KeyMappingRegistry;
 import net.minecraft.client.KeyMapping;
@@ -60,6 +62,10 @@ public final class DDCClient {
     private static final KeyMapping PANEL_KEY = new KeyMapping("key.ddc.panel",
             InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_G, KEY_CATEGORY);
 
+    /** The wheel: the actions a character has, without typing them. */
+    private static final KeyMapping WHEEL_KEY = new KeyMapping("key.ddc.wheel",
+            InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_R, KEY_CATEGORY);
+
     private DDCClient() {
     }
 
@@ -72,6 +78,13 @@ public final class DDCClient {
     private static void openSheet(Minecraft client) {
         CHARACTER_HUD.sheet().ifPresent(sheet -> client.setScreen(
                 new CharacterSheetScreen(sheet, CHARACTER_HUD.className())));
+    }
+
+    /** Opens the wheel with whatever this character can actually do. */
+    private static void openWheel(Minecraft client) {
+        CHARACTER_HUD.sheet().ifPresent(sheet -> client.setScreen(new WheelScreen(
+                CHARACTER_HUD.className(),
+                PlayerWheel.optionsFor(sheet, CHARACTER_HUD.summary()))));
     }
 
     /** The fanfare, for the loader hooks that have to drive the camera themselves. */
@@ -102,7 +115,7 @@ public final class DDCClient {
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, CharacterSheetPayload.TYPE,
                 CharacterSheetPayload.STREAM_CODEC,
                 (payload, context) -> context.queue(() ->
-                        CHARACTER_HUD.accept(payload.sheet())));
+                        CHARACTER_HUD.accept(payload.sheet(), payload.summary())));
 
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, NarrationPayload.TYPE,
                 NarrationPayload.STREAM_CODEC,
@@ -112,6 +125,7 @@ public final class DDCClient {
         new TwitchCommand(TWITCH, VOTE).register();
         KeyMappingRegistry.register(SHEET_KEY);
         KeyMappingRegistry.register(PANEL_KEY);
+        KeyMappingRegistry.register(WHEEL_KEY);
 
         ClientPlayerEvent.CLIENT_PLAYER_QUIT.register(player -> {
             RollCache.clear();
@@ -129,6 +143,9 @@ public final class DDCClient {
             }
             while (PANEL_KEY.consumeClick()) {
                 client.setScreen(new GameMasterScreen());
+            }
+            while (WHEEL_KEY.consumeClick()) {
+                openWheel(client);
             }
         });
 

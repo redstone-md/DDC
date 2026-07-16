@@ -2,6 +2,7 @@ package com.ddc.client;
 
 import com.ddc.character.CharacterSheet;
 import com.ddc.core.character.Ability;
+import com.ddc.network.ClassSummary;
 import java.util.Optional;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -41,26 +42,22 @@ public final class CharacterHud {
     private static final int HP_CRITICAL = 0xFFFF5555;
 
     private CharacterSheet sheet;
+    private ClassSummary summary;
 
-    /** Takes the sheet the server sent. */
-    public void accept(CharacterSheet sheet) {
+    /** Takes the sheet the server sent, and what it says the class can do. */
+    public void accept(CharacterSheet sheet, java.util.Optional<ClassSummary> summary) {
         this.sheet = sheet;
+        this.summary = summary.orElse(null);
     }
 
-    /**
-     * The class's display name.
-     *
-     * <p>The id, tidied: the client has no data packs, so the name a pack gave the class never
-     * reaches it. "ddc:fighter" becomes "Fighter", which is right for every class DDC ships and a
-     * fair guess for the rest.
-     */
+    /** What the class can do, as the server described it. */
+    public Optional<ClassSummary> summary() {
+        return Optional.ofNullable(summary);
+    }
+
+    /** The class's display name, as its data pack wrote it. */
     public String className() {
-        return sheet == null ? "" : sheet.characterClass()
-                .map(id -> {
-                    String path = id.getPath().replace('_', ' ');
-                    return Character.toUpperCase(path.charAt(0)) + path.substring(1);
-                })
-                .orElse("No class");
+        return summary == null ? "No class" : summary.name();
     }
 
     public Optional<CharacterSheet> sheet() {

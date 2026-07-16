@@ -54,7 +54,8 @@ public final class CharacterService {
     }
 
     private void sync(ServerPlayer player, CharacterSheet sheet) {
-        NetworkManager.sendToPlayer(player, new CharacterSheetPayload(sheet));
+        NetworkManager.sendToPlayer(player, new CharacterSheetPayload(sheet,
+                definitionFor(sheet).map(com.ddc.network.ClassSummary::of)));
     }
 
     /**

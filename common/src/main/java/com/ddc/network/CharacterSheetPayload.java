@@ -17,19 +17,27 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
  * <p>Hit points do not ride along. They are vanilla health now, sized from the hit die, so the client
  * already has them and a copy here could only disagree.
  *
- * @param sheet the player's sheet
+ * <p>The class's summary rides along: the definition lives in a data pack the client does not have,
+ * and without it a client cannot print the class's name or know whether to offer Cast. What it gets
+ * is the answers, never the rules.
+ *
+ * @param sheet   the player's sheet
+ * @param summary what their class can do, absent until they have picked one
  */
-public record CharacterSheetPayload(CharacterSheet sheet) implements CustomPacketPayload {
+public record CharacterSheetPayload(CharacterSheet sheet, java.util.Optional<ClassSummary> summary)
+        implements CustomPacketPayload {
 
     public static final Type<CharacterSheetPayload> TYPE = new Type<>(DDC.id("character_sheet"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, CharacterSheetPayload> STREAM_CODEC =
             StreamCodec.composite(
                     ByteBufCodecs.fromCodec(CharacterSheet.CODEC), CharacterSheetPayload::sheet,
+                    ClassSummary.STREAM_CODEC.apply(ByteBufCodecs::optional), CharacterSheetPayload::summary,
                     CharacterSheetPayload::new);
 
     public CharacterSheetPayload {
         Objects.requireNonNull(sheet, "sheet");
+        Objects.requireNonNull(summary, "summary");
     }
 
     @Override
