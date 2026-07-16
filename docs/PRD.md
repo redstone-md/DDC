@@ -86,6 +86,21 @@ DDC is designed as an open, highly extensible RPG platform. It handles copyright
   - `data/<namespace>/ddc_races/`: Registers attributes and passive traits (e.g. darkvision, speed, flight).
 
 
+### 4.4. Twitch & Streamer-Friendly Features ("Twitch-Ready")
+DDC is designed to be highly engaging for audiences on platforms like Twitch and YouTube, turning modded gameplay into an interactive show:
+1. **Interactive Twitch Integration**:
+   - **Viewer-Led Rolls**: Streamers can enable a integration where Twitch chat can vote on the Difficulty Class (DC) of a GM check, or vote to give the streamer "Advantage" or "Disadvantage" on a critical roll.
+   - **Chaos Spawns**: Viewers can trigger channel point rewards to spawn friendly NPCs or minor monster encounters configured by the GM.
+2. **Spectator & Streamer HUD Modes**:
+   - **Streamer HUD**: A clean, condensed overlay option that moves critical party frames and character sheets to the edges of the screen, leaving the center open for high-action gameplay.
+   - **OBS Overlay Widget**: A built-in web-socket server in the client that outputs a real-time HTML/CSS widget. Streamers can add this as a Browser Source in OBS to display active player sheets, current level, active quests, and the GM's roll logs directly on the stream layout.
+3. **High-Impact Cinematic VFX**:
+   - **Critical Rolls Fanfare (Nat 20 / Nat 1)**:
+     - *Natural 20*: Triggers a brief screen shake, a slow-motion impact filter, custom golden particle explosions, and a heroic fanfare sound.
+     - *Natural 1*: Triggers a comical puff of ash, weapon-drop animations, and a slapstick fail sound.
+   - **Visual Spell Runes**: Spells with a casting time show glowing magic rings and runes expanding on the ground before the spell triggers, warning players and creating anticipation for the audience.
+   - **Widescreen Narration Bars**: During GM narrative overrides, cinematic black bars slide onto the screen (letterbox format) with deep atmospheric fog effects, establishing an instant table-talk theater atmosphere.
+
 ---
 
 ## 5. Modrinth & Publication Strategy

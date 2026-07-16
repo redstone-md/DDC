@@ -151,3 +151,51 @@ DDC alters the player HUD and adds custom 3D rendering elements.
 - Dice are not block entities (for performance). They are rendered using a custom client-side render layer during the `RenderLevelStageEvent`.
 - Uses a lightweight mathematical physics solver to simulate die collisions against the voxel boundaries of the world.
 - When the server broadcasts `ddc:dice_result` containing a physics seed, all nearby clients run the identical deterministic physics simulation, ensuring everyone sees the die bounce and land on the same number.
+
+### 3. Spectator VFX & Cinematic Pipeline
+To ensure high visual engagement for streams, DDC implements a post-processing shader stack:
+- **Cinematic Letterboxing & Fog**: When the GM triggers narration, the client activates a post-process overlay shader that renders animatable black cinematic bars and adjusts the rendering engine's fog density parameters (`RenderSystem#setShaderFogStart`/`End`) to generate thick thematic atmosphere.
+- **Natural 20 Screen Shake & Slow-Motion**:
+  - The client interceptor monitors roll results. Upon receiving a `Natural 20`, the game camera matrices (`Matrix4f`) are offset using high-frequency noise for 15 ticks to create a screen shake effect.
+  - The client activates a brief color grading shader (bumping contrast and golden saturation) and drops the rendering frame interpolation speed (creating a pseudo slow-motion impact effect on client-side entity animations).
+- **Ground Rune Decals**: Spellcasters project visual boundaries on the ground using standard buffer builders mapping alpha-blended rune textures during the level rendering stage, projecting dynamic decal meshes over existing voxel geometry.
+
+---
+
+## 5. Streamer Web Integration (OBS Source)
+
+DDC includes an optional built-in HTTP and WebSocket server running locally on the client to communicate with streaming software (like OBS Studio or Streamlabs):
+
+```mermaid
+sequenceDiagram
+    participant OBS as OBS Studio Browser Source
+    participant Client as DDC Minecraft Client
+    participant Server as Minecraft Server
+    
+    Client->>Client: Start Local Netty WebSocket Server (Port 8082)
+    OBS->>Client: Connect to ws://localhost:8082
+    Note over OBS,Client: Connection established
+    
+    Server->>Client: S2C Sync Packets (Party Stats, Quest updates, Roll events)
+    Client->>Client: Process and cache active state
+    Client->>OBS: Send JSON State over WebSocket
+    OBS->>OBS: Render animated HTML/CSS stream widgets
+```
+
+### WebSocket Data Protocol
+The client runs a lightweight Netty-based server on a background thread. When the client receives character syncing or roll events from the server, it instantly serializes the data to JSON and broadcasts it to connected WebSocket clients:
+```json
+{
+  "event": "dice_roll",
+  "data": {
+    "player": "StreamerName",
+    "class": "Wizard",
+    "die_type": "d20",
+    "natural_roll": 20,
+    "modifier": 4,
+    "total": 24,
+    "is_critical_success": true
+  }
+}
+```
+This enables streamer widgets (e.g. roll alerts, active party HP cards, and level progress meters) to react in real-time with zero OBS performance impact.
