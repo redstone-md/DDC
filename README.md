@@ -13,7 +13,7 @@
 
 DDC introduces an **asymmetric gameplay model**. Players explore the world as heroic characters with D&D classes, spell slots, and dice checks, while a **Game Master (GM)** controls the environment, possesses monsters, triggers sounds, and narrates the adventure in real-time.
 
-> ### Status: 1.4.0
+> ### Status: 1.5.0
 >
 > **This page describes the full design. The released mod is smaller.** Shipping today: the rules
 > engine, `/roll`, character sheets whose hit points are the player's real health, attack rolls
@@ -52,7 +52,7 @@ DDC introduces an **asymmetric gameplay model**. Players explore the world as he
 
 ---
 
-## 🎲 What 1.4.0 actually does
+## 🎲 What 1.5.0 actually does
 
 | Command | Who | What |
 |---|---|---|
@@ -68,6 +68,10 @@ DDC introduces an **asymmetric gameplay model**. Players explore the world as he
 | `/ddc channel-divinity` | Cleric | Turns the undead within 30 feet. |
 | `/ddc narrate <text>` | Game Master | Letterboxed cinematic narration on every screen. |
 | `/ddc world <change>` | Game Master | Day, night, storm, stop the clock, freeze the party. |
+
+**Nothing has to be typed.** Press `R` for the wheel: it makes your character, and then it plays
+them. `C` is your sheet, `G` is the Game Master's panel. The commands below still work, and the wheel
+sends them for you.
 
 Attacks are resolved with the SRD's d20 against armour class: a miss cancels the damage and shows a
 dodge, and the roll is hidden so only the attacker sees the numbers. The **Game Master's Wand** places encounters (right-click the ground, sneak-right-click to change

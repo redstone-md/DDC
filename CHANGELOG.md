@@ -9,6 +9,32 @@ Each GitHub release carries notes generated from that release's commits by
 is written by hand for what the commits cannot say: why a release is shaped the way it is, and what
 it deliberately leaves out.
 
+## [1.5.0] - 2026-07-17
+
+Everything in this release came from someone playing the mod and saying what was wrong with it.
+
+### Added
+- **An action wheel on `R`.** A character who does not exist yet gets Class and Race on it, and
+  nothing else, because nothing else works yet; a character who does gets their actions — roll, cast
+  at whatever you are looking at, second wind, channel divinity, rest, sheet. Point to choose, release
+  to run. Nothing has to be typed any more.
+- **The rules are synced to the client** (ARCHITECTURE.md 2's "Registry → Client", which had never
+  been built). Data packs are the server's, so a client had no way to know a class was called Fighter
+  or that one existed — which is why picking a class was an id typed by hand. Names and ids only; the
+  rules stay where they can be checked. Sent again after `/reload`, so an addon's class reaches the
+  wheel with no reconnect.
+- **Everything the mod says is translatable, in English and Russian.** 111 keys. The server decides
+  what happened; only the player's own client knows what language to say it in, so a server that
+  hardcoded English was deciding that for them.
+- **Twitch chat votes** and **spell runes** (PRD 4.4), carried over from 1.4.1.
+
+### Fixed
+- **The wheel crashed the game.** Screens already blur what is behind them, and asking for a second
+  blur in one frame is an error the renderer throws on. The screens let the renderer do it now.
+- **`/ddc sheet` printed `proficiency +2
+STR 10`.** Chat does not break a component's lines, so it
+  prints two messages instead of one with a newline in it.
+
 ## [1.4.1] - 2026-07-17
 
 Three faults that only showed up when somebody actually played the mod. All three
@@ -319,6 +345,7 @@ describes intent rather than behaviour:
 - The development server's console cannot run commands, including vanilla ones. It is an environment
   fault rather than a mod fault; use a client to try the commands.
 
+[1.5.0]: https://github.com/redstone-md/DDC/releases/tag/v1.5.0
 [1.4.1]: https://github.com/redstone-md/DDC/releases/tag/v1.4.1
 [1.4.0]: https://github.com/redstone-md/DDC/releases/tag/v1.4.0
 [1.3.0]: https://github.com/redstone-md/DDC/releases/tag/v1.3.0
