@@ -21,8 +21,15 @@ public record RollResult(DiceExpression expression, List<DieRoll> rolls, RollMod
         Objects.requireNonNull(expression, "expression");
         Objects.requireNonNull(mode, "mode");
         rolls = List.copyOf(Objects.requireNonNull(rolls, "rolls"));
-        if (rolls.isEmpty()) {
-            throw new IllegalArgumentException("A roll result needs at least one die");
+
+        // A result must account for exactly the dice its expression asked for, plus the second d20
+        // that advantage and disadvantage throw. This is what makes a result self-consistent, and it
+        // is also the check that rejects a malformed result arriving over the network.
+        int expected = expression.diceCount() + (mode.isNormal() ? 0 : 1);
+        if (rolls.size() != expected) {
+            throw new IllegalArgumentException(
+                    "A " + mode + " roll of " + expression + " needs " + expected
+                            + " dice but got " + rolls.size());
         }
     }
 

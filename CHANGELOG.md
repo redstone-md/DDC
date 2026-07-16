@@ -9,6 +9,27 @@ Each GitHub release carries notes generated from that release's commits by
 is written by hand for what the commits cannot say: why a release is shaped the way it is, and what
 it deliberately leaves out.
 
+## [1.0.1] - 2026-07-16
+
+### Fixed
+- **Dice rolls could desync between the server and a client on a different build of the mod.** The
+  server sent only the seed and each client re-ran the roll locally, trusting that both sides would
+  turn that seed into the same faces. They do, but only while both sides parse dice notation and
+  consume the random stream identically — so a client on another version could show the table a
+  number the server never scored, silently. The server now sends the faces it rolled and the client
+  displays them. The seed still travels, for the dice physics ARCHITECTURE.md calls for; it decides
+  how a die tumbles, never which face it lands on.
+
+  The expression travels as structure (pools and a modifier) rather than as the string "1d20+3", so
+  the roll no longer depends on both sides parsing notation the same way. The packet got smaller.
+
+- A roll result now has to account for exactly the dice its expression asked for, which is what
+  refuses a malformed result arriving over the network instead of drawing it.
+
+### Changed
+- **The `ddc:dice_result` payload changed shape**, so a 1.0.1 client and a 1.0.0 server will not
+  agree about it. Update both.
+
 ## [1.0.0] - 2026-07-16
 
 The first release: the rules engine, dice, character sheets, a data-driven class registry, and the
@@ -85,4 +106,5 @@ describes intent rather than behaviour:
 - The development server's console cannot run commands, including vanilla ones. It is an environment
   fault rather than a mod fault; use a client to try the commands.
 
+[1.0.1]: https://github.com/redstone-md/DDC/releases/tag/v1.0.1
 [1.0.0]: https://github.com/redstone-md/DDC/releases/tag/v1.0.0

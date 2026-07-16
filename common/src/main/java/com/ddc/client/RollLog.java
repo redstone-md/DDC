@@ -1,6 +1,5 @@
 package com.ddc.client;
 
-import com.ddc.DDC;
 import com.ddc.core.dice.RollResult;
 import com.ddc.network.DiceResultPayload;
 import java.util.ArrayDeque;
@@ -38,21 +37,9 @@ public final class RollLog {
 
     private final Deque<Entry> entries = new ArrayDeque<>();
 
-    /**
-     * Replays a roll the server made and adds it to the log.
-     *
-     * <p>A payload that will not parse is dropped with a log line rather than thrown: it means the
-     * server is running a build that knows dice this client does not, and that must not crash the
-     * client mid-session.
-     */
+    /** Adds a roll the server resolved. The numbers are the server's; this only displays them. */
     public void accept(DiceResultPayload payload, long nowMs) {
-        RollResult result;
-        try {
-            result = payload.replay();
-        } catch (IllegalArgumentException e) {
-            DDC.LOGGER.warn("Dropping unreadable dice result from the server: {}", e.getMessage());
-            return;
-        }
+        RollResult result = payload.result();
         entries.addLast(new Entry(payload.rollerName() + ": " + result.describe(), colourFor(result), nowMs));
         while (entries.size() > MAX_ENTRIES) {
             entries.removeFirst();

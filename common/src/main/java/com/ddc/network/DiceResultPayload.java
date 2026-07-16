@@ -1,9 +1,6 @@
 package com.ddc.network;
 
 import com.ddc.DDC;
-import com.ddc.core.dice.DiceExpression;
-import com.ddc.core.dice.DiceRoller;
-import com.ddc.core.dice.RollMode;
 import com.ddc.core.dice.RollResult;
 import java.util.Objects;
 import java.util.UUID;
@@ -13,56 +10,44 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 /**
- * Tells nearby clients that a roll happened, so they can render the dice landing on it.
+ * Tells nearby clients what the server rolled, so they can show it.
  *
- * <p>The result itself is not sent. The seed is, and the client rebuilds the identical
- * {@link RollResult} through {@link #replay()}, because the roller is deterministic. That keeps the
- * payload at a handful of bytes no matter how many dice were thrown, which is what ADR-0003 asks
- * for, and it means the physics simulation and the number always agree.
+ * <p>The faces are sent, not recomputed. An earlier design sent only the seed and had each client
+ * re-run the roll, since the roller is deterministic and that keeps the packet tiny. The saving was
+ * a few bytes and the risk was a silent desync: a client running a different build of the mod could
+ * resolve the same seed into a different number, and then show the table a roll that never happened.
+ * The server is the authority on the number, so the number travels.
+ *
+ * <p>The seed still travels, because ARCHITECTURE.md's dice physics needs every client to bounce the
+ * dice identically. It decides how the die tumbles, never which face it settles on.
  *
  * @param roller     who rolled, for the roll log and the stream overlay
  * @param rollerName their display name at the time of the roll
- * @param notation   the expression thrown, in canonical dice notation
- * @param mode       whether the throw had advantage or disadvantage
- * @param seed       the seed the server rolled from
+ * @param result     the roll as the server resolved it
  */
-public record DiceResultPayload(UUID roller, String rollerName, String notation, RollMode mode, long seed)
+public record DiceResultPayload(UUID roller, String rollerName, RollResult result)
         implements CustomPacketPayload {
 
     public static final Type<DiceResultPayload> TYPE = new Type<>(DDC.id("dice_result"));
 
-    /** Bounds what a client will parse, so a hostile server cannot hand out a pathological string. */
-    private static final int MAX_NOTATION_LENGTH = 64;
+    /** Bounds an untrusted name from the wire. */
+    private static final int MAX_NAME_LENGTH = 64;
 
     public static final StreamCodec<RegistryFriendlyByteBuf, DiceResultPayload> STREAM_CODEC =
             StreamCodec.composite(
                     net.minecraft.core.UUIDUtil.STREAM_CODEC, DiceResultPayload::roller,
-                    ByteBufCodecs.STRING_UTF8, DiceResultPayload::rollerName,
-                    ByteBufCodecs.stringUtf8(MAX_NOTATION_LENGTH), DiceResultPayload::notation,
-                    RollModeCodecs.STREAM_CODEC, DiceResultPayload::mode,
-                    ByteBufCodecs.VAR_LONG, DiceResultPayload::seed,
+                    ByteBufCodecs.stringUtf8(MAX_NAME_LENGTH), DiceResultPayload::rollerName,
+                    DiceCodecs.ROLL_RESULT, DiceResultPayload::result,
                     DiceResultPayload::new);
 
     public DiceResultPayload {
         Objects.requireNonNull(roller, "roller");
         Objects.requireNonNull(rollerName, "rollerName");
-        Objects.requireNonNull(notation, "notation");
-        Objects.requireNonNull(mode, "mode");
+        Objects.requireNonNull(result, "result");
     }
 
     public static DiceResultPayload of(UUID roller, String rollerName, RollResult result) {
-        return new DiceResultPayload(roller, rollerName, result.expression().toString(), result.mode(),
-                result.seed());
-    }
-
-    /**
-     * Rebuilds the roll the server made.
-     *
-     * @throws IllegalArgumentException if the notation or mode is not something this build can throw,
-     *                                  which the caller must treat as a bad packet rather than a crash
-     */
-    public RollResult replay() {
-        return DiceRoller.replaying(seed).roll(DiceExpression.parse(notation), mode);
+        return new DiceResultPayload(roller, rollerName, result);
     }
 
     @Override
