@@ -24,6 +24,18 @@ subprojects {
         mavenCentral()
     }
 
+    repositories {
+        // GeckoLib publishes here rather than to Maven Central. MIT, so the dependency costs nothing
+        // but a download; see gradle.properties for why it is a hard one.
+        maven {
+            name = "GeckoLib"
+            url = "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/"
+            content {
+                includeGroup "com.geckolib"
+            }
+        }
+    }
+
     dependencies {
         // Minecraft 26.x ships unobfuscated: Mojang publishes no mappings for it and Fabric's
         // intermediary is a no-op, so no `mappings` dependency is declared at all.

@@ -7,4 +7,6 @@ dependencies {
     // be used in common, per common/AGENTS.md.
     implementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     api "dev.architectury:architectury:${architectury_api_version}"
+    // The animation engine. Common holds the models and controllers; each loader pulls its own.
+    api "com.geckolib:geckolib-common-${geckolib_branch}:${geckolib_version}"
 }

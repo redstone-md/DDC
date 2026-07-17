@@ -95,7 +95,10 @@ public final class DDCItems {
                 .rarity(Rarity.UNCOMMON)
                 .setId(ResourceKey.create(Registries.ITEM, DDC.id("wand"))),
                 com.ddc.item.SpellFocusItem.Power.WAND, characters, spells, casting));
-        STAFF = ITEMS.register("staff", () -> new com.ddc.item.SpellFocusItem(new Item.Properties()
+        // The staff is the animated one: it is the caster's centrepiece, and the thing a player looks
+        // at while they play a wizard. The wand stays a flat sprite, because a cantrip is a small
+        // thing and a second model is a second thing to keep alive.
+        STAFF = ITEMS.register("staff", () -> new com.ddc.item.AnimatedStaffItem(new Item.Properties()
                 .stacksTo(1)
                 .rarity(Rarity.RARE)
                 .setId(ResourceKey.create(Registries.ITEM, DDC.id("staff"))),

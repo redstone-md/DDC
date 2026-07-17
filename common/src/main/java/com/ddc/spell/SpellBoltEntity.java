@@ -40,6 +40,9 @@ public class SpellBoltEntity extends Entity {
     /** How long a bolt may fly before it gives up, in ticks: a spell is not a missile. */
     private static final int LIFETIME = 60;
 
+    /** How many motes are laid along each tick's worth of flight. */
+    private static final int WAKE = 5;
+
     /** How close counts as arrived. */
     private static final double ARRIVED = 0.8;
 
@@ -81,11 +84,36 @@ public class SpellBoltEntity extends Entity {
         setPos(position().add(getDeltaMovement()));
 
         if (level() instanceof ServerLevel server) {
-            server.sendParticles(ParticleTypes.END_ROD, getX(), getY(), getZ(), 1, 0.01, 0.01, 0.01, 0.0);
+            trail(server);
             if (++age > LIFETIME || position().distanceTo(destination) < ARRIVED) {
                 discard();
             }
         }
+    }
+
+    /**
+     * The bolt itself: a knot of light, and a wake behind it.
+     *
+     * <p>Drawn out of particles rather than geometry. A faceted solid with a colour on it reads as a
+     * pebble that happens to glow, which is what the first attempt looked like and what a player
+     * called it. Light has no facets.
+     *
+     * <p>Laid along the path travelled rather than at the position: at a block and a half a tick, one
+     * particle per tick is a dotted line. The wake is what makes it read as speed.
+     */
+    private void trail(ServerLevel server) {
+        net.minecraft.core.particles.DustParticleOptions mote =
+                new net.minecraft.core.particles.DustParticleOptions(colour(), 1.1f);
+        Vec3 step = getDeltaMovement().scale(1.0 / WAKE);
+        Vec3 from = position().subtract(getDeltaMovement());
+
+        for (int i = 0; i <= WAKE; i++) {
+            Vec3 at = from.add(step.scale(i));
+            server.sendParticles(mote, at.x, at.y, at.z, 1, 0.03, 0.03, 0.03, 0.0);
+        }
+        // A white heart inside the colour: every bright thing in this game has one, and without it the
+        // bolt is a smudge rather than a spark.
+        server.sendParticles(ParticleTypes.END_ROD, getX(), getY(), getZ(), 1, 0.0, 0.0, 0.0, 0.0);
     }
 
     /**

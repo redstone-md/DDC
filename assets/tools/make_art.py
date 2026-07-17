@@ -450,6 +450,36 @@ def make_scroll_texture(size=16, ss=16):
     print(f"wrote {target}")
 
 
+def make_staff_geo_texture():
+    """The 32x32 sheet the staff's 3D model is skinned with.
+
+    Laid out to the model's own UVs: the shaft at 0,0, the claw at 8,0, the stone at 0,17. Generated
+    beside the model that reads it, so the two cannot drift apart.
+    """
+    size = 32
+    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img, "RGBA")
+
+    # Shaft: wood, with a darker edge so the round reads at this size.
+    draw.rectangle([0, 0, 3, 15], fill=(96, 66, 34, 255))
+    draw.rectangle([0, 0, 0, 15], fill=(58, 40, 20, 255))
+    draw.rectangle([3, 0, 3, 15], fill=(140, 102, 58, 255))
+
+    # Claw: brass.
+    draw.rectangle([8, 0, 15, 7], fill=(*BRASS_DARK, 255))
+    draw.rectangle([9, 1, 14, 6], fill=(*BRASS, 255))
+
+    # Stone: amethyst, lit from the top-left the way every vanilla item is.
+    draw.rectangle([0, 17, 11, 28], fill=(112, 84, 176, 255))
+    draw.rectangle([0, 17, 5, 22], fill=(150, 118, 220, 255))
+    draw.rectangle([8, 25, 11, 28], fill=(74, 52, 128, 255))
+
+    target = Path("common/src/main/resources/assets/ddc/textures/item/staff_geo.png")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    img.save(target, optimize=True)
+    print(f"wrote {target}")
+
+
 if __name__ == "__main__":
     make_banner(OUT_DIR / "banner.png")
     make_icon()
@@ -459,3 +489,4 @@ if __name__ == "__main__":
     make_focus_texture("wand", 0.44, 0.18, (108, 160, 230))
     make_focus_texture("staff", 0.62, 0.26, (150, 118, 220))
     make_scroll_texture()
+    make_staff_geo_texture()

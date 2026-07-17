@@ -42,6 +42,14 @@ public class SpellFocusItem extends Item {
         STAFF
     }
 
+    /**
+     * How far off the crosshair a creature may sit and still be what you meant, in blocks.
+     *
+     * <p>Generous on purpose. A spell is aimed by a person at a screen, and the difference between
+     * this and vanilla's exact-hitbox test is the difference between casting and fighting the mouse.
+     */
+    private static final double AIM_FORGIVENESS = 1.25;
+
     private final Power power;
     private final CharacterService characters;
     private final DataRegistry<Spell> spells;
@@ -97,8 +105,11 @@ public class SpellFocusItem extends Item {
 
         Optional<LivingEntity> target = aimedAt(caster, spell.get());
         if (target.isEmpty()) {
+            // Above the hotbar, not in chat. A miss is a thing you glance at and forget; a line of
+            // chat is a thing that stays, and a player clicking a staff makes a lot of them. The
+            // screenshot that taught me this had eighteen.
             caster.sendSystemMessage(Component.translatable("ddc.focus.no_target",
-                    (int) spell.get().rangeInBlocks()).withStyle(ChatFormatting.RED));
+                    (int) spell.get().rangeInBlocks()).withStyle(ChatFormatting.RED), true);
             return InteractionResult.FAIL;
         }
         return cast(caster, spell.get(), chosen, target.get());
@@ -113,26 +124,49 @@ public class SpellFocusItem extends Item {
     private static Optional<LivingEntity> aimedAt(ServerPlayer caster, Spell spell) {
         double range = spell.rangeInBlocks();
         net.minecraft.world.phys.Vec3 eye = caster.getEyePosition();
-        net.minecraft.world.phys.Vec3 end = eye.add(caster.getLookAngle().scale(range));
+        net.minecraft.world.phys.Vec3 look = caster.getLookAngle();
 
-        // A wall between you and it means you are not pointing at it, whatever the maths says.
+        LivingEntity best = null;
+        double bestScore = Double.MAX_VALUE;
+        for (LivingEntity candidate : caster.level().getEntitiesOfClass(LivingEntity.class,
+                caster.getBoundingBox().inflate(range),
+                entity -> entity != caster && entity.isAlive())) {
+            net.minecraft.world.phys.Vec3 toward = candidate.getBoundingBox().getCenter().subtract(eye);
+            double distance = toward.length();
+            if (distance > range) {
+                continue;
+            }
+            // How far off the crosshair it sits, in blocks rather than in degrees: a zombie two
+            // blocks off at forty blocks is a miss, and the same two blocks at arm's length is not.
+            // Aiming with a point at a box and demanding they meet exactly is asking a player to be a
+            // machine -- which is exactly what a screenshot of eighteen "nothing to cast at" lines is
+            // a picture of.
+            double offAxis = toward.subtract(look.scale(toward.dot(look))).length();
+            if (toward.dot(look) <= 0 || offAxis > AIM_FORGIVENESS + candidate.getBbWidth() / 2) {
+                continue;
+            }
+            if (!canSee(caster, eye, candidate)) {
+                continue;
+            }
+            // Nearest to the line first, then nearest to the caster: pointing at the thing behind the
+            // thing should still pick the thing you are pointing at.
+            double score = offAxis * 4 + distance;
+            if (score < bestScore) {
+                bestScore = score;
+                best = candidate;
+            }
+        }
+        return Optional.ofNullable(best);
+    }
+
+    /** Whether there is a wall in the way. A spell through stone is not aiming, it is a bug report. */
+    private static boolean canSee(ServerPlayer caster, net.minecraft.world.phys.Vec3 eye,
+            LivingEntity target) {
         net.minecraft.world.phys.BlockHitResult wall = caster.level().clip(
-                new net.minecraft.world.level.ClipContext(eye, end,
+                new net.minecraft.world.level.ClipContext(eye, target.getBoundingBox().getCenter(),
                         net.minecraft.world.level.ClipContext.Block.COLLIDER,
                         net.minecraft.world.level.ClipContext.Fluid.NONE, caster));
-        net.minecraft.world.phys.Vec3 reach = wall.getType() == net.minecraft.world.phys.HitResult.Type.MISS
-                ? end
-                : wall.getLocation();
-
-        net.minecraft.world.phys.EntityHitResult hit =
-                net.minecraft.world.entity.projectile.ProjectileUtil.getEntityHitResult(
-                        caster, eye, reach,
-                        caster.getBoundingBox().expandTowards(caster.getLookAngle().scale(range)).inflate(1),
-                        entity -> entity instanceof LivingEntity && entity != caster && entity.isAlive(),
-                        0.0);
-        return hit == null || !(hit.getEntity() instanceof LivingEntity living)
-                ? Optional.empty()
-                : Optional.of(living);
+        return wall.getType() == net.minecraft.world.phys.HitResult.Type.MISS;
     }
 
     /**

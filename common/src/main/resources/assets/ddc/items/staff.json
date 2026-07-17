@@ -1,6 +1,9 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "ddc:item/staff"
+    "type": "minecraft:special",
+    "base": "ddc:item/staff",
+    "model": {
+      "type": "geckolib:geckolib"
+    }
   }
 }

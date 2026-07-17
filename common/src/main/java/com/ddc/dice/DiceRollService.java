@@ -50,10 +50,9 @@ public final class DiceRollService {
     public RollResult rollPublic(ServerPlayer player, DiceExpression expression, RollMode mode) {
         RollResult result = roll(expression, mode);
         List<ServerPlayer> audience = nearbyPlayers(player);
-        Component message = chatMessage(player, result);
-        for (ServerPlayer viewer : audience) {
-            viewer.sendSystemMessage(message);
-        }
+        // The roll log on the HUD is where a roll goes. It used to go to chat as well, so every cast
+        // wrote the same number twice -- a screenshot of five casts had ten lines in it. Chat is for
+        // what someone says; a die is not saying anything.
         NetworkManager.sendToPlayers(audience, DiceResultPayload.of(player.getUUID(), displayName(player), result));
         throwDice(player, result);
         // PRD 4.4's slow motion, on the roll that earns it. The whole table shares the moment: the

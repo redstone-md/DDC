@@ -17,6 +17,7 @@ dependencies {
     implementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     implementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
     api "dev.architectury:architectury-fabric:${architectury_api_version}"
+    implementation "com.geckolib:geckolib-fabric-${geckolib_branch}:${geckolib_version}"
 
     common(project(path: ":common")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }

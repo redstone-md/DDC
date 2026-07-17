@@ -16,6 +16,7 @@ configurations {
 dependencies {
     neoForge "net.neoforged:neoforge:${neoforge_version}"
     api "dev.architectury:architectury-neoforge:${architectury_api_version}"
+    implementation "com.geckolib:geckolib-neoforge-${geckolib_branch}:${geckolib_version}"
 
     common(project(path: ":common")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionNeoForge")) { transitive false }
