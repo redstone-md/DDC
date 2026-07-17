@@ -40,7 +40,22 @@ class ClassFeatureTest {
     void aClassDoesNotCarryAFeatureItWasNotGiven() throws IOException {
         assertTrue(builtIn("wizard").feature(ClassFeature.SneakAttack.class).isEmpty());
         assertTrue(builtIn("rogue").feature(ClassFeature.SecondWind.class).isEmpty());
-        assertTrue(builtIn("fighter").features().size() == 1);
+        assertTrue(builtIn("rogue").feature(ClassFeature.CombatSuperiority.class).isEmpty(),
+                "superiority dice are the fighter's, not everyone's");
+        assertTrue(builtIn("wizard").feature(ClassFeature.ActionSurge.class).isEmpty());
+    }
+
+    @Test
+    @DisplayName("the fighter's pack carries what a fighter can do")
+    void theFighterHasItsFeatures() throws IOException {
+        CharacterClass fighter = builtIn("fighter");
+
+        assertTrue(fighter.feature(ClassFeature.SecondWind.class).isPresent());
+        assertTrue(fighter.feature(ClassFeature.ActionSurge.class).isPresent());
+        ClassFeature.CombatSuperiority superiority =
+                fighter.feature(ClassFeature.CombatSuperiority.class).orElseThrow();
+        assertEquals(4, superiority.uses(), "the SRD's fighter carries four superiority dice");
+        assertEquals("1d8", superiority.dice().toString());
     }
 
     @ParameterizedTest(name = "a level {0} rogue sneak attacks for {1}")

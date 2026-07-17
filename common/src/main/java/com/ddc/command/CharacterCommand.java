@@ -88,6 +88,8 @@ public final class CharacterCommand {
                 .then(checks.branch())
                 .then(features.secondWindBranch())
                 .then(features.channelDivinityBranch())
+                .then(features.actionSurgeBranch())
+                .then(features.maneuverBranch())
                 .then(narration.branch())
                 .then(world.branch())
                 .then(encounters.branch())

@@ -140,6 +140,8 @@ public class WheelScreen extends Screen {
                     com.ddc.client.DDCClient.sheet().map(PlayerWheel::spells).orElse(List.of()));
             case PlayerWheel.Wheels.SHEET_SCREEN -> com.ddc.client.DDCClient.sheetScreen();
             case PlayerWheel.Wheels.GM_PANEL -> new GameMasterScreen();
+            case PlayerWheel.Wheels.MANEUVER_MENU -> new WheelScreen(
+                    Component.translatable("ddc.wheel.maneuver"), PlayerWheel.maneuvers());
             default -> this;
         };
     }

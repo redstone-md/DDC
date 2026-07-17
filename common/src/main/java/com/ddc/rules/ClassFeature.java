@@ -49,6 +49,18 @@ public sealed interface ClassFeature {
             public MapCodec<? extends ClassFeature> codec() {
                 return ChannelDivinity.MAP_CODEC;
             }
+        },
+        ACTION_SURGE("ddc:action_surge") {
+            @Override
+            public MapCodec<? extends ClassFeature> codec() {
+                return ActionSurge.MAP_CODEC;
+            }
+        },
+        COMBAT_SUPERIORITY("ddc:combat_superiority") {
+            @Override
+            public MapCodec<? extends ClassFeature> codec() {
+                return CombatSuperiority.MAP_CODEC;
+            }
         };
 
         public static final Codec<Type> CODEC = Codec.STRING.comapFlatMap(
@@ -150,6 +162,57 @@ public sealed interface ClassFeature {
         @Override
         public Type type() {
             return Type.CHANNEL_DIVINITY;
+        }
+    }
+
+    /**
+     * The fighter's action surge: a moment of doing everything at once.
+     *
+     * <p>The SRD gives an extra action, and Minecraft has no actions to give -- there is no turn to
+     * take a second of. What it does have is time, so a surge buys the fighter a few seconds where
+     * they swing and move faster than anyone else at the table. It is the same bargain the SRD
+     * strikes, spent in the currency this game has.
+     *
+     * @param seconds how long the surge lasts
+     */
+    record ActionSurge(int seconds) implements ClassFeature {
+
+        static final MapCodec<ActionSurge> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+                Codec.intRange(1, 30).optionalFieldOf("seconds", 6).forGetter(ActionSurge::seconds)
+        ).apply(instance, ActionSurge::new));
+
+        @Override
+        public Type type() {
+            return Type.ACTION_SURGE;
+        }
+    }
+
+    /**
+     * The fighter's combat superiority: superiority dice, spent on manoeuvres.
+     *
+     * <p>The SRD's manoeuvres each read the same way -- spend a die, add it to the damage, and do
+     * something to the target. Which manoeuvres exist is code, because each one is behaviour; how many
+     * dice there are and how big they are is a pack's to say.
+     *
+     * @param dice what one superiority die is
+     * @param uses how many of them a fighter has per rest
+     */
+    record CombatSuperiority(DiceExpression dice, int uses) implements ClassFeature {
+
+        static final MapCodec<CombatSuperiority> MAP_CODEC = RecordCodecBuilder.mapCodec(
+                instance -> instance.group(
+                        DDCCodecs.DICE_EXPRESSION.optionalFieldOf("dice", DiceExpression.parse("1d8"))
+                                .forGetter(CombatSuperiority::dice),
+                        Codec.intRange(1, 20).optionalFieldOf("uses", 4).forGetter(CombatSuperiority::uses)
+                ).apply(instance, CombatSuperiority::new));
+
+        public CombatSuperiority {
+            Objects.requireNonNull(dice, "dice");
+        }
+
+        @Override
+        public Type type() {
+            return Type.COMBAT_SUPERIORITY;
         }
     }
 }

@@ -1,6 +1,9 @@
 package com.ddc.command;
 
 import com.ddc.character.FeatureService;
+import com.ddc.character.Maneuver;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import net.minecraft.commands.arguments.EntityArgument;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -20,6 +23,13 @@ import net.minecraft.server.level.ServerPlayer;
  */
 public final class FeatureCommand {
 
+    private static final String ARG_MANEUVER = "maneuver";
+    private static final String ARG_TARGET = "target";
+
+    private static final com.mojang.brigadier.exceptions.DynamicCommandExceptionType UNKNOWN_MANEUVER =
+            new com.mojang.brigadier.exceptions.DynamicCommandExceptionType(
+                    key -> Component.translatable("ddc.error.unknown_maneuver", key));
+
     private final FeatureService features;
 
     public FeatureCommand(FeatureService features) {
@@ -29,6 +39,38 @@ public final class FeatureCommand {
     /** The fighter's branch. */
     public ArgumentBuilder<CommandSourceStack, ?> secondWindBranch() {
         return Commands.literal("second-wind").executes(context -> use(context, features::secondWind));
+    }
+
+    /** The fighter's other branch: a burst of speed rather than a breath back. */
+    public ArgumentBuilder<CommandSourceStack, ?> actionSurgeBranch() {
+        return Commands.literal("action-surge").executes(context -> use(context, features::actionSurge));
+    }
+
+    /**
+     * {@code /ddc maneuver <name> <target>}: spend a superiority die on someone.
+     *
+     * <p>Takes a target, because every manoeuvre is done to somebody. The wheel fills it in from
+     * whatever the fighter is looking at, so nobody types a UUID.
+     */
+    public ArgumentBuilder<CommandSourceStack, ?> maneuverBranch() {
+        return Commands.literal("maneuver")
+                .then(Commands.argument(ARG_MANEUVER, StringArgumentType.word())
+                        .suggests((context, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(
+                                java.util.Arrays.stream(Maneuver.values()).map(Maneuver::id), builder))
+                        .then(Commands.argument(ARG_TARGET, EntityArgument.entity())
+                                .executes(this::maneuver)));
+    }
+
+    private int maneuver(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = context.getSource().getPlayerOrException();
+        String key = StringArgumentType.getString(context, ARG_MANEUVER);
+        Maneuver maneuver = Maneuver.byId(key).orElseThrow(() -> UNKNOWN_MANEUVER.create(key));
+        net.minecraft.world.entity.Entity target = EntityArgument.getEntity(context, ARG_TARGET);
+        if (!(target instanceof net.minecraft.world.entity.LivingEntity living)) {
+            context.getSource().sendFailure(Component.translatable("ddc.error.no_target"));
+            return 0;
+        }
+        return use(context, subject -> features.maneuver(subject, maneuver, living));
     }
 
     /** The cleric's branch. */

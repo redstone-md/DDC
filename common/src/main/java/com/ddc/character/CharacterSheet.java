@@ -35,12 +35,12 @@ import net.minecraft.resources.Identifier;
  * @param abilities         the six ability scores
  * @param race              the race the player picked, empty until they pick one
  * @param usedSpellSlots    how many slots of each spell level have been spent since the last rest
- * @param usedFeatures      which once-per-rest class features have been spent
+ * @param usedFeatures      how many times each per-rest class feature has been spent
  * @param preparedSpells    the spells written into the character's spellbook
  * @param experience        experience earned, which is what the level is worked out from
  */
 public record CharacterSheet(Optional<Identifier> characterClass, int level, AbilityScores abilities,
-        Optional<Identifier> race, Map<Integer, Integer> usedSpellSlots, Set<ClassFeature.Type> usedFeatures,
+        Optional<Identifier> race, Map<Integer, Integer> usedSpellSlots, Map<ClassFeature.Type, Integer> usedFeatures,
         Set<Identifier> preparedSpells, int experience) {
 
     private static final Codec<AbilityScores> ABILITY_SCORES_CODEC =
@@ -68,6 +68,22 @@ public record CharacterSheet(Optional<Identifier> characterClass, int level, Abi
             },
             String::valueOf);
 
+    /**
+     * Which per-rest features have been spent, and how many times.
+     *
+     * <p>A count rather than a flag, because a fighter's superiority dice are four uses of one
+     * feature. Sheets written before this counted read as one use each, so a character mid-session
+     * when the mod updates keeps having spent what they spent rather than getting it back.
+     */
+    private static final Codec<Map<ClassFeature.Type, Integer>> USED_FEATURES = Codec.either(
+            Codec.unboundedMap(ClassFeature.Type.CODEC, Codec.intRange(0, 99)),
+            ClassFeature.Type.CODEC.listOf())
+            .xmap(either -> either.map(
+                            counted -> counted,
+                            flagged -> flagged.stream().collect(java.util.stream.Collectors.toMap(
+                                    type -> type, type -> 1, (a, b) -> a))),
+                    com.mojang.datafixers.util.Either::left);
+
     public static final Codec<CharacterSheet> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Identifier.CODEC.optionalFieldOf("class").forGetter(CharacterSheet::characterClass),
             Codec.intRange(Proficiency.MIN_LEVEL, Proficiency.MAX_LEVEL).fieldOf("level")
@@ -77,8 +93,7 @@ public record CharacterSheet(Optional<Identifier> characterClass, int level, Abi
             Codec.unboundedMap(SPELL_LEVEL_KEY, Codec.intRange(0, 99))
                     .optionalFieldOf("used_spell_slots", Map.of())
                     .forGetter(CharacterSheet::usedSpellSlots),
-            ClassFeature.Type.CODEC.listOf().xmap(Set::copyOf, List::copyOf)
-                    .optionalFieldOf("used_features", Set.of())
+            USED_FEATURES.optionalFieldOf("used_features", Map.of())
                     .forGetter(CharacterSheet::usedFeatures),
             Identifier.CODEC.listOf().xmap(Set::copyOf, List::copyOf)
                     .optionalFieldOf("prepared_spells", Set.of())
@@ -93,7 +108,7 @@ public record CharacterSheet(Optional<Identifier> characterClass, int level, Abi
         Objects.requireNonNull(abilities, "abilities");
         Objects.requireNonNull(race, "race");
         usedSpellSlots = Map.copyOf(Objects.requireNonNull(usedSpellSlots, "usedSpellSlots"));
-        usedFeatures = Set.copyOf(Objects.requireNonNull(usedFeatures, "usedFeatures"));
+        usedFeatures = Map.copyOf(Objects.requireNonNull(usedFeatures, "usedFeatures"));
         preparedSpells = Set.copyOf(Objects.requireNonNull(preparedSpells, "preparedSpells"));
         Proficiency.validateLevel(level);
         if (experience < 0) {
@@ -104,7 +119,7 @@ public record CharacterSheet(Optional<Identifier> characterClass, int level, Abi
     /** A fresh, classless level 1 character with average scores. */
     public static CharacterSheet initial() {
         return new CharacterSheet(Optional.empty(), 1, AbilityScores.defaults(), Optional.empty(),
-                Map.of(), Set.of(), Set.of(), 0);
+                Map.of(), Map.of(), Set.of(), 0);
     }
 
     public int proficiencyBonus() {
@@ -183,18 +198,23 @@ public record CharacterSheet(Optional<Identifier> characterClass, int level, Abi
      * {@link HealthService}.
      */
     public CharacterSheet rested() {
-        return new CharacterSheet(characterClass, level, abilities, race, Map.of(), Set.of(), preparedSpells, experience);
+        return new CharacterSheet(characterClass, level, abilities, race, Map.of(), Map.of(), preparedSpells, experience);
+    }
+
+    /** How many times a per-rest feature has been spent since the last rest. */
+    public int featureUses(ClassFeature.Type feature) {
+        return usedFeatures.getOrDefault(feature, 0);
     }
 
     /** Whether a once-per-rest feature has been spent since the last rest. */
     public boolean hasUsedFeature(ClassFeature.Type feature) {
-        return usedFeatures.contains(feature);
+        return featureUses(feature) > 0;
     }
 
-    /** Returns a copy with a once-per-rest feature spent. */
+    /** Returns a copy with one more use of a per-rest feature spent. */
     public CharacterSheet withFeatureUsed(ClassFeature.Type feature) {
-        Set<ClassFeature.Type> used = new java.util.HashSet<>(usedFeatures);
-        used.add(feature);
+        Map<ClassFeature.Type, Integer> used = new java.util.HashMap<>(usedFeatures);
+        used.merge(feature, 1, Integer::sum);
         return new CharacterSheet(characterClass, level, abilities, race, usedSpellSlots, used,
                 preparedSpells, experience);
     }

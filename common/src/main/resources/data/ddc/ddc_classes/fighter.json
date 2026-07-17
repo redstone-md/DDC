@@ -10,6 +10,15 @@
     {
       "type": "ddc:second_wind",
       "dice": "1d10"
+    },
+    {
+      "type": "ddc:action_surge",
+      "seconds": 6
+    },
+    {
+      "type": "ddc:combat_superiority",
+      "dice": "1d8",
+      "uses": 4
     }
   ]
 }

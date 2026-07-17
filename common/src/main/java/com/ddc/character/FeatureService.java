@@ -18,8 +18,10 @@ import net.minecraft.world.entity.LivingEntity;
  * The class features a player triggers themselves: the fighter's second wind, the cleric's channel
  * divinity.
  *
- * <p>Each is once per rest. Uses live on the sheet beside spell slots, because they are the same idea
- * -- something a rest gives back -- and {@code /ddc rest} already clears them.
+ * <p>Each is per rest. Uses live on the sheet beside spell slots, because they are the same idea --
+ * something a rest gives back -- and {@code /ddc rest} already clears them. Most features are worth
+ * one use; the fighter's superiority dice are worth several, which is why the sheet counts uses
+ * rather than flagging them.
  */
 public final class FeatureService {
 
@@ -35,7 +37,8 @@ public final class FeatureService {
     public enum Failure {
         NO_CLASS("ddc.error.no_class"),
         NOT_YOURS("ddc.error.feature_not_yours"),
-        ALREADY_USED("ddc.error.feature_used");
+        ALREADY_USED("ddc.error.feature_used"),
+        NO_TARGET("ddc.error.no_target");
 
         private final String key;
 
@@ -100,6 +103,60 @@ public final class FeatureService {
                 });
     }
 
+    /**
+     * Action surge: a few seconds of swinging and moving faster than everyone else.
+     *
+     * <p>The SRD grants an extra action. There are no turns here to take one in, so the surge is
+     * spent in the currency this game does have -- time. Haste is vanilla's own name for swinging
+     * faster, so the effect is vanilla's rather than a second system that means the same thing.
+     */
+    public Either<Failure, Used> actionSurge(ServerPlayer player) {
+        return use(player, ClassFeature.ActionSurge.class, ClassFeature.Type.ACTION_SURGE,
+                (sheet, feature) -> {
+                    int ticks = feature.seconds() * 20;
+                    player.addEffect(new MobEffectInstance(MobEffects.HASTE, ticks, 2));
+                    player.addEffect(new MobEffectInstance(MobEffects.SPEED, ticks, 1));
+                    player.level().playSound(null, player.blockPosition(), SoundEvents.PLAYER_ATTACK_SWEEP,
+                            SoundSource.PLAYERS, 1.0f, 1.4f);
+                    return new Used(net.minecraft.network.chat.Component.translatable(
+                            "ddc.feature.action_surge", feature.seconds()));
+                });
+    }
+
+    /**
+     * A manoeuvre: spend a superiority die, hurt them with it, and do something to them besides.
+     *
+     * <p>The die is rolled in public, because the table is watching the fighter do this. What the
+     * manoeuvre does to the target is the SRD's intent translated into what this game can express --
+     * see {@link Maneuver}, where each translation is argued one at a time.
+     */
+    public Either<Failure, Used> maneuver(ServerPlayer player, Maneuver maneuver, LivingEntity target) {
+        if (target == null || !target.isAlive()) {
+            return Either.left(Failure.NO_TARGET);
+        }
+        return use(player, ClassFeature.CombatSuperiority.class, ClassFeature.Type.COMBAT_SUPERIORITY,
+                (sheet, feature) -> {
+                    RollResult roll = rolls.rollPublic(player, feature.dice(),
+                            com.ddc.core.dice.RollMode.NORMAL);
+                    target.hurtServer((ServerLevel) player.level(),
+                            player.damageSources().playerAttack(player), roll.total());
+                    apply(maneuver, player, target);
+                    return new Used(net.minecraft.network.chat.Component.translatable(
+                            "ddc.feature.maneuver." + maneuver.id(), roll.total(),
+                            target.getDisplayName()));
+                }, feature -> feature.uses());
+    }
+
+    /** What each manoeuvre does once its die has been spent. */
+    private static void apply(Maneuver maneuver, ServerPlayer player, LivingEntity target) {
+        switch (maneuver) {
+            case TRIP -> target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 4));
+            case PARRY -> player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 100, 1));
+            case PUSH -> target.push(
+                    (target.getX() - player.getX()) * 0.6, 0.35, (target.getZ() - player.getZ()) * 0.6);
+        }
+    }
+
     /** Whether an entity is undead, which is a vanilla notion DDC borrows rather than redefines. */
     private static boolean isUndead(LivingEntity entity) {
         return entity.getType().builtInRegistryHolder().is(net.minecraft.tags.EntityTypeTags.UNDEAD);
@@ -108,6 +165,18 @@ public final class FeatureService {
     /** The shared shape of every once-per-rest feature: find it, check it is unspent, spend it. */
     private <T extends ClassFeature> Either<Failure, Used> use(ServerPlayer player, Class<T> kind,
             ClassFeature.Type type, java.util.function.BiFunction<CharacterSheet, T, Used> action) {
+        return use(player, kind, type, action, feature -> 1);
+    }
+
+    /**
+     * The same, for a feature with more than one use in it.
+     *
+     * <p>How many uses a feature has is the feature's own business -- a pack decides how many
+     * superiority dice a fighter carries -- so the allowance is asked of it rather than assumed.
+     */
+    private <T extends ClassFeature> Either<Failure, Used> use(ServerPlayer player, Class<T> kind,
+            ClassFeature.Type type, java.util.function.BiFunction<CharacterSheet, T, Used> action,
+            java.util.function.ToIntFunction<T> allowance) {
         CharacterSheet sheet = characters.get(player);
         Optional<CharacterClass> definition = characters.definitionFor(sheet);
         if (definition.isEmpty()) {
@@ -117,7 +186,7 @@ public final class FeatureService {
         if (feature.isEmpty()) {
             return Either.left(Failure.NOT_YOURS);
         }
-        if (sheet.hasUsedFeature(type)) {
+        if (sheet.featureUses(type) >= allowance.applyAsInt(feature.get())) {
             return Either.left(Failure.ALREADY_USED);
         }
 

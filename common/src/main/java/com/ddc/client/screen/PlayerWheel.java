@@ -110,6 +110,14 @@ public final class PlayerWheel {
             options.add(new WheelOption(Component.translatable("ddc.wheel.second_wind"),
                     Component.translatable("ddc.wheel.second_wind.detail"), "ddc second-wind"));
         }
+        if (klass.has(ClassFeature.Type.ACTION_SURGE)) {
+            options.add(new WheelOption(Component.translatable("ddc.wheel.action_surge"),
+                    Component.translatable("ddc.wheel.action_surge.detail"), "ddc action-surge"));
+        }
+        if (klass.has(ClassFeature.Type.COMBAT_SUPERIORITY)) {
+            options.add(new WheelOption(Component.translatable("ddc.wheel.maneuver"),
+                    Component.translatable("ddc.wheel.maneuver.detail"), Wheels.MANEUVER_MENU));
+        }
         if (klass.has(ClassFeature.Type.CHANNEL_DIVINITY)) {
             options.add(new WheelOption(Component.translatable("ddc.wheel.channel"),
                     Component.translatable("ddc.wheel.channel.detail"), "ddc channel-divinity"));
@@ -121,6 +129,27 @@ public final class PlayerWheel {
         options.add(new WheelOption(Component.translatable("ddc.wheel.race"),
                 Component.translatable("ddc.wheel.race.detail"), Wheels.RACE_MENU));
         return options;
+    }
+
+    /**
+     * The manoeuvres a fighter can spend a die on, aimed at what they are looking at.
+     *
+     * <p>Like spells, these need a target, and like spells the wheel supplies it: a fighter should
+     * not have to type a UUID to trip somebody.
+     */
+    public static List<WheelOption> maneuvers() {
+        Optional<Entity> target = lookingAt();
+        if (target.isEmpty()) {
+            return List.of(new WheelOption(Component.translatable("ddc.wheel.no_target"),
+                    Component.translatable("ddc.wheel.no_target.detail"), ""));
+        }
+        String selector = target.get().getUUID().toString();
+        return java.util.Arrays.stream(com.ddc.character.Maneuver.values())
+                .map(maneuver -> new WheelOption(
+                        Component.translatable("ddc.maneuver." + maneuver.id()),
+                        Component.translatable("ddc.maneuver." + maneuver.id() + ".detail"),
+                        "ddc maneuver " + maneuver.id() + " " + selector))
+                .toList();
     }
 
     /** The classes a player may pick, as the server's packs define them. */
@@ -191,6 +220,7 @@ public final class PlayerWheel {
         public static final String RACE_MENU = "@race";
         public static final String SPELL_MENU = "@spell";
         public static final String SHEET_SCREEN = "@sheet";
+        public static final String MANEUVER_MENU = "@maneuver";
         public static final String GM_PANEL = "@gm";
 
         private Wheels() {
