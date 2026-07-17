@@ -9,6 +9,21 @@ Each GitHub release carries notes generated from that release's commits by
 is written by hand for what the commits cannot say: why a release is shaped the way it is, and what
 it deliberately leaves out.
 
+## [1.12.0] - 2026-07-17
+
+### Added
+- **Spells fly.** Casting was instant — the damage landed on the same tick as the click, and the only
+  sign anything had happened was a number in chat, which reads as a spreadsheet rather than as magic.
+  A bolt leaves the staff now, trails light, and arrives, coloured by its school.
+
+  The bolt carries no rules, which is the honest difference from a mod like Iron's Spells 'n
+  Spellbooks: there the projectile *is* the rule, it can miss, and aiming is the skill the mod is
+  about. DDC is a tabletop game — the d20 decided, the save was made, and the damage was applied
+  before the bolt existed. A bolt that could miss would be arguing with a roll that had already hit.
+  So it is a picture of a decision: no collision, and it always arrives. For the same reason there is
+  no mana and no upgrade orbs — the SRD already answers what magic costs, and two economies for one
+  question is one too many.
+
 ## [1.11.0] - 2026-07-17
 
 Every feature in the PRD and the architecture document is now built. What is left is one decision that
