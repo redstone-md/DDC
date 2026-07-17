@@ -9,6 +9,47 @@ Each GitHub release carries notes generated from that release's commits by
 is written by hand for what the commits cannot say: why a release is shaped the way it is, and what
 it deliberately leaves out.
 
+## [1.9.0] - 2026-07-17
+
+Everything left in the documentation that could be built, built. What remains unbuilt is named at the
+bottom, as it always is.
+
+### Added
+- **Every die is its own shape.** A d6 was an icosahedron scaled down, and so was the d4: every die in
+  the mod was a d20 wearing a smaller coat. There is now a real tetrahedron, cube, octahedron and
+  dodecahedron, built by one routine from their corners — which corners belong to a face is worked out
+  rather than tabulated, so the dodecahedron's pentagons cost no code of their own. The d10 is a
+  pentagonal bipyramid: a real one is a trapezohedron of kites, and at the size a die is drawn the
+  difference is invisible.
+- **A die lands showing what it rolled.** It used to stop at whatever angle it reached, so the number
+  in chat had nothing to do with the face pointing at the sky. A die that lands on 3 and shows 17 is a
+  prop.
+- **Chat's vote reaches the dice** (PRD 4.5). The tally was counted, drawn, and thrown away. It rides
+  on the wheel's roll now — which is the client choosing a roll mode, allowed for exactly one reason:
+  it is the same choice the streamer could make by typing `/roll 1d20 advantage` themselves.
+- **`/ddc sound`** (PRD 2's soundscapes). Narration went out as text, so a GM describing a dragon's
+  roar was describing it. Any sound the game knows, played at every listener rather than at a point in
+  the world: an ambience that panned as the party walked away would not be an atmosphere.
+- **The cleric can heal** (PRD 3.1). The channel could only turn undead — a healer with no healing, in
+  the one hobby where that is the whole point of the class. One channel, three ways to spend it: turn,
+  mend, bless.
+- **Encounters carry equipment, names and hit points** (PRD 4.2). A GM placing a captain of the guard
+  should get one, not a zombie they arm by hand while the party watches.
+- **`DDCRegistryEvents`** (ARCHITECTURE 3). Addons that only add rules never needed it; one that wants
+  to react to what a pack defined had nothing to hook.
+- **`ddc-srd-template.zip`** (PRD 5), attached to every release. Built from the tag rather than kept
+  as a binary, so it cannot fall behind the schema it teaches — and every file in it is parsed by a
+  test, which is how I found the template's own spell had a saving-throw effect that does not exist.
+
+### Still not done
+- **Channel-point rewards** (PRD 4.5). DDC reads Twitch chat anonymously, and channel points need an
+  authenticated connection and a registered application — an account's credentials, which is the
+  streamer's to give and not a thing this mod will ask for lightly. Chat votes work today.
+- **REI/JEI integration** (PRD 6.2), and the wand's block context menus — locking doors, linking
+  chests to triggers (PRD 3.2). The wand places encounters and possesses monsters; the rest of that
+  list is a screen that does not exist yet.
+- **Modrinth.** The workflow is written. Publishing is the owner's call, not mine.
+
 ## [1.8.0] - 2026-07-17
 
 ### Added
