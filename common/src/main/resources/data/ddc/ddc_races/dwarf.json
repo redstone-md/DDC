@@ -1,6 +1,16 @@
 {
   "name": "Dwarf",
-  "ability_bonuses": { "constitution": 2 },
+  "ability_bonuses": {
+    "constitution": 2
+  },
   "speed": 25,
-  "traits": ["darkvision", "dwarven resilience", "stonecunning"]
+  "traits": [
+    "darkvision",
+    "dwarven resilience",
+    "stonecunning"
+  ],
+  "items": [
+    "minecraft:stone_axe",
+    "minecraft:torch"
+  ]
 }

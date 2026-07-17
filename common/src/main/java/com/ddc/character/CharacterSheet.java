@@ -174,10 +174,19 @@ public record CharacterSheet(Optional<Identifier> characterClass, int level, Abi
                 preparedSpells, experience);
     }
 
-    /** Returns a copy that has picked a race, with the race's bonuses applied to its scores. */
-    public CharacterSheet withRace(Identifier id, Race definition) {
+    /**
+     * Returns a copy that has picked a race, with the race's bonuses applied to its scores.
+     *
+     * <p>The race being replaced takes its bonuses back on the way out. Without that, a player who
+     * picked human twice would be walking around with the bonus twice: the scores are stored with the
+     * bonuses already in them, so changing race has to undo before it does.
+     *
+     * @param previous the race being replaced, if there was one
+     */
+    public CharacterSheet withRace(Identifier id, Race definition, Optional<Race> previous) {
         Objects.requireNonNull(id, "id");
-        return new CharacterSheet(characterClass, level, definition.applyTo(abilities),
+        AbilityScores base = previous.map(old -> old.removeFrom(abilities)).orElse(abilities);
+        return new CharacterSheet(characterClass, level, definition.applyTo(base),
                 Optional.of(id), usedSpellSlots, usedFeatures, preparedSpells, experience);
     }
 

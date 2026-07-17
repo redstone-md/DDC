@@ -6,6 +6,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.Objects;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -31,14 +32,24 @@ import java.util.Optional;
  * @param level       the spell's level; 0 is a cantrip and costs no slot
  * @param school      the school of magic, carried as text
  * @param range       range in feet, as the SRD counts it
- * @param damageDice  what it rolls for damage, absent for a spell that deals none
- * @param savingThrow the save it allows, absent for a spell that allows none
+ * @param damageDice   what it rolls for damage, absent for a spell that deals none
+ * @param savingThrow  the save it allows, absent for a spell that allows none
+ * @param castTime     seconds of casting before it lands; zero for a spell that is instant
+ * @param components   the SRD's components, carried as text for anyone printing the spell
+ * @param areaOfEffect the radius in blocks it catches everything within, zero for a single target
  */
 public record Spell(String name, int level, String school, int range,
-        Optional<DiceExpression> damageDice, Optional<SavingThrow> savingThrow) {
+        Optional<DiceExpression> damageDice, Optional<SavingThrow> savingThrow,
+        int castTime, List<String> components, int areaOfEffect) {
 
     /** Feet. Generous enough for SRD's longest ranged spells. */
     private static final int MAX_RANGE = 500;
+
+    /** Seconds. Long enough for a ritual, short enough that a table does not wait out an evening. */
+    private static final int MAX_CAST_TIME = 30;
+
+    /** Blocks. A fireball's twenty-foot radius is about six of them. */
+    private static final int MAX_AREA = 32;
 
     public static final Codec<Spell> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.STRING.fieldOf("name").forGetter(Spell::name),
@@ -46,7 +57,12 @@ public record Spell(String name, int level, String school, int range,
             Codec.STRING.optionalFieldOf("school", "unknown").forGetter(Spell::school),
             Codec.intRange(0, MAX_RANGE).optionalFieldOf("range", 30).forGetter(Spell::range),
             DDCCodecs.DICE_EXPRESSION.optionalFieldOf("damage_dice").forGetter(Spell::damageDice),
-            SavingThrow.CODEC.optionalFieldOf("saving_throw").forGetter(Spell::savingThrow)
+            SavingThrow.CODEC.optionalFieldOf("saving_throw").forGetter(Spell::savingThrow),
+            // ARCHITECTURE 5 prints these three in its own example schema, and the codec ignored all
+            // of them: a pack copying the documentation had two thirds of its file silently dropped.
+            Codec.intRange(0, MAX_CAST_TIME).optionalFieldOf("cast_time", 0).forGetter(Spell::castTime),
+            Codec.STRING.listOf().optionalFieldOf("components", List.of()).forGetter(Spell::components),
+            Codec.intRange(0, MAX_AREA).optionalFieldOf("area_of_effect", 0).forGetter(Spell::areaOfEffect)
     ).apply(instance, Spell::new));
 
     public Spell {
@@ -54,6 +70,17 @@ public record Spell(String name, int level, String school, int range,
         Objects.requireNonNull(school, "school");
         Objects.requireNonNull(damageDice, "damageDice");
         Objects.requireNonNull(savingThrow, "savingThrow");
+        components = List.copyOf(Objects.requireNonNull(components, "components"));
+    }
+
+    /** Whether this spell takes time to cast, which is what the runes on the ground warn about. */
+    public boolean hasCastTime() {
+        return castTime > 0;
+    }
+
+    /** Whether this spell catches more than what it was aimed at. */
+    public boolean isAreaOfEffect() {
+        return areaOfEffect > 0;
     }
 
     /** A cantrip costs no slot. */

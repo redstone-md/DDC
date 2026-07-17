@@ -174,6 +174,7 @@ public final class DDCClient {
             GRADE.tick(Long.MAX_VALUE);
             ClientRules.clear();
             // Leaving a world drops the widgets and the chat: what they were watching is gone.
+            OVERLAY.forgetState();
             OVERLAY.stop();
             TWITCH.close();
         });

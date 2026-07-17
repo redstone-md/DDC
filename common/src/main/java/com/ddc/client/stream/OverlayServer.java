@@ -103,11 +103,49 @@ public final class OverlayServer {
         return clients.size();
     }
 
-    /** Sends one line of JSON to every connected widget. Does nothing when none are. */
+    /**
+     * Sends one line of JSON to every connected widget. Does nothing when none are.
+     *
+     * <p>Anything that describes a state rather than a moment is kept, so a widget that connects
+     * later can be caught up. Refreshing the browser source in OBS used to leave the party cards
+     * blank until somebody's health changed, which looked exactly like a broken overlay.
+     */
     public void broadcast(String json) {
+        remember(json);
         if (!clients.isEmpty()) {
             clients.writeAndFlush(new TextWebSocketFrame(json));
         }
+    }
+
+    /**
+     * Keeps the last of each standing event, by name.
+     *
+     * <p>A roll alert is a moment: replaying it to a widget that connects a minute later would show
+     * a roll nobody just made. The party is a state, and a widget that does not know it is wrong.
+     */
+    private void remember(String json) {
+        for (String standing : STANDING_EVENTS) {
+            if (json.startsWith("{\"event\":\"" + standing + "\"")) {
+                current.put(standing, json);
+            }
+        }
+    }
+
+    /** Which events describe how things are, rather than something that happened. */
+    private static final java.util.List<String> STANDING_EVENTS = java.util.List.of("party");
+
+    private final java.util.Map<String, String> current = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /** Tells a widget that has just connected how things stand. */
+    private void catchUp(io.netty.channel.Channel widget) {
+        for (String json : current.values()) {
+            widget.writeAndFlush(new TextWebSocketFrame(json));
+        }
+    }
+
+    /** Forgets the standing state. A world that is gone has no party in it. */
+    public void forgetState() {
+        current.clear();
     }
 
     /** What a start attempt did, for the command to report. */
@@ -135,6 +173,9 @@ public final class OverlayServer {
                             // channelActive would have counted the page's own GET as a listener.
                             if (event instanceof WebSocketServerProtocolHandler.HandshakeComplete) {
                                 clients.add(context.channel());
+                                // A refreshed browser source is a new connection to a table that has
+                                // been playing for an hour: tell it where things stand.
+                                catchUp(context.channel());
                             }
                         }
 

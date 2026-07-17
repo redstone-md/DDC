@@ -82,18 +82,21 @@ public final class CharacterHud {
         int hitPoints = Math.round(player.getHealth());
         int maxHitPoints = Math.round(player.getMaxHealth());
         String header = headerText(hitPoints, maxHitPoints);
+        String who = whoText();
         String abilities = abilityText();
         boolean casts = !spellSlots().isEmpty();
-        int width = Math.max(font.width(header), font.width(abilities)) + PADDING * 2;
-        int height = LINE_HEIGHT * 2 + PADDING * 2 + (casts ? PIP + PIP_GAP : 0);
+        int width = Math.max(Math.max(font.width(header), font.width(who)), font.width(abilities))
+                + PADDING * 2;
+        int height = LINE_HEIGHT * 3 + PADDING * 2 + (casts ? PIP + PIP_GAP : 0);
 
         graphics.fill(MARGIN, MARGIN, MARGIN + width, MARGIN + height, BACKDROP);
         graphics.outline(MARGIN, MARGIN, width, height, BORDER);
-        graphics.text(font, header, MARGIN + PADDING, MARGIN + PADDING,
+        graphics.text(font, who, MARGIN + PADDING, MARGIN + PADDING, TEXT);
+        graphics.text(font, header, MARGIN + PADDING, MARGIN + PADDING + LINE_HEIGHT,
                 hitPointColour(hitPoints, maxHitPoints));
-        graphics.text(font, abilities, MARGIN + PADDING, MARGIN + PADDING + LINE_HEIGHT, TEXT);
+        graphics.text(font, abilities, MARGIN + PADDING, MARGIN + PADDING + LINE_HEIGHT * 2, TEXT);
         if (casts) {
-            renderSlots(graphics, MARGIN + PADDING, MARGIN + PADDING + LINE_HEIGHT * 2);
+            renderSlots(graphics, MARGIN + PADDING, MARGIN + PADDING + LINE_HEIGHT * 3);
         }
     }
 
@@ -121,6 +124,17 @@ public final class CharacterHud {
     /** The slots this character has, or none for a class that does not cast. */
     private List<Integer> spellSlots() {
         return summary == null ? List.of() : summary.spellSlots();
+    }
+
+    /**
+     * Who this character is: their race and class.
+     *
+     * <p>The race was stored, saved and never shown anywhere, which made it look like it had been
+     * forgotten every time a player came back to a world. It had not been; nothing had ever said so.
+     */
+    private String whoText() {
+        String race = sheet.race().map(ClientRules::raceName).orElse("");
+        return race.isEmpty() ? className() : race + " " + className();
     }
 
     private String headerText(int hitPoints, int maxHitPoints) {

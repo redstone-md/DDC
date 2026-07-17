@@ -50,6 +50,39 @@ public final class DDCItems {
                     .rarity(Rarity.UNCOMMON)
                     .setId(ResourceKey.create(Registries.ITEM, DDC.id("spellbook")))));
 
+    /**
+     * A caster's wand: cantrips, which never run dry.
+     *
+     * <p>Built where the services are, because an item that casts needs the same rules a command
+     * does. The services are handed in rather than reached for, so the item cannot grow rules of its
+     * own.
+     */
+    public static RegistrySupplier<Item> WAND;
+
+    /** A caster's staff: anything they have prepared. */
+    public static RegistrySupplier<Item> STAFF;
+
+    /**
+     * Registers the items that need the rules to work: a wand casts, and casting is a service.
+     *
+     * <p>Called from the bootstrap once the services exist. The rest of the items are static because
+     * they need nothing; these two need the game's rules, and a static field cannot have them.
+     */
+    public static void registerCasting(com.ddc.character.CharacterService characters,
+            com.ddc.rules.DataRegistry<com.ddc.rules.Spell> spells,
+            com.ddc.spell.SpellService casting) {
+        WAND = ITEMS.register("wand", () -> new com.ddc.item.SpellFocusItem(new Item.Properties()
+                .stacksTo(1)
+                .rarity(Rarity.UNCOMMON)
+                .setId(ResourceKey.create(Registries.ITEM, DDC.id("wand"))),
+                com.ddc.item.SpellFocusItem.Power.WAND, characters, spells, casting));
+        STAFF = ITEMS.register("staff", () -> new com.ddc.item.SpellFocusItem(new Item.Properties()
+                .stacksTo(1)
+                .rarity(Rarity.RARE)
+                .setId(ResourceKey.create(Registries.ITEM, DDC.id("staff"))),
+                com.ddc.item.SpellFocusItem.Power.STAFF, characters, spells, casting));
+    }
+
     public static final RegistrySupplier<CreativeModeTab> TAB = TABS.register("ddc",
             () -> CreativeTabRegistry.create(
                     Component.literal(DDC.MOD_NAME),
@@ -62,7 +95,7 @@ public final class DDCItems {
     public static void register() {
         ITEMS.register();
         TABS.register();
-        CreativeTabRegistry.append(TAB, GM_WAND, SPELLBOOK);
+        CreativeTabRegistry.append(TAB, GM_WAND, SPELLBOOK, WAND, STAFF);
         POSSESSIONS.register();
     }
 

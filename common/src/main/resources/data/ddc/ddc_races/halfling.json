@@ -1,6 +1,16 @@
 {
   "name": "Halfling",
-  "ability_bonuses": { "dexterity": 2 },
+  "ability_bonuses": {
+    "dexterity": 2
+  },
   "speed": 25,
-  "traits": ["lucky", "brave", "halfling nimbleness"]
+  "traits": [
+    "lucky",
+    "brave",
+    "halfling nimbleness"
+  ],
+  "items": [
+    "minecraft:leather_boots",
+    "minecraft:bread"
+  ]
 }

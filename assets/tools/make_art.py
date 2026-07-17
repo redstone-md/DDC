@@ -390,8 +390,46 @@ def make_spellbook_texture(size=16, ss=16):
     print(f"wrote {target}")
 
 
+def make_focus_texture(name, length, head, glow):
+    """A caster's focus: a wooden shaft with a crystal at the tip.
+
+    One function for both, because a staff is a longer wand with a bigger stone, and drawing that
+    twice would mean two things to keep looking alike.
+    """
+    size, ss = 16, 16
+    s = size * ss
+    img = Image.new("RGBA", (s, s), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img, "RGBA")
+
+    # The shaft, corner to corner as vanilla's own tools run.
+    shaft = s * (0.075 if name == "wand" else 0.095)
+    steps = int(s * length)
+    for i in range(steps):
+        t = i / steps
+        x = s * 0.16 + i * 0.86
+        y = s * 0.84 - i * 0.86
+        colour = ramp(0.25 + t * 0.2, low=(48, 32, 16), mid=(96, 66, 34), high=(140, 102, 58))
+        draw.ellipse([x - shaft, y - shaft, x + shaft, y + shaft], fill=(*colour, 255))
+
+    # The stone. Faceted rather than round: a cut crystal reads as magic, a ball reads as a pin.
+    cx, cy, r = s * 0.72, s * 0.26, s * head
+    facets = [(cx, cy - r), (cx + r * 0.72, cy), (cx, cy + r), (cx - r * 0.72, cy)]
+    draw.polygon(facets, fill=(*glow, 255), outline=(*INK, 210))
+    draw.polygon([(cx, cy - r), (cx + r * 0.72, cy), (cx, cy)],
+                 fill=(min(255, glow[0] + 60), min(255, glow[1] + 60), min(255, glow[2] + 60), 255))
+
+    img = img.resize((size, size), Image.LANCZOS)
+    target = Path(f"common/src/main/resources/assets/ddc/textures/item/{name}.png")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    img.save(target, optimize=True)
+    print(f"wrote {target}")
+
+
 if __name__ == "__main__":
     make_banner(OUT_DIR / "banner.png")
     make_icon()
     make_wand_texture()
     make_spellbook_texture()
+    # A wand is short with a small stone; a staff is long with a big one.
+    make_focus_texture("wand", 0.44, 0.18, (108, 160, 230))
+    make_focus_texture("staff", 0.62, 0.26, (150, 118, 220))

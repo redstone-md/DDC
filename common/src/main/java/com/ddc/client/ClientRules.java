@@ -53,6 +53,15 @@ public final class ClientRules {
         return rules.gameMaster();
     }
 
+    /** A race's name, or its id when this client has not been told about it. */
+    public static String raceName(net.minecraft.resources.Identifier id) {
+        return rules.races().stream()
+                .filter(entry -> entry.id().equals(id))
+                .map(RulesPayload.Entry::name)
+                .findFirst()
+                .orElseGet(id::getPath);
+    }
+
     /** A spell's name, or its id when this client has not been told about it. */
     public static String spellName(net.minecraft.resources.Identifier id) {
         return rules.spells().stream()

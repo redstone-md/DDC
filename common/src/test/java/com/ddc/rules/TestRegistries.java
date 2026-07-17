@@ -57,11 +57,12 @@ public final class TestRegistries {
     }
 
     public static Race race(String name) {
-        return new Race(name, Map.of(), 30, List.of());
+        return new Race(name, Map.of(), 30, List.of(), List.of());
     }
 
     public static Spell spell(String name, int level) {
-        return new Spell(name, level, "evocation", 60, Optional.empty(), Optional.empty());
+        return new Spell(name, level, "evocation", 60, Optional.empty(), Optional.empty(),
+                0, List.of(), 0);
     }
 
     public static Encounter encounter(String name) {

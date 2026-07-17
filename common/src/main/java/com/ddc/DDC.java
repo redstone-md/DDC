@@ -57,7 +57,6 @@ public final class DDC {
         LOGGER.info("Initialising {}", MOD_NAME);
         DDCNetwork.register();
         DDCRegistries.register();
-        DDCItems.register();
         DDCEntities.register();
 
         CharacterService characters = new CharacterService(DDCRegistries.CLASSES);
@@ -89,6 +88,13 @@ public final class DDC {
         com.ddc.check.CheckService checkService = new com.ddc.check.CheckService(characters, diceRolls);
         new com.ddc.check.BlockCheckListener(DDCRegistries.BLOCK_CHECKS, checkService).register();
         SpellService spellService = new SpellService(characters, diceRolls, DiceRoller.random());
+        spellService.register();
+        // The wand and the staff cast through the same service a command does, so they are registered
+        // once it exists rather than as static fields that could not have it.
+        DDCItems.registerCasting(characters, DDCRegistries.SPELLS, spellService);
+        // Items are handed to the loader only once every one of them exists: a deferred register is
+        // closed by registering it, and the wand had to wait for the rules it casts by.
+        DDCItems.register();
         CharacterCommand characterCommand = new CharacterCommand(characters, DDCRegistries.CLASSES,
                 DDCRegistries.RACES, new NarrateCommand(new NarrationService()),
                 new SpellCommand(characters, DDCRegistries.SPELLS, DDCRegistries.CLASSES, spellService),

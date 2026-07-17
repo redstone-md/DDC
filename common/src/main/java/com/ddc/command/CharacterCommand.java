@@ -118,7 +118,13 @@ public final class CharacterCommand {
         Identifier id = IdentifierArgument.getId(context, ARG_RACE);
         Race race = races.get(id).orElseThrow(() -> UNKNOWN_RACE.create(id));
 
-        characters.update(player, sheet -> sheet.withRace(id, race));
+        // The race being replaced hands its bonuses back, so picking human twice does not pay twice.
+        boolean isNew = !characters.get(player).race().equals(java.util.Optional.of(id));
+        characters.update(player, sheet -> sheet.withRace(id, race, sheet.race().flatMap(races::get)));
+        if (isNew) {
+            // Only for a race they did not already have: re-picking the same one must not restock it.
+            com.ddc.character.RaceItems.give(player, race);
+        }
         context.getSource().sendSuccess(
                 () -> Component.translatable("ddc.race.chosen", race.name(), race.speed()), false);
         return 1;

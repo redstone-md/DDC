@@ -1,6 +1,17 @@
 {
   "name": "Elf",
-  "ability_bonuses": { "dexterity": 2 },
+  "ability_bonuses": {
+    "dexterity": 2
+  },
   "speed": 30,
-  "traits": ["darkvision", "keen senses", "fey ancestry", "trance"]
+  "traits": [
+    "darkvision",
+    "keen senses",
+    "fey ancestry",
+    "trance"
+  ],
+  "items": [
+    "minecraft:bow",
+    "minecraft:arrow"
+  ]
 }

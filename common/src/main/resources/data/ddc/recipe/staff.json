@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " ab",
+    " sa",
+    "s  "
+  ],
+  "key": {
+    "a": "minecraft:amethyst_shard",
+    "b": "minecraft:amethyst_block",
+    "s": "minecraft:stick"
+  },
+  "result": {
+    "id": "ddc:staff"
+  }
+}

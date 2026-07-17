@@ -125,18 +125,77 @@ public final class SpellService {
     /** Rolls the spell's damage and its save, and applies what survives. */
     private Cast resolve(ServerPlayer caster, CharacterSheet sheet, Spellcasting casting, Spell spell,
             LivingEntity target) {
-        if (caster.level() instanceof ServerLevel level) {
-            SpellRunes.draw(level, caster, target, spell);
-        }
         Optional<CheckOutcome> save = spell.savingThrow()
                 .map(throwSpec -> rollSave(target, throwSpec.ability(), saveDc(sheet, casting)));
 
         Optional<RollResult> damage = spell.damageDice().map(dice -> rolls.rollPublic(caster, dice,
                 com.ddc.core.dice.RollMode.NORMAL));
 
-        int dealt = damage.map(result -> applyDamage(caster, target, spell, save, result.total()))
-                .orElse(0);
+        int dealt = damage.map(result -> hurt(caster, target, spell, save, result.total())).orElse(0);
         return new Cast(spell, damage, save, dealt);
+    }
+
+    /**
+     * Hurts what the spell caught: the target, and everything around it for a spell with an area.
+     *
+     * <p>The save is rolled once, against the target, rather than per victim. It is a simplification
+     * and worth naming: a fireball in the SRD asks every creature in it for its own save, and asking
+     * a d20 of nine skeletons one at a time would bury the table in dice for a moment that is
+     * supposed to be one loud noise.
+     */
+    private int hurt(ServerPlayer caster, LivingEntity target, Spell spell,
+            Optional<CheckOutcome> save, int rolled) {
+        int dealt = applyDamage(caster, target, spell, save, rolled);
+        if (!spell.isAreaOfEffect()) {
+            return dealt;
+        }
+        for (LivingEntity caught : target.level().getEntitiesOfClass(LivingEntity.class,
+                target.getBoundingBox().inflate(spell.areaOfEffect()))) {
+            // Not the caster, and not the target twice. A wizard standing in their own fireball is a
+            // rule for another day; killing yourself with a menu button is not the day's lesson.
+            if (caught != target && caught != caster && caught.isAlive()) {
+                applyDamage(caster, caught, spell, save, rolled);
+            }
+        }
+        return dealt;
+    }
+
+    /**
+     * Spells that take time land later, which is what PRD 4.4's runes are warning about.
+     *
+     * <p>The runes were drawn and the spell went off in the same tick, so the warning arrived with
+     * the thing it was warning about. Now the ground lights up, and the table has the seconds the
+     * pack asked for to do something about it.
+     */
+    private record Pending(ServerPlayer caster, CharacterSheet sheet, Spellcasting casting, Spell spell,
+            LivingEntity target, long dueTick) {
+    }
+
+    private final java.util.List<Pending> pending = new java.util.concurrent.CopyOnWriteArrayList<>();
+
+    /** Resolves the spells whose casting time has run out. */
+    public void register() {
+        dev.architectury.event.events.common.TickEvent.SERVER_POST.register(server -> {
+            long now = server.getTickCount();
+            for (Pending cast : pending) {
+                if (now < cast.dueTick()) {
+                    continue;
+                }
+                pending.remove(cast);
+                // A caster who died or left, or a target that did, takes the spell with them: a
+                // fireball from a corpse is nobody's idea of a rule.
+                if (cast.caster().isAlive() && cast.target().isAlive()) {
+                    announce(cast.caster(), resolve(cast.caster(), cast.sheet(), cast.casting(),
+                            cast.spell(), cast.target()), cast.target());
+                }
+            }
+        });
+    }
+
+    /** Says what a delayed spell did, since the command that started it has long since answered. */
+    private static void announce(ServerPlayer caster, Cast cast, LivingEntity target) {
+        caster.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
+                "ddc.spell.landed", cast.spell().name(), target.getDisplayName(), cast.damageDealt()));
     }
 
     /** The number a target must beat to resist this caster. */
