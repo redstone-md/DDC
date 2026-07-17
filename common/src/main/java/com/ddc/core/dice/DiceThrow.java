@@ -144,7 +144,7 @@ public final class DiceThrow {
      *
      * <p>Package-visible so the easing can be tested without a screen.
      */
-    double tumbleEase(double seconds) {
+    public double tumbleEase(double seconds) {
         double landing = landingTime();
         if (seconds >= landing) {
             return 0.0;

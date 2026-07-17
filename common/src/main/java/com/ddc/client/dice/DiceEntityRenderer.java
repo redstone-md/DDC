@@ -40,6 +40,9 @@ public class DiceEntityRenderer extends EntityRenderer<DiceEntity, DiceRenderSta
     private static final int[] CRIT = {242, 200, 121};
     private static final int[] FUMBLE = {200, 60, 60};
 
+    /** Which way is up, for a die that has to show its number to the room. */
+    private static final Vector3f UP = new Vector3f(0, 1, 0);
+
     private static final Vector3f LIGHT_DIRECTION = new Vector3f(-0.4f, 0.8f, 0.45f).normalize();
 
     public DiceEntityRenderer(EntityRendererProvider.Context context) {
@@ -79,9 +82,7 @@ public class DiceEntityRenderer extends EntityRenderer<DiceEntity, DiceRenderSta
         pose.pushPose();
         pose.translate(flight.x(seconds), flight.y(seconds), flight.z(seconds));
 
-        double[] rotation = flight.rotation(seconds);
-        pose.mulPose(new Quaternionf().rotateXYZ(
-                (float) rotation[0], (float) rotation[1], (float) rotation[2]));
+        pose.mulPose(orientation(flight, die, seconds));
         float scale = DiceMesh.scaleOf(die.die());
         pose.scale(scale, scale, scale);
 
@@ -92,6 +93,32 @@ public class DiceEntityRenderer extends EntityRenderer<DiceEntity, DiceRenderSta
         collector.submitCustomGeometry(pose, RenderTypes.debugFilledBox(),
                 (entry, consumer) -> emitDie(entry.pose(), consumer, die, colour, alpha));
         pose.popPose();
+    }
+
+    /**
+     * How the die is turned right now: tumbling in the air, and showing its number once it lands.
+     *
+     * <p>PRD 3.1 says a die settles on a number, and it never did -- it eased to a stop at whatever
+     * angle it happened to be at, and the number the table read in chat had nothing to do with the
+     * face pointing at the sky. A die that lands on 3 and shows 17 is a prop, not a die.
+     *
+     * <p>So the resting orientation is the one that turns the rolled face upward, and the tumble is
+     * turned into it: the same easing as before, now with somewhere to arrive. The face is chosen by
+     * the number, so the same roll always looks the same, and nothing about the roll itself moves --
+     * the server decided it long before this frame.
+     */
+    private static Quaternionf orientation(DiceThrow flight, DieRoll die, double seconds) {
+        double[] rotation = flight.rotation(seconds);
+        Quaternionf tumbling = new Quaternionf().rotateXYZ(
+                (float) rotation[0], (float) rotation[1], (float) rotation[2]);
+
+        Quaternionf landed = new Quaternionf()
+                .rotationTo(DiceMesh.sideFor(die.die(), die.value()), UP)
+                .rotateY((float) rotation[1]);
+
+        // Slerp from where it ends to where it is: at rest the ease is zero and this is the landed
+        // orientation exactly, which is the half that has to be right.
+        return landed.slerp(tumbling, (float) flight.tumbleEase(seconds));
     }
 
     private static int[] colourFor(DieRoll die) {
