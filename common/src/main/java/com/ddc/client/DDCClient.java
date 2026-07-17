@@ -3,6 +3,7 @@ package com.ddc.client;
 import com.ddc.client.dice.RollCache;
 import com.ddc.client.screen.CharacterSheetScreen;
 import com.ddc.client.screen.GameMasterScreen;
+import com.ddc.client.screen.GuideScreen;
 import com.ddc.client.screen.PlayerWheel;
 import com.ddc.client.screen.WheelScreen;
 import com.mojang.blaze3d.platform.InputConstants;
@@ -163,11 +164,32 @@ public final class DDCClient {
                 NarrationPayload.STREAM_CODEC,
                 (payload, context) -> context.queue(() -> NARRATION.accept(payload.text(), Util.getMillis())));
 
+        // A client command, on the client's own root: /ddc belongs to the server, and a client that
+        // registered a branch of it swallowed every server command under it -- which shipped once.
+        dev.architectury.event.events.client.ClientCommandRegistrationEvent.EVENT.register(
+                (dispatcher, buildContext) -> dispatcher.register(
+                        dev.architectury.event.events.client.ClientCommandRegistrationEvent
+                                .literal("ddcguide")
+                                .executes(context -> {
+                                    // Opened on the next tick: a screen cannot be set from inside the
+                                    // command that is still running.
+                                    Minecraft.getInstance().schedule(
+                                            () -> Minecraft.getInstance().setScreen(new GuideScreen()));
+                                    return 1;
+                                })));
+
         new OverlayCommand(OVERLAY).register();
         new TwitchCommand(TWITCH, VOTE).register();
         KeyMappingRegistry.register(SHEET_KEY);
         KeyMappingRegistry.register(PANEL_KEY);
         KeyMappingRegistry.register(WHEEL_KEY);
+
+        // Said once, on joining: a player standing in a world with no idea what R does will not read
+        // a README, and the mod that asks them to learn a second game should say where to start.
+        ClientPlayerEvent.CLIENT_PLAYER_JOIN.register(player ->
+                player.sendSystemMessage(
+                        net.minecraft.network.chat.Component.translatable("ddc.guide.open")
+                                .withStyle(net.minecraft.ChatFormatting.GOLD)));
 
         ClientPlayerEvent.CLIENT_PLAYER_QUIT.register(player -> {
             RollCache.clear();

@@ -107,7 +107,8 @@ public class WheelScreen extends Screen {
     private int cardWidth(int index) {
         WheelOption option = options.get(index);
         int text = Math.max(font.width(option.label()), font.width(option.detail()));
-        return Math.max(MIN_CARD_WIDTH, text + CARD_PADDING * 2);
+        int icon = option.icon().isPresent() ? Icon.SIZE + CARD_PADDING : 0;
+        return Math.max(MIN_CARD_WIDTH, text + icon + CARD_PADDING * 2);
     }
 
     /**
@@ -199,6 +200,7 @@ public class WheelScreen extends Screen {
                     com.ddc.client.DDCClient.sheet().map(PlayerWheel::spells).orElse(List.of()));
             case PlayerWheel.Wheels.SHEET_SCREEN -> com.ddc.client.DDCClient.sheetScreen();
             case PlayerWheel.Wheels.GM_PANEL -> new GameMasterScreen();
+            case PlayerWheel.Wheels.GUIDE_SCREEN -> new GuideScreen();
             case PlayerWheel.Wheels.MANEUVER_MENU -> new WheelScreen(
                     Component.translatable("ddc.wheel.maneuver"), PlayerWheel.maneuvers());
             default -> this;
@@ -238,11 +240,19 @@ public class WheelScreen extends Screen {
         graphics.fill(at[0], at[1], at[0] + cardWidth, at[1] + CARD_HEIGHT, picked ? CARD_CHOSEN : CARD);
         graphics.outline(at[0], at[1], cardWidth, CARD_HEIGHT, picked ? BORDER_CHOSEN : BORDER);
 
+        // The icon takes the left of the card and the words take what is left, so a row of cards
+        // lines its pictures up down the ring rather than each one centring itself differently.
+        int textLeft = at[0] + CARD_PADDING;
+        if (option.icon().isPresent()) {
+            option.icon().get().draw(graphics, at[0] + CARD_PADDING, at[1] + (CARD_HEIGHT - Icon.SIZE) / 2);
+            textLeft += Icon.SIZE + CARD_PADDING;
+        }
+
         boolean hasDetail = !option.detail().getString().isEmpty();
         int textY = hasDetail ? at[1] + 4 : at[1] + 8;
-        graphics.centeredText(font, option.label(), at[0] + cardWidth / 2, textY, TEXT);
+        graphics.text(font, option.label(), textLeft, textY, TEXT);
         if (hasDetail) {
-            graphics.centeredText(font, option.detail(), at[0] + cardWidth / 2, textY + 10, TEXT_DETAIL);
+            graphics.text(font, option.detail(), textLeft, textY + 10, TEXT_DETAIL);
         }
     }
 }

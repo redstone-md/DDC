@@ -63,10 +63,10 @@ public final class PlayerWheel {
                 .map(entry -> new WheelOption(
                         Component.literal(entry.name()),
                         Component.translatable("ddc.wheel.mobs", entry.level()),
-                        "ddc encounter " + entry.id()))
+                        "ddc encounter " + entry.id(), Icon.ENCOUNTER))
                 .toList());
         options.add(new WheelOption(Component.translatable("ddc.wheel.gm"),
-                Component.translatable("ddc.wheel.gm.detail"), Wheels.GM_PANEL));
+                Component.translatable("ddc.wheel.gm.detail"), Wheels.GM_PANEL, Icon.GM));
         return options;
     }
 
@@ -90,9 +90,10 @@ public final class PlayerWheel {
     private static List<WheelOption> creation() {
         List<WheelOption> options = new ArrayList<>();
         options.add(new WheelOption(Component.translatable("ddc.wheel.class"),
-                Component.translatable("ddc.wheel.class.detail"), Wheels.CLASS_MENU));
+                Component.translatable("ddc.wheel.class.detail"), Wheels.CLASS_MENU, Icon.CLASS));
         options.add(new WheelOption(Component.translatable("ddc.wheel.race"),
-                Component.translatable("ddc.wheel.race.detail"), Wheels.RACE_MENU));
+                Component.translatable("ddc.wheel.race.detail"), Wheels.RACE_MENU, Icon.RACE));
+        options.add(guide());
         return options;
     }
 
@@ -100,34 +101,35 @@ public final class PlayerWheel {
     private static List<WheelOption> actions(CharacterSheet sheet, ClassSummary klass) {
         List<WheelOption> options = new ArrayList<>();
         options.add(new WheelOption(Component.translatable("ddc.wheel.roll"),
-                Component.literal("1d20"), "roll 1d20"));
+                Component.literal("1d20"), "roll 1d20", Icon.ROLL));
 
         if (klass.canCast()) {
             options.add(new WheelOption(Component.translatable("ddc.wheel.cast"),
-                    Component.translatable("ddc.wheel.cast.detail"), Wheels.SPELL_MENU));
+                    Component.translatable("ddc.wheel.cast.detail"), Wheels.SPELL_MENU, Icon.CAST));
         }
         if (klass.has(ClassFeature.Type.SECOND_WIND)) {
             options.add(new WheelOption(Component.translatable("ddc.wheel.second_wind"),
-                    Component.translatable("ddc.wheel.second_wind.detail"), "ddc second-wind"));
+                    Component.translatable("ddc.wheel.second_wind.detail"), "ddc second-wind", Icon.SECOND_WIND));
         }
         if (klass.has(ClassFeature.Type.ACTION_SURGE)) {
             options.add(new WheelOption(Component.translatable("ddc.wheel.action_surge"),
-                    Component.translatable("ddc.wheel.action_surge.detail"), "ddc action-surge"));
+                    Component.translatable("ddc.wheel.action_surge.detail"), "ddc action-surge", Icon.ACTION_SURGE));
         }
         if (klass.has(ClassFeature.Type.COMBAT_SUPERIORITY)) {
             options.add(new WheelOption(Component.translatable("ddc.wheel.maneuver"),
-                    Component.translatable("ddc.wheel.maneuver.detail"), Wheels.MANEUVER_MENU));
+                    Component.translatable("ddc.wheel.maneuver.detail"), Wheels.MANEUVER_MENU, Icon.MANEUVER));
         }
         if (klass.has(ClassFeature.Type.CHANNEL_DIVINITY)) {
             options.add(new WheelOption(Component.translatable("ddc.wheel.channel"),
-                    Component.translatable("ddc.wheel.channel.detail"), "ddc channel-divinity"));
+                    Component.translatable("ddc.wheel.channel.detail"), "ddc channel-divinity", Icon.CHANNEL_DIVINITY));
         }
         options.add(new WheelOption(Component.translatable("ddc.wheel.rest"),
-                Component.translatable("ddc.wheel.rest.detail"), "ddc rest"));
+                Component.translatable("ddc.wheel.rest.detail"), "ddc rest", Icon.REST));
         options.add(new WheelOption(Component.translatable("ddc.wheel.sheet"),
-                Component.empty(), Wheels.SHEET_SCREEN));
+                Component.empty(), Wheels.SHEET_SCREEN, Icon.SHEET));
         options.add(new WheelOption(Component.translatable("ddc.wheel.race"),
-                Component.translatable("ddc.wheel.race.detail"), Wheels.RACE_MENU));
+                Component.translatable("ddc.wheel.race.detail"), Wheels.RACE_MENU, Icon.RACE));
+        options.add(guide());
         return options;
     }
 
@@ -148,15 +150,21 @@ public final class PlayerWheel {
                 .map(maneuver -> new WheelOption(
                         Component.translatable("ddc.maneuver." + maneuver.id()),
                         Component.translatable("ddc.maneuver." + maneuver.id() + ".detail"),
-                        "ddc maneuver " + maneuver.id() + " " + selector))
+                        "ddc maneuver " + maneuver.id() + " " + selector, Icon.MANEUVER))
                 .toList();
+    }
+
+    /** The way out of not knowing. On every wheel, because that is where someone lost will look. */
+    private static WheelOption guide() {
+        return new WheelOption(Component.translatable("ddc.wheel.guide"),
+                Component.translatable("ddc.wheel.guide.detail"), Wheels.GUIDE_SCREEN, Icon.GUIDE);
     }
 
     /** The classes a player may pick, as the server's packs define them. */
     public static List<WheelOption> classes() {
         return ClientRules.classes().stream()
                 .map(entry -> new WheelOption(Component.literal(entry.name()),
-                        Component.translatable("ddc.wheel.pick"), "ddc class " + entry.id()))
+                        Component.translatable("ddc.wheel.pick"), "ddc class " + entry.id(), Icon.CLASS))
                 .toList();
     }
 
@@ -164,7 +172,7 @@ public final class PlayerWheel {
     public static List<WheelOption> races() {
         return ClientRules.races().stream()
                 .map(entry -> new WheelOption(Component.literal(entry.name()),
-                        Component.translatable("ddc.wheel.pick"), "ddc race " + entry.id()))
+                        Component.translatable("ddc.wheel.pick"), "ddc race " + entry.id(), Icon.RACE))
                 .toList();
     }
 
@@ -190,7 +198,7 @@ public final class PlayerWheel {
                         spell.level() == 0
                                 ? Component.translatable("ddc.wheel.cantrip")
                                 : Component.translatable("ddc.wheel.level", spell.level()),
-                        "ddc cast " + spell.id() + " " + selector))
+                        "ddc cast " + spell.id() + " " + selector, Icon.CAST))
                 .toList();
 
         return options.isEmpty()
@@ -221,6 +229,7 @@ public final class PlayerWheel {
         public static final String SPELL_MENU = "@spell";
         public static final String SHEET_SCREEN = "@sheet";
         public static final String MANEUVER_MENU = "@maneuver";
+        public static final String GUIDE_SCREEN = "@guide";
         public static final String GM_PANEL = "@gm";
 
         private Wheels() {
