@@ -39,7 +39,8 @@ public record PartyPayload(List<Member> members) implements CustomPacketPayload 
      * @param hitPoints    their health right now
      * @param maxHitPoints the health their hit die gives them
      */
-    public record Member(String name, String className, int level, int hitPoints, int maxHitPoints) {
+    public record Member(String name, String className, int level, int hitPoints, int maxHitPoints,
+            int experience, int nextLevel) {
 
         private static final int MAX_TEXT = 64;
 
@@ -49,6 +50,10 @@ public record PartyPayload(List<Member> members) implements CustomPacketPayload 
                 ByteBufCodecs.VAR_INT, Member::level,
                 ByteBufCodecs.VAR_INT, Member::hitPoints,
                 ByteBufCodecs.VAR_INT, Member::maxHitPoints,
+                // ARCHITECTURE 5's "level progress meters": what they have, and what the next level
+                // asks for. Zero when there is no next level, which a widget draws as full.
+                ByteBufCodecs.VAR_INT, Member::experience,
+                ByteBufCodecs.VAR_INT, Member::nextLevel,
                 Member::new);
 
         public Member {

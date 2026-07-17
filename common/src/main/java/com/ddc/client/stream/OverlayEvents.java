@@ -77,11 +77,27 @@ public final class OverlayEvents {
             card.addProperty("level", member.level());
             card.addProperty("hit_points", member.hitPoints());
             card.addProperty("max_hit_points", member.maxHitPoints());
+            card.addProperty("experience", member.experience());
+            card.addProperty("next_level", member.nextLevel());
             cards.add(card);
         }
         JsonObject data = new JsonObject();
         data.add("members", cards);
         return event("party", data);
+    }
+
+    /**
+     * The quest: what the party is doing, as the Game Master put it.
+     *
+     * <p>ARCHITECTURE 5 asks the widget for active quests, and DDC had no such thing. It still has no
+     * quest <em>system</em> -- no objectives, no tracking, no completion -- because a table's quest
+     * lives in the GM's head and everyone else's notes. What it has is the one line of it that a
+     * viewer needs: the thing the GM would have written on a whiteboard.
+     */
+    public static String quest(String text) {
+        JsonObject data = new JsonObject();
+        data.addProperty("text", text);
+        return event("quest", data);
     }
 
     private static String event(String name, JsonObject data) {

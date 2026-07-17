@@ -179,8 +179,8 @@ class OverlayServerTest {
     void thePartyGoesOutInTheWidgetsShape() {
         JsonObject message = JsonParser
                 .parseString(OverlayEvents.party(java.util.List.of(
-                        new com.ddc.network.PartyPayload.Member("Streamer", "Wizard", 5, 17, 32),
-                        new com.ddc.network.PartyPayload.Member("Guest", "Fighter", 3, 28, 28))))
+                        new com.ddc.network.PartyPayload.Member("Streamer", "Wizard", 5, 17, 32, 7000, 14000),
+                        new com.ddc.network.PartyPayload.Member("Guest", "Fighter", 3, 28, 28, 1200, 2700))))
                 .getAsJsonObject();
 
         assertEquals("party", message.get("event").getAsString());
@@ -214,5 +214,31 @@ class OverlayServerTest {
                 .filter(die -> die.getAsJsonObject().get("counted").getAsBoolean())
                 .count();
         assertEquals(1, counted, "advantage keeps one die and the widget must be able to say which");
+    }
+
+    @Test
+    @DisplayName("a card carries the level meter's two numbers")
+    void thePartyCarriesProgress() {
+        JsonObject message = JsonParser
+                .parseString(OverlayEvents.party(java.util.List.of(
+                        new com.ddc.network.PartyPayload.Member("Streamer", "Wizard", 5, 17, 32,
+                                7000, 14000))))
+                .getAsJsonObject();
+
+        var card = message.getAsJsonObject("data").getAsJsonArray("members").get(0).getAsJsonObject();
+        assertEquals(7000, card.get("experience").getAsInt());
+        assertEquals(14000, card.get("next_level").getAsInt());
+    }
+
+    @Test
+    @DisplayName("a quest is a line, and an empty one wipes the board")
+    void theQuestGoesOut() {
+        JsonObject set = JsonParser.parseString(OverlayEvents.quest("Find the wizard's tower"))
+                .getAsJsonObject();
+        JsonObject cleared = JsonParser.parseString(OverlayEvents.quest("")).getAsJsonObject();
+
+        assertEquals("quest", set.get("event").getAsString());
+        assertEquals("Find the wizard's tower", set.getAsJsonObject("data").get("text").getAsString());
+        assertEquals("", cleared.getAsJsonObject("data").get("text").getAsString());
     }
 }

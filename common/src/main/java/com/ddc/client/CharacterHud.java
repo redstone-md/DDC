@@ -61,6 +61,16 @@ public final class CharacterHud {
     private static final int PIP = 5;
     private static final int PIP_GAP = 2;
 
+    /**
+     * PRD 4.5's condensed overlay: the same panel with the furniture taken off.
+     *
+     * <p>A stream has a camera, a chat box and an alert corner, and a panel that is right for playing
+     * is in the way of all three. Condensed keeps what a viewer reads at a glance -- who you are and
+     * how hurt you are -- and drops what only the player needs: the six modifiers they can check on
+     * their own sheet, and the slots they can count in their own pips.
+     */
+    private boolean streamerMode;
+
     private CharacterSheet sheet;
     private ClassSummary summary;
     private int armorClass;
@@ -70,6 +80,11 @@ public final class CharacterHud {
         this.sheet = sheet;
         this.summary = summary.orElse(null);
         this.armorClass = armorClass;
+    }
+
+    /** Turns the condensed overlay on or off. Bound to a key, because a stream is set up once. */
+    public void toggleStreamerMode() {
+        streamerMode = !streamerMode;
     }
 
     /** What the class can do, as the server described it. */
@@ -108,10 +123,12 @@ public final class CharacterHud {
         int maxHitPoints = Math.round(player.getMaxHealth());
         String header = headerText(hitPoints, maxHitPoints);
         String who = whoText();
-        boolean casts = !spellSlots().isEmpty();
-        int width = Math.max(Math.max(font.width(header), font.width(who)), abilityRowWidth())
-                + PADDING * 2;
-        int height = LINE_HEIGHT * 2 + ABILITY_ROW * abilityRows() + PADDING * 2
+        boolean casts = !spellSlots().isEmpty() && !streamerMode;
+        int width = streamerMode
+                ? Math.max(font.width(header), font.width(who)) + PADDING * 2
+                : Math.max(Math.max(font.width(header), font.width(who)), abilityRowWidth()) + PADDING * 2;
+        int height = LINE_HEIGHT * 2 + PADDING * 2
+                + (streamerMode ? 0 : ABILITY_ROW * abilityRows())
                 + (casts ? PIP + PIP_GAP + 2 : 0);
 
         graphics.fill(MARGIN, MARGIN, MARGIN + width, MARGIN + height, BACKDROP);
@@ -119,7 +136,9 @@ public final class CharacterHud {
         graphics.text(font, who, MARGIN + PADDING, MARGIN + PADDING, TEXT);
         graphics.text(font, header, MARGIN + PADDING, MARGIN + PADDING + LINE_HEIGHT,
                 hitPointColour(hitPoints, maxHitPoints));
-        renderAbilities(graphics, font, MARGIN + PADDING, MARGIN + PADDING + LINE_HEIGHT * 2);
+        if (!streamerMode) {
+            renderAbilities(graphics, font, MARGIN + PADDING, MARGIN + PADDING + LINE_HEIGHT * 2);
+        }
         if (casts) {
             renderSlots(graphics, MARGIN + PADDING,
                     MARGIN + PADDING + LINE_HEIGHT * 2 + ABILITY_ROW * abilityRows() + 2);

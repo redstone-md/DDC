@@ -55,6 +55,7 @@ public final class CharacterCommand {
     private final LockCommand locks = new LockCommand();
     private final SpawnCommand spawns;
     private final GameMasterCommand gameMaster = new GameMasterCommand();
+    private final QuestCommand quests = new QuestCommand();
 
     public CharacterCommand(CharacterService characters, DataRegistry<CharacterClass> classes,
             DataRegistry<Race> races, NarrateCommand narration, SpellCommand spells,
@@ -105,7 +106,8 @@ public final class CharacterCommand {
                 .then(locks.lockBranch())
                 .then(locks.unlockBranch())
                 .then(spawns.branch())
-                .then(gameMaster.branch()));
+                .then(gameMaster.branch())
+                .then(quests.branch()));
     }
 
     private SuggestionProvider<CommandSourceStack> classSuggestions() {

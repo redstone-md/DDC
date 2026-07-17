@@ -103,6 +103,41 @@
 
   /* Bottom centre: an error message has no business sitting on top of the party it is apologising
      for, and every other corner is spoken for. */
+  /* The level meter: thinner than the health bar, and quieter. Health is the fact a viewer needs in a
+     fight; progress is the one they enjoy between them, and the two should not shout equally. */
+  .xp {
+    margin-top: 3px;
+    height: 3px;
+    border-radius: 2px;
+    background: rgba(0, 0, 0, 0.55);
+    overflow: hidden;
+  }
+
+  .xp > span {
+    display: block;
+    height: 100%;
+    background: #c9973f;
+    transition: width 600ms ease-out;
+  }
+
+  /* The quest, across the top: the thing the Game Master would have written on a whiteboard. */
+  #quest {
+    position: absolute;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 60%;
+    padding: 8px 20px;
+    border-radius: 6px;
+    border-bottom: 3px solid #c9973f;
+    background: rgba(18, 16, 14, 0.82);
+    color: #e8dcc0;
+    font-size: 17px;
+    text-align: center;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+  }
+  #quest[hidden] { display: none; }
+
   #offline {
     position: absolute;
     left: 50%;
@@ -118,6 +153,7 @@
 </style>
 </head>
 <body>
+<div id="quest" hidden></div>
 <div id="party"></div>
 <div id="rolls"></div>
 <div id="offline" hidden>DDC overlay: not connected</div>
@@ -132,6 +168,7 @@
 
   const rolls = document.getElementById("rolls");
   const party = document.getElementById("party");
+  const quest = document.getElementById("quest");
   const offline = document.getElementById("offline");
 
   function show(data) {
@@ -191,6 +228,18 @@
       bar.append(fill);
 
       card.append(name, klass, hp, bar);
+
+      // The level meter, when there is a level left to reach. At the last level there is no meter
+      // rather than a full one: a bar that can never move is furniture.
+      if (member.next_level > member.experience) {
+        const xp = document.createElement("div");
+        xp.className = "xp";
+        const progress = document.createElement("span");
+        progress.style.width = `${(member.experience / member.next_level) * 100}%`;
+        xp.append(progress);
+        card.append(xp);
+      }
+
       party.append(card);
     }
   }
@@ -205,6 +254,11 @@
         show(message.data);
       } else if (message.event === "party") {
         showParty(message.data);
+      } else if (message.event === "quest") {
+        // An empty line means the party finished it: the board is wiped rather than left saying
+        // nothing in a box.
+        quest.textContent = message.data.text;
+        quest.hidden = !message.data.text;
       }
     };
     // The game closing should not leave a dead overlay: keep trying, quietly.

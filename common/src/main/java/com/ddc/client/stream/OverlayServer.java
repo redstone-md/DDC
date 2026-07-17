@@ -132,7 +132,7 @@ public final class OverlayServer {
     }
 
     /** Which events describe how things are, rather than something that happened. */
-    private static final java.util.List<String> STANDING_EVENTS = java.util.List.of("party");
+    private static final java.util.List<String> STANDING_EVENTS = java.util.List.of("party", "quest");
 
     private final java.util.Map<String, String> current = new java.util.concurrent.ConcurrentHashMap<>();
 

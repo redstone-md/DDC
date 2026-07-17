@@ -62,6 +62,8 @@ public final class PartyService {
                 definition.name(),
                 sheet.level(),
                 Math.round(player.getHealth()),
-                Math.round(player.getMaxHealth())));
+                Math.round(player.getMaxHealth()),
+                sheet.experience(),
+                definition.leveling().remainingTo(sheet.experience()).orElse(0) + sheet.experience()));
     }
 }

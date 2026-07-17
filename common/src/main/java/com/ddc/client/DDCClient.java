@@ -37,6 +37,18 @@ import net.minecraft.util.Util;
 @Environment(EnvType.CLIENT)
 public final class DDCClient {
 
+    /** While possessing: first person, over the shoulder, or facing yourself. */
+    private static final KeyMapping VIEW_KEY = new KeyMapping("key.ddc.view",
+            org.lwjgl.glfw.GLFW.GLFW_KEY_V, keyCategory());
+
+    /** The streamer's HUD: the same facts, out of the way of a camera. */
+    private static final KeyMapping STREAMER_KEY = new KeyMapping("key.ddc.streamer",
+            org.lwjgl.glfw.GLFW.GLFW_KEY_O, keyCategory());
+
+    private static KeyMapping.Category keyCategory() {
+        return KEY_CATEGORY;
+    }
+
     private static final KeyMapping.Category KEY_CATEGORY =
             KeyMapping.Category.register(com.ddc.DDC.id("keys"));
 
@@ -157,6 +169,30 @@ public final class DDCClient {
         }
     }
 
+    /**
+     * PRD 3.2's "first-person or third-person" while possessing.
+     *
+     * <p>Vanilla's own F5 changes the camera, and while spectating a creature it changes nothing:
+     * spectator locks the view to the eyes of what you are riding. So this says it again, in a way the
+     * game listens to -- and only while a GM is actually driving something, because a key that changed
+     * the camera everywhere would be a worse F5.
+     */
+    private static void togglePossessionView(Minecraft client) {
+        if (client.player == null || client.getCameraEntity() == client.player) {
+            return;
+        }
+        net.minecraft.client.CameraType next = switch (client.options.getCameraType()) {
+            case FIRST_PERSON -> net.minecraft.client.CameraType.THIRD_PERSON_BACK;
+            case THIRD_PERSON_BACK -> net.minecraft.client.CameraType.THIRD_PERSON_FRONT;
+            case THIRD_PERSON_FRONT -> net.minecraft.client.CameraType.FIRST_PERSON;
+        };
+        client.options.setCameraType(next);
+        // Above the hotbar: a camera change is a thing you see happen, not a thing to read about.
+        client.player.sendOverlayMessage(net.minecraft.network.chat.Component.translatable(
+                "ddc.gm.view", net.minecraft.network.chat.Component.translatable(
+                        "options.thirdperson." + next.name().toLowerCase(java.util.Locale.ROOT))));
+    }
+
     public static void init() {
         // Payloads arrive on the netty thread; queue() hops to the client thread before touching any
         // game state.
@@ -181,6 +217,13 @@ public final class DDCClient {
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, RulesPayload.TYPE,
                 RulesPayload.STREAM_CODEC,
                 (payload, context) -> context.queue(() -> ClientRules.accept(payload)));
+
+        // The quest goes to the overlay and nowhere else: it is a line for a stream, and a player who
+        // wants to know what they are doing has a Game Master to ask.
+        NetworkManager.registerReceiver(NetworkManager.Side.S2C, com.ddc.network.QuestPayload.TYPE,
+                com.ddc.network.QuestPayload.STREAM_CODEC,
+                (payload, context) -> context.queue(() ->
+                        OVERLAY.broadcast(OverlayEvents.quest(payload.text()))));
 
         // The party goes straight to the overlay: PRD 4.5's health cards are the only thing that
         // asked for it, and a client already draws its own player from its own sheet.
@@ -231,6 +274,8 @@ public final class DDCClient {
         KeyMappingRegistry.register(SHEET_KEY);
         KeyMappingRegistry.register(PANEL_KEY);
         KeyMappingRegistry.register(WHEEL_KEY);
+        KeyMappingRegistry.register(VIEW_KEY);
+        KeyMappingRegistry.register(STREAMER_KEY);
 
         // Said once, on joining: a player standing in a world with no idea what R does will not read
         // a README, and the mod that asks them to learn a second game should say where to start.
@@ -263,10 +308,16 @@ public final class DDCClient {
             while (PANEL_KEY.consumeClick()) {
                 client.setScreen(new GameMasterScreen());
             }
+            while (STREAMER_KEY.consumeClick()) {
+                CHARACTER_HUD.toggleStreamerMode();
+            }
             while (WHEEL_KEY.consumeClick()) {
                 openWheel(client);
             }
             sendPossessedAttacks(client);
+            while (VIEW_KEY.consumeClick()) {
+                togglePossessionView(client);
+            }
         });
 
         ClientGuiEvent.RENDER_HUD.register((graphics, delta) -> {
