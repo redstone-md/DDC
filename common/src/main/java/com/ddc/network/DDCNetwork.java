@@ -24,6 +24,7 @@ public final class DDCNetwork {
             NetworkManager.registerS2CPayloadType(CharacterSheetPayload.TYPE, CharacterSheetPayload.STREAM_CODEC);
             NetworkManager.registerS2CPayloadType(NarrationPayload.TYPE, NarrationPayload.STREAM_CODEC);
             NetworkManager.registerS2CPayloadType(RulesPayload.TYPE, RulesPayload.STREAM_CODEC);
+            NetworkManager.registerS2CPayloadType(PartyPayload.TYPE, PartyPayload.STREAM_CODEC);
         }
     }
 }

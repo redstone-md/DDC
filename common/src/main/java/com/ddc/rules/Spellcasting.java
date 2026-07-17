@@ -81,6 +81,20 @@ public record Spellcasting(Ability ability, List<List<Integer>> slots) {
         return spellLevel <= row.size() ? row.get(spellLevel - 1) : 0;
     }
 
+    /**
+     * Every slot this character has, from first level up to the highest they can cast.
+     *
+     * <p>For a HUD, which draws the row rather than asking level by level.
+     */
+    public List<Integer> slotsAtLevel(int characterLevel) {
+        int highest = highestSlotLevel(characterLevel);
+        List<Integer> row = new java.util.ArrayList<>(highest);
+        for (int level = 1; level <= highest; level++) {
+            row.add(slotsFor(characterLevel, level));
+        }
+        return List.copyOf(row);
+    }
+
     /** The highest spell level this character can cast at all. */
     public int highestSlotLevel(int characterLevel) {
         for (int level = MAX_SPELL_LEVEL; level >= 1; level--) {

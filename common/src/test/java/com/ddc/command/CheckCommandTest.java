@@ -33,7 +33,8 @@ class CheckCommandTest {
         dispatcher = new CommandDispatcher<>();
         CharacterService characters = new CharacterService(DDCRegistries.CLASSES);
         dispatcher.register(net.minecraft.commands.Commands.literal("ddc")
-                .then(new CheckCommand(characters, new DiceRollService(DiceRoller.replaying(1L))).branch()));
+                .then(new CheckCommand(new com.ddc.check.CheckService(characters,
+                        new DiceRollService(DiceRoller.replaying(1L)))).branch()));
     }
 
     private static CommandSourceStack source(PermissionSet permissions) {

@@ -1,4 +1,7 @@
 {
+  "ddc.check.block.door": "The door does not budge.",
+  "ddc.check.block.failed": "It does not give.",
+  "ddc.check.block.lock": "The lock holds.",
   "ddc.check.critical_failure": "critical failure",
   "ddc.check.critical_success": "critical success",
   "ddc.check.failure": "failure",
@@ -41,6 +44,7 @@
   "ddc.gm.released": "You let go.",
   "ddc.gm.selected": "Selected: %s (%s mobs)",
   "ddc.gm.spawned": "Spawned %s: %s mobs",
+  "ddc.level.up": "%s reached level %s",
   "ddc.race.chosen": "You are now a %s. Speed %s ft.",
   "ddc.rest.taken": "You take a long rest. Hit points, slots and features restored.",
   "ddc.screen.gm": "GAME MASTER",
@@ -109,6 +113,7 @@
   "ddc.world.release": "The party can move again.",
   "ddc.world.resume_time": "Time moves again.",
   "ddc.world.storm": "Thunder rolls in.",
+  "ddc.xp.awarded": "Awarded %s experience to %s characters",
   "item.ddc.gm_wand": "Game Master's Wand",
   "item.ddc.spellbook": "Spellbook",
   "itemGroup.ddc.ddc": "Dungeons, Dragons & Crafting",

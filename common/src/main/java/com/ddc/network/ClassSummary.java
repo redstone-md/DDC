@@ -5,6 +5,7 @@ import com.ddc.rules.ClassFeature;
 import io.netty.buffer.ByteBuf;
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -20,11 +21,14 @@ import net.minecraft.network.codec.StreamCodec;
  * <p>It is a summary, not authority. Every one of these actions is still a command the server checks.
  * A client that lied to itself here would draw a button that fails.
  *
- * @param name     the class's display name, as its data pack wrote it
- * @param canCast  whether the class casts spells at all
- * @param features the once-per-rest features the class has
+ * @param name       the class's display name, as its data pack wrote it
+ * @param canCast    whether the class casts spells at all
+ * @param features   the once-per-rest features the class has
+ * @param spellSlots how many slots of each spell level this character has at their level, in order
+ *                   from first level upward; empty for a class that does not cast
  */
-public record ClassSummary(String name, boolean canCast, Set<ClassFeature.Type> features) {
+public record ClassSummary(String name, boolean canCast, Set<ClassFeature.Type> features,
+        List<Integer> spellSlots) {
 
     /** A name long enough for any class, short enough that the wire cannot be abused. */
     private static final int MAX_NAME = 64;
@@ -45,19 +49,28 @@ public record ClassSummary(String name, boolean canCast, Set<ClassFeature.Type> 
             ByteBufCodecs.BOOL, ClassSummary::canCast,
             FEATURE.apply(ByteBufCodecs.collection(ArrayList::new)).map(Set::copyOf, ArrayList::new),
             ClassSummary::features,
+            ByteBufCodecs.VAR_INT.apply(ByteBufCodecs.collection(ArrayList::new)).map(List::copyOf, ArrayList::new),
+            ClassSummary::spellSlots,
             ClassSummary::new);
 
     public ClassSummary {
         Objects.requireNonNull(name, "name");
         features = features.isEmpty() ? EnumSet.noneOf(ClassFeature.Type.class) : EnumSet.copyOf(features);
+        spellSlots = List.copyOf(Objects.requireNonNull(spellSlots, "spellSlots"));
     }
 
-    /** Summarises a class definition for the client that plays it. */
-    public static ClassSummary of(CharacterClass definition) {
+    /**
+     * Summarises a class definition for the client that plays it, at the level they play it.
+     *
+     * <p>The slots are worked out here rather than sent as a table, because the client needs the
+     * answer for one level and the table is the pack's business.
+     */
+    public static ClassSummary of(CharacterClass definition, int level) {
         return new ClassSummary(definition.name(), definition.canCast(),
                 definition.features().stream().map(ClassFeature::type).collect(
                         java.util.stream.Collectors.toCollection(
-                                () -> EnumSet.noneOf(ClassFeature.Type.class))));
+                                () -> EnumSet.noneOf(ClassFeature.Type.class))),
+                definition.spellcasting().map(casting -> casting.slotsAtLevel(level)).orElse(List.of()));
     }
 
     public boolean has(ClassFeature.Type feature) {

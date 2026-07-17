@@ -176,15 +176,29 @@ class OverlayServerTest {
     }
 
     @Test
-    void aSheetGoesOutInTheDocumentsShape() {
+    void thePartyGoesOutInTheWidgetsShape() {
         JsonObject message = JsonParser
-                .parseString(OverlayEvents.characterSheet("Streamer", "Wizard", 5, 17, 32))
+                .parseString(OverlayEvents.party(java.util.List.of(
+                        new com.ddc.network.PartyPayload.Member("Streamer", "Wizard", 5, 17, 32),
+                        new com.ddc.network.PartyPayload.Member("Guest", "Fighter", 3, 28, 28))))
                 .getAsJsonObject();
 
-        assertEquals("character_sheet", message.get("event").getAsString());
-        assertEquals("Wizard", message.getAsJsonObject("data").get("class").getAsString());
-        assertEquals(17, message.getAsJsonObject("data").get("hit_points").getAsInt());
-        assertEquals(32, message.getAsJsonObject("data").get("max_hit_points").getAsInt());
+        assertEquals("party", message.get("event").getAsString());
+        var cards = message.getAsJsonObject("data").getAsJsonArray("members");
+        assertEquals(2, cards.size());
+        assertEquals("Wizard", cards.get(0).getAsJsonObject().get("class").getAsString());
+        assertEquals(17, cards.get(0).getAsJsonObject().get("hit_points").getAsInt());
+        assertEquals(32, cards.get(0).getAsJsonObject().get("max_hit_points").getAsInt());
+        assertEquals("Guest", cards.get(1).getAsJsonObject().get("player").getAsString());
+    }
+
+    @Test
+    void anEmptyPartyIsStillAParty() {
+        JsonObject message = JsonParser.parseString(OverlayEvents.party(java.util.List.of()))
+                .getAsJsonObject();
+
+        // A widget that was sent nothing when the last player left would keep drawing a dead party.
+        assertEquals(0, message.getAsJsonObject("data").getAsJsonArray("members").size());
     }
 
     @Test

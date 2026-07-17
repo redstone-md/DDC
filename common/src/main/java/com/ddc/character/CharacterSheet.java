@@ -37,10 +37,11 @@ import net.minecraft.resources.Identifier;
  * @param usedSpellSlots    how many slots of each spell level have been spent since the last rest
  * @param usedFeatures      which once-per-rest class features have been spent
  * @param preparedSpells    the spells written into the character's spellbook
+ * @param experience        experience earned, which is what the level is worked out from
  */
 public record CharacterSheet(Optional<Identifier> characterClass, int level, AbilityScores abilities,
         Optional<Identifier> race, Map<Integer, Integer> usedSpellSlots, Set<ClassFeature.Type> usedFeatures,
-        Set<Identifier> preparedSpells) {
+        Set<Identifier> preparedSpells, int experience) {
 
     private static final Codec<AbilityScores> ABILITY_SCORES_CODEC =
             Codec.unboundedMap(DDCCodecs.ABILITY, Codec.intRange(Ability.MIN_SCORE, Ability.MAX_SCORE))
@@ -81,7 +82,10 @@ public record CharacterSheet(Optional<Identifier> characterClass, int level, Abi
                     .forGetter(CharacterSheet::usedFeatures),
             Identifier.CODEC.listOf().xmap(Set::copyOf, List::copyOf)
                     .optionalFieldOf("prepared_spells", Set.of())
-                    .forGetter(CharacterSheet::preparedSpells)
+                    .forGetter(CharacterSheet::preparedSpells),
+            // Optional so every sheet saved before levelling existed still loads, at zero.
+            Codec.intRange(0, Integer.MAX_VALUE).optionalFieldOf("experience", 0)
+                    .forGetter(CharacterSheet::experience)
     ).apply(instance, CharacterSheet::new));
 
     public CharacterSheet {
@@ -92,12 +96,15 @@ public record CharacterSheet(Optional<Identifier> characterClass, int level, Abi
         usedFeatures = Set.copyOf(Objects.requireNonNull(usedFeatures, "usedFeatures"));
         preparedSpells = Set.copyOf(Objects.requireNonNull(preparedSpells, "preparedSpells"));
         Proficiency.validateLevel(level);
+        if (experience < 0) {
+            throw new IllegalArgumentException("Experience cannot be negative but was " + experience);
+        }
     }
 
     /** A fresh, classless level 1 character with average scores. */
     public static CharacterSheet initial() {
         return new CharacterSheet(Optional.empty(), 1, AbilityScores.defaults(), Optional.empty(),
-                Map.of(), Set.of(), Set.of());
+                Map.of(), Set.of(), Set.of(), 0);
     }
 
     public int proficiencyBonus() {
@@ -123,24 +130,40 @@ public record CharacterSheet(Optional<Identifier> characterClass, int level, Abi
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(definition, "definition");
         return new CharacterSheet(Optional.of(id), level, abilities, race, usedSpellSlots, usedFeatures,
-                preparedSpells);
+                preparedSpells, experience);
     }
 
     public CharacterSheet withAbilities(AbilityScores scores) {
         return new CharacterSheet(characterClass, level, scores, race, usedSpellSlots, usedFeatures,
-                preparedSpells);
+                preparedSpells, experience);
+    }
+
+    /**
+     * Returns a copy with experience added and the level that experience earns.
+     *
+     * <p>Level and experience move together and only here, because a sheet whose level disagreed with
+     * its experience would be a sheet with two answers to one question. The table comes from the
+     * class, so a data pack's own levelling pace is what applies.
+     */
+    public CharacterSheet withExperienceGained(int amount, CharacterClass definition) {
+        if (amount < 0) {
+            throw new IllegalArgumentException("Experience gained cannot be negative but was " + amount);
+        }
+        int total = experience + amount;
+        return new CharacterSheet(characterClass, definition.leveling().levelFor(total), abilities, race,
+                usedSpellSlots, usedFeatures, preparedSpells, total);
     }
 
     public CharacterSheet withLevel(int newLevel) {
         return new CharacterSheet(characterClass, newLevel, abilities, race, usedSpellSlots, usedFeatures,
-                preparedSpells);
+                preparedSpells, experience);
     }
 
     /** Returns a copy that has picked a race, with the race's bonuses applied to its scores. */
     public CharacterSheet withRace(Identifier id, Race definition) {
         Objects.requireNonNull(id, "id");
         return new CharacterSheet(characterClass, level, definition.applyTo(abilities),
-                Optional.of(id), usedSpellSlots, usedFeatures, preparedSpells);
+                Optional.of(id), usedSpellSlots, usedFeatures, preparedSpells, experience);
     }
 
     /** How many slots of a spell level have been spent since the last rest. */
@@ -152,7 +175,7 @@ public record CharacterSheet(Optional<Identifier> characterClass, int level, Abi
     public CharacterSheet withSlotSpent(int spellLevel) {
         Map<Integer, Integer> spent = new java.util.HashMap<>(usedSpellSlots);
         spent.merge(spellLevel, 1, Integer::sum);
-        return new CharacterSheet(characterClass, level, abilities, race, spent, usedFeatures, preparedSpells);
+        return new CharacterSheet(characterClass, level, abilities, race, spent, usedFeatures, preparedSpells, experience);
     }
 
     /**
@@ -160,7 +183,7 @@ public record CharacterSheet(Optional<Identifier> characterClass, int level, Abi
      * {@link HealthService}.
      */
     public CharacterSheet rested() {
-        return new CharacterSheet(characterClass, level, abilities, race, Map.of(), Set.of(), preparedSpells);
+        return new CharacterSheet(characterClass, level, abilities, race, Map.of(), Set.of(), preparedSpells, experience);
     }
 
     /** Whether a once-per-rest feature has been spent since the last rest. */
@@ -173,7 +196,7 @@ public record CharacterSheet(Optional<Identifier> characterClass, int level, Abi
         Set<ClassFeature.Type> used = new java.util.HashSet<>(usedFeatures);
         used.add(feature);
         return new CharacterSheet(characterClass, level, abilities, race, usedSpellSlots, used,
-                preparedSpells);
+                preparedSpells, experience);
     }
 
     public boolean hasRace() {
@@ -190,7 +213,7 @@ public record CharacterSheet(Optional<Identifier> characterClass, int level, Abi
         Set<Identifier> prepared = new java.util.HashSet<>(preparedSpells);
         prepared.add(Objects.requireNonNull(spell, "spell"));
         return new CharacterSheet(characterClass, level, abilities, race, usedSpellSlots, usedFeatures,
-                prepared);
+                prepared, experience);
     }
 
     /** Returns a copy with a spell scrubbed out of the book. */
@@ -198,7 +221,7 @@ public record CharacterSheet(Optional<Identifier> characterClass, int level, Abi
         Set<Identifier> prepared = new java.util.HashSet<>(preparedSpells);
         prepared.remove(spell);
         return new CharacterSheet(characterClass, level, abilities, race, usedSpellSlots, usedFeatures,
-                prepared);
+                prepared, experience);
     }
 
     /**

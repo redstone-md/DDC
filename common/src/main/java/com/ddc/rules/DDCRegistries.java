@@ -25,12 +25,16 @@ public final class DDCRegistries {
     public static final DataRegistry<Encounter> ENCOUNTERS =
             new DataRegistry<>("ddc_encounters", "encounters", Encounter.CODEC);
 
+    /** Which blocks ask a character to roll before they open, as PRD 3.1 wants. */
+    public static final DataRegistry<BlockCheck> BLOCK_CHECKS =
+            new DataRegistry<>("ddc_checks", "block checks", BlockCheck.CODEC);
+
     private DDCRegistries() {
     }
 
     /** Hooks every registry up to data pack reloads. Called once from the shared bootstrap. */
     public static void register() {
-        for (DataRegistry<?> registry : new DataRegistry<?>[] {CLASSES, RACES, SPELLS, ENCOUNTERS}) {
+        for (DataRegistry<?> registry : new DataRegistry<?>[] {CLASSES, RACES, SPELLS, ENCOUNTERS, BLOCK_CHECKS}) {
             ReloadListenerRegistry.register(PackType.SERVER_DATA, registry, DDC.id(registry.directory()));
         }
         // A reload can add a class or retire one, and a client whose menu still offers the old list

@@ -55,6 +55,50 @@
     to { opacity: 0; transform: translateX(40px); }
   }
 
+  /* The party lives down the left: a stream's own camera usually sits bottom-right, and the roll
+     alerts already own the top-right corner. */
+  #party {
+    position: absolute;
+    top: 24px;
+    left: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .member {
+    width: 210px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border-left: 4px solid #c9973f;
+    background: rgba(18, 16, 14, 0.82);
+    color: #e8dcc0;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+  }
+
+  .member .name { font-size: 16px; }
+  .member .klass { font-size: 12px; opacity: 0.6; margin-left: 6px; }
+
+  .bar {
+    margin-top: 6px;
+    height: 8px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.55);
+    overflow: hidden;
+  }
+
+  /* Width is the health, so the bar animates rather than jumping as damage lands. */
+  .bar > span {
+    display: block;
+    height: 100%;
+    background: #6abe5c;
+    transition: width 400ms ease-out, background-color 400ms linear;
+  }
+
+  .member.hurt .bar > span { background: #e0a83c; }
+  .member.critical .bar > span { background: #c04040; }
+  .member .hp { float: right; font-size: 12px; opacity: 0.75; }
+
   #offline {
     position: absolute;
     left: 24px;
@@ -69,6 +113,7 @@
 </style>
 </head>
 <body>
+<div id="party"></div>
 <div id="rolls"></div>
 <div id="offline" hidden>DDC overlay: not connected</div>
 
@@ -81,6 +126,7 @@
   const ALERT_MS = 7600;
 
   const rolls = document.getElementById("rolls");
+  const party = document.getElementById("party");
   const offline = document.getElementById("offline");
 
   function show(data) {
@@ -107,6 +153,43 @@
     setTimeout(() => card.remove(), ALERT_MS);
   }
 
+  /**
+   * Draws the party's health cards. The server sends the whole party, so the list is rebuilt rather
+   * than patched: working out who left from a stream of individual cards is the widget's problem to
+   * not have.
+   */
+  function showParty(data) {
+    party.replaceChildren();
+    for (const member of data.members) {
+      const fraction = member.max_hit_points > 0 ? member.hit_points / member.max_hit_points : 0;
+
+      const card = document.createElement("div");
+      card.className = "member"
+        + (fraction <= 0.25 ? " critical" : fraction <= 0.5 ? " hurt" : "");
+
+      const name = document.createElement("span");
+      name.className = "name";
+      name.textContent = member.player;
+
+      const klass = document.createElement("span");
+      klass.className = "klass";
+      klass.textContent = `${member.class} · ${member.level}`;
+
+      const hp = document.createElement("span");
+      hp.className = "hp";
+      hp.textContent = `${member.hit_points}/${member.max_hit_points}`;
+
+      const bar = document.createElement("div");
+      bar.className = "bar";
+      const fill = document.createElement("span");
+      fill.style.width = `${Math.max(0, Math.min(1, fraction)) * 100}%`;
+      bar.append(fill);
+
+      card.append(name, klass, hp, bar);
+      party.append(card);
+    }
+  }
+
   function connect() {
     const socket = new WebSocket(SOCKET_URL);
 
@@ -115,6 +198,8 @@
       const message = JSON.parse(event.data);
       if (message.event === "dice_roll") {
         show(message.data);
+      } else if (message.event === "party") {
+        showParty(message.data);
       }
     };
     // The game closing should not leave a dead overlay: keep trying, quietly.

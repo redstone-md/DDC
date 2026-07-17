@@ -3,6 +3,7 @@ package com.ddc.client;
 import com.ddc.character.CharacterSheet;
 import com.ddc.core.character.Ability;
 import com.ddc.network.ClassSummary;
+import java.util.List;
 import java.util.Optional;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -11,7 +12,8 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.player.LocalPlayer;
 
 /**
- * The character sheet overlay: class, level, hit points, and the six abilities.
+ * The character sheet overlay: class, level, hit points, armour class, spell slots, and the six
+ * abilities -- what PRD 3.1 lists, and now all of it.
  *
  * <p>Draws only what the server sent, plus the health the client already has: hit points are vanilla
  * health now, so the panel reads them off the player rather than being told them. It holds no rules
@@ -40,14 +42,22 @@ public final class CharacterHud {
     private static final int HP_HEALTHY = 0xFF55FF55;
     private static final int HP_HURT = 0xFFFFAA00;
     private static final int HP_CRITICAL = 0xFFFF5555;
+    private static final int SLOT_FULL = 0xFF6699FF;
+    private static final int SLOT_SPENT = 0xFF303030;
+
+    /** A slot pip, and the gap around it. Small: there can be nine levels of them. */
+    private static final int PIP = 5;
+    private static final int PIP_GAP = 2;
 
     private CharacterSheet sheet;
     private ClassSummary summary;
+    private int armorClass;
 
     /** Takes the sheet the server sent, and what it says the class can do. */
-    public void accept(CharacterSheet sheet, java.util.Optional<ClassSummary> summary) {
+    public void accept(CharacterSheet sheet, java.util.Optional<ClassSummary> summary, int armorClass) {
         this.sheet = sheet;
         this.summary = summary.orElse(null);
+        this.armorClass = armorClass;
     }
 
     /** What the class can do, as the server described it. */
@@ -73,19 +83,49 @@ public final class CharacterHud {
         int maxHitPoints = Math.round(player.getMaxHealth());
         String header = headerText(hitPoints, maxHitPoints);
         String abilities = abilityText();
+        boolean casts = !spellSlots().isEmpty();
         int width = Math.max(font.width(header), font.width(abilities)) + PADDING * 2;
-        int height = LINE_HEIGHT * 2 + PADDING * 2;
+        int height = LINE_HEIGHT * 2 + PADDING * 2 + (casts ? PIP + PIP_GAP : 0);
 
         graphics.fill(MARGIN, MARGIN, MARGIN + width, MARGIN + height, BACKDROP);
         graphics.outline(MARGIN, MARGIN, width, height, BORDER);
         graphics.text(font, header, MARGIN + PADDING, MARGIN + PADDING,
                 hitPointColour(hitPoints, maxHitPoints));
         graphics.text(font, abilities, MARGIN + PADDING, MARGIN + PADDING + LINE_HEIGHT, TEXT);
+        if (casts) {
+            renderSlots(graphics, MARGIN + PADDING, MARGIN + PADDING + LINE_HEIGHT * 2);
+        }
+    }
+
+    /**
+     * The spell slots, as PRD 3.1 draws them: a pip per slot, dark once it is spent.
+     *
+     * <p>Pips rather than a number because a caster's question at the table is "have I got a second
+     * level left", and counting three lit dots answers it without reading.
+     */
+    private void renderSlots(GuiGraphicsExtractor graphics, int x, int y) {
+        List<Integer> slots = spellSlots();
+        int left = x;
+        for (int spellLevel = 1; spellLevel <= slots.size(); spellLevel++) {
+            int total = slots.get(spellLevel - 1);
+            int spent = sheet.usedSlots(spellLevel);
+            for (int pip = 0; pip < total; pip++) {
+                graphics.fill(left, y, left + PIP, y + PIP, pip < total - spent ? SLOT_FULL : SLOT_SPENT);
+                left += PIP + 1;
+            }
+            // A gap between levels, so a row of nine pips still reads as "three first, two second".
+            left += PIP_GAP;
+        }
+    }
+
+    /** The slots this character has, or none for a class that does not cast. */
+    private List<Integer> spellSlots() {
+        return summary == null ? List.of() : summary.spellSlots();
     }
 
     private String headerText(int hitPoints, int maxHitPoints) {
         return "LVL " + sheet.level() + "  HP " + hitPoints + "/" + maxHitPoints
-                + "  PROF +" + sheet.proficiencyBonus();
+                + "  AC " + armorClass + "  PROF +" + sheet.proficiencyBonus();
     }
 
     private String abilityText() {

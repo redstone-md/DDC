@@ -1,9 +1,11 @@
 package com.ddc;
 
 import com.ddc.character.CharacterService;
+import com.ddc.character.ExperienceService;
 import com.ddc.character.FeatureService;
 import com.ddc.command.CheckCommand;
 import com.ddc.command.EncounterCommand;
+import com.ddc.command.ExperienceCommand;
 import com.ddc.command.PrepareCommand;
 import com.ddc.command.FeatureCommand;
 import com.ddc.combat.CombatListener;
@@ -59,6 +61,9 @@ public final class DDC {
         DDCEntities.register();
 
         CharacterService characters = new CharacterService(DDCRegistries.CLASSES);
+        ExperienceService experience = new ExperienceService(characters);
+        new com.ddc.character.PartyService(characters).register();
+        new com.ddc.character.ExperienceListener(experience).register();
         SlowMotion slowMotion = new SlowMotion();
         slowMotion.register();
         DiceRollService diceRolls = new DiceRollService(
@@ -69,15 +74,18 @@ public final class DDC {
         // combat listener.
         new CombatListener(new CombatRules(characters), DiceRoller.random(),
                 new SneakAttackService(characters, diceRolls)).register();
+        com.ddc.check.CheckService checkService = new com.ddc.check.CheckService(characters, diceRolls);
+        new com.ddc.check.BlockCheckListener(DDCRegistries.BLOCK_CHECKS, checkService).register();
         SpellService spellService = new SpellService(characters, diceRolls, DiceRoller.random());
         CharacterCommand characterCommand = new CharacterCommand(characters, DDCRegistries.CLASSES,
                 DDCRegistries.RACES, new NarrateCommand(new NarrationService()),
                 new SpellCommand(characters, DDCRegistries.SPELLS, DDCRegistries.CLASSES, spellService),
                 new FeatureCommand(new FeatureService(characters, diceRolls)),
-                new CheckCommand(characters, diceRolls),
+                new CheckCommand(checkService),
                 new WorldCommand(new WorldControlService()),
                 new PrepareCommand(characters, DDCRegistries.SPELLS),
-                new EncounterCommand(DDCRegistries.ENCOUNTERS));
+                new EncounterCommand(DDCRegistries.ENCOUNTERS),
+                new ExperienceCommand(experience));
 
         CommandRegistrationEvent.EVENT.register((dispatcher, registry, selection) -> {
             rollCommand.register(dispatcher);

@@ -2,6 +2,7 @@ package com.ddc.rules;
 
 import com.ddc.core.character.Ability;
 import com.ddc.core.character.HitDie;
+import com.ddc.core.character.LevelTable;
 import com.ddc.core.dice.Die;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +53,7 @@ public final class TestRegistries {
 
     public static CharacterClass characterClass(String name) {
         return new CharacterClass(name, new HitDie(Die.D10), Ability.STRENGTH, Set.of(),
-                Optional.empty(), List.of());
+                Optional.empty(), List.of(), LevelTable.SRD);
     }
 
     public static Race race(String name) {

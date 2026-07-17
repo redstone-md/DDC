@@ -1,4 +1,7 @@
 {
+  "ddc.check.block.door": "Дверь не поддаётся.",
+  "ddc.check.block.failed": "Не выходит.",
+  "ddc.check.block.lock": "Замок не поддаётся.",
   "ddc.check.critical_failure": "критический провал",
   "ddc.check.critical_success": "критический успех",
   "ddc.check.failure": "провал",
@@ -41,6 +44,7 @@
   "ddc.gm.released": "Вы отпускаете.",
   "ddc.gm.selected": "Выбрано: %s (%s существ)",
   "ddc.gm.spawned": "Появилось: %s (%s существ)",
+  "ddc.level.up": "%s достиг(ла) уровня %s",
   "ddc.race.chosen": "Теперь вы %s. Скорость %s футов.",
   "ddc.rest.taken": "Вы делаете долгий отдых. Хиты, ячейки и способности восстановлены.",
   "ddc.screen.gm": "ГЕЙМ-МАСТЕР",
@@ -109,6 +113,7 @@
   "ddc.world.release": "Партия снова может двигаться.",
   "ddc.world.resume_time": "Время идёт снова.",
   "ddc.world.storm": "Накатывает гроза.",
+  "ddc.xp.awarded": "Начислено %s опыта: персонажей — %s",
   "item.ddc.gm_wand": "Жезл Гейм-Мастера",
   "item.ddc.spellbook": "Книга заклинаний",
   "itemGroup.ddc.ddc": "Dungeons, Dragons & Crafting",

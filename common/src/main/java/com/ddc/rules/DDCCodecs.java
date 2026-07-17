@@ -1,6 +1,7 @@
 package com.ddc.rules;
 
 import com.ddc.core.character.Ability;
+import com.ddc.core.character.LevelTable;
 import com.ddc.core.dice.DiceExpression;
 import com.ddc.core.dice.Die;
 import com.mojang.serialization.Codec;
@@ -17,6 +18,23 @@ import com.mojang.serialization.DataResult;
  * asks for.
  */
 public final class DDCCodecs {
+
+    /**
+     * A levelling table, written as the total experience for levels 2 upward.
+     *
+     * <p>Validated before it is built rather than by the record throwing, so a pack with a bad table
+     * is reported against its own file and the rest of the reload stands: that is ADR-0002's promise.
+     */
+    public static final Codec<LevelTable> LEVEL_TABLE = Codec.INT.listOf()
+            .validate(thresholds -> {
+                try {
+                    LevelTable.validate(thresholds);
+                    return DataResult.success(thresholds);
+                } catch (IllegalArgumentException e) {
+                    return DataResult.error(e::getMessage);
+                }
+            })
+            .xmap(LevelTable::new, LevelTable::thresholds);
 
     /** An ability, written as {@code "strength"} or {@code "STR"}. */
     public static final Codec<Ability> ABILITY = Codec.STRING.comapFlatMap(

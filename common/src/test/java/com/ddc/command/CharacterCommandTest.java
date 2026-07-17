@@ -48,10 +48,11 @@ class CharacterCommandTest {
                 new SpellCommand(characters, spells, classes,
                         new SpellService(characters, diceRolls, DiceRoller.replaying(1L))),
                 new FeatureCommand(new FeatureService(characters, diceRolls)),
-                new CheckCommand(characters, diceRolls),
+                new CheckCommand(new com.ddc.check.CheckService(characters, diceRolls)),
                 new WorldCommand(new com.ddc.gm.WorldControlService()),
                 new PrepareCommand(characters, spells),
-                new EncounterCommand(DDCRegistries.ENCOUNTERS))
+                new EncounterCommand(DDCRegistries.ENCOUNTERS),
+                new ExperienceCommand(new com.ddc.character.ExperienceService(characters)))
                 .register(dispatcher);
     }
 

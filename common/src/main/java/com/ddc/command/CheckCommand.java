@@ -1,12 +1,7 @@
 package com.ddc.command;
 
-import com.ddc.character.CharacterService;
-import com.ddc.character.CharacterSheet;
+import com.ddc.check.CheckService;
 import com.ddc.core.character.Ability;
-import com.ddc.core.check.CheckOutcome;
-import com.ddc.core.check.D20Check;
-import com.ddc.core.dice.RollMode;
-import com.ddc.dice.DiceRollService;
 import com.ddc.gm.GameMasters;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -14,7 +9,6 @@ import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
-import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
@@ -46,12 +40,10 @@ public final class CheckCommand {
     private static final DynamicCommandExceptionType UNKNOWN_ABILITY = new DynamicCommandExceptionType(
             key -> Component.translatable("ddc.error.unknown_ability", key));
 
-    private final CharacterService characters;
-    private final DiceRollService rolls;
+    private final CheckService checks;
 
-    public CheckCommand(CharacterService characters, DiceRollService rolls) {
-        this.characters = characters;
-        this.rolls = rolls;
+    public CheckCommand(CheckService checks) {
+        this.checks = checks;
     }
 
     /** The {@code check} branch, to hang under {@code /ddc}. */
@@ -76,52 +68,6 @@ public final class CheckCommand {
         Ability ability = Ability.byId(key).orElseThrow(() -> UNKNOWN_ABILITY.create(key));
         int dc = IntegerArgumentType.getInteger(context, ARG_DC);
 
-        CheckOutcome outcome = resolve(subject, ability, dc);
-        announce(subject, ability, outcome);
-        return outcome.isSuccess() ? 1 : 0;
-    }
-
-    /**
-     * Rolls the check and shows the dice to everyone nearby.
-     *
-     * <p>The roll is made through the dice service so it lands in the same roll log as a {@code /roll},
-     * because to the table it is the same thing: someone rolled a d20 and everyone saw it.
-     */
-    private CheckOutcome resolve(ServerPlayer subject, Ability ability, int dc) {
-        CharacterSheet sheet = characters.get(subject);
-        D20Check check = D20Check.ability(sheet.abilities(), ability, dc);
-        var roll = rolls.rollPublic(subject, check.expression(), RollMode.NORMAL);
-        return new CheckOutcome(roll, dc, degreeOf(roll, dc));
-    }
-
-    /** The same reading {@link D20Check} makes, against a roll that has already been thrown. */
-    private static CheckOutcome.Degree degreeOf(com.ddc.core.dice.RollResult roll, int dc) {
-        if (roll.isNatural20()) {
-            return CheckOutcome.Degree.CRITICAL_SUCCESS;
-        }
-        if (roll.isNatural1()) {
-            return CheckOutcome.Degree.CRITICAL_FAILURE;
-        }
-        return roll.total() >= dc ? CheckOutcome.Degree.SUCCESS : CheckOutcome.Degree.FAILURE;
-    }
-
-    private void announce(ServerPlayer subject, Ability ability, CheckOutcome outcome) {
-        Component verdict = Component.translatable(switch (outcome.degree()) {
-            case CRITICAL_SUCCESS -> "ddc.check.critical_success";
-            case SUCCESS -> "ddc.check.success";
-            case FAILURE -> "ddc.check.failure";
-            case CRITICAL_FAILURE -> "ddc.check.critical_failure";
-        });
-        Component message = Component.translatable("ddc.check.result", subject.getGameProfile().name(),
-                        ability.abbreviation(), outcome.difficultyClass(), verdict)
-                .withStyle(outcome.isSuccess() ? ChatFormatting.GREEN : ChatFormatting.RED);
-
-        // Everyone who saw the dice should hear the verdict, so the audience is the roll's audience.
-        for (ServerPlayer viewer : subject.level().players()) {
-            if (viewer.distanceToSqr(subject) <= DiceRollService.BROADCAST_RADIUS
-                    * DiceRollService.BROADCAST_RADIUS) {
-                viewer.sendSystemMessage(message);
-            }
-        }
+        return checks.rollAndAnnounce(subject, ability, dc).isSuccess() ? 1 : 0;
     }
 }

@@ -127,11 +127,18 @@ public final class DDCClient {
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, CharacterSheetPayload.TYPE,
                 CharacterSheetPayload.STREAM_CODEC,
                 (payload, context) -> context.queue(() ->
-                        CHARACTER_HUD.accept(payload.sheet(), payload.summary())));
+                        CHARACTER_HUD.accept(payload.sheet(), payload.summary(), payload.armorClass())));
 
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, RulesPayload.TYPE,
                 RulesPayload.STREAM_CODEC,
                 (payload, context) -> context.queue(() -> ClientRules.accept(payload)));
+
+        // The party goes straight to the overlay: PRD 4.5's health cards are the only thing that
+        // asked for it, and a client already draws its own player from its own sheet.
+        NetworkManager.registerReceiver(NetworkManager.Side.S2C, com.ddc.network.PartyPayload.TYPE,
+                com.ddc.network.PartyPayload.STREAM_CODEC,
+                (payload, context) -> context.queue(() ->
+                        OVERLAY.broadcast(OverlayEvents.party(payload.members()))));
 
         NetworkManager.registerReceiver(NetworkManager.Side.S2C, NarrationPayload.TYPE,
                 NarrationPayload.STREAM_CODEC,

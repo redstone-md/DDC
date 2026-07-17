@@ -55,7 +55,19 @@ public final class CharacterService {
 
     private void sync(ServerPlayer player, CharacterSheet sheet) {
         NetworkManager.sendToPlayer(player, new CharacterSheetPayload(sheet,
-                definitionFor(sheet).map(com.ddc.network.ClassSummary::of)));
+                definitionFor(sheet).map(definition -> com.ddc.network.ClassSummary.of(definition, sheet.level())),
+                armorClassOf(player, sheet)));
+    }
+
+    /**
+     * The armour class the HUD prints.
+     *
+     * <p>The same core rule the combat listener resolves attacks with, rather than a second one: an
+     * armour class that only agreed with the one attacks are rolled against would be a lie in a panel.
+     */
+    private static int armorClassOf(ServerPlayer player, CharacterSheet sheet) {
+        return com.ddc.core.combat.ArmorClass.fromVanillaArmor(player.getArmorValue())
+                .value(sheet.abilities());
     }
 
     /**

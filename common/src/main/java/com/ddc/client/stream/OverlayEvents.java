@@ -3,7 +3,9 @@ package com.ddc.client.stream;
 import com.ddc.core.dice.DieRoll;
 import com.ddc.core.dice.RollResult;
 import com.google.gson.JsonArray;
+import com.ddc.network.PartyPayload;
 import com.google.gson.JsonObject;
+import java.util.List;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
@@ -60,16 +62,26 @@ public final class OverlayEvents {
         return event("dice_roll", data);
     }
 
-    /** The character sheet, so a widget can draw a party card. */
-    public static String characterSheet(String player, String className, int level, int hitPoints,
-            int maxHitPoints) {
+    /**
+     * The party, so a widget can draw its health cards.
+     *
+     * <p>The whole party in one event rather than a card at a time: a widget that was told about
+     * members one by one would have to work out for itself when somebody left.
+     */
+    public static String party(List<PartyPayload.Member> members) {
+        JsonArray cards = new JsonArray();
+        for (PartyPayload.Member member : members) {
+            JsonObject card = new JsonObject();
+            card.addProperty("player", member.name());
+            card.addProperty("class", member.className());
+            card.addProperty("level", member.level());
+            card.addProperty("hit_points", member.hitPoints());
+            card.addProperty("max_hit_points", member.maxHitPoints());
+            cards.add(card);
+        }
         JsonObject data = new JsonObject();
-        data.addProperty("player", player);
-        data.addProperty("class", className);
-        data.addProperty("level", level);
-        data.addProperty("hit_points", hitPoints);
-        data.addProperty("max_hit_points", maxHitPoints);
-        return event("character_sheet", data);
+        data.add("members", cards);
+        return event("party", data);
     }
 
     private static String event(String name, JsonObject data) {

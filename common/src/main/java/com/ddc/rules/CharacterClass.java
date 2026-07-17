@@ -1,6 +1,7 @@
 package com.ddc.rules;
 
 import com.ddc.core.character.Ability;
+import com.ddc.core.character.LevelTable;
 import com.ddc.core.character.HitDie;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -34,7 +35,7 @@ import java.util.Set;
  * @param features      what else it can do
  */
 public record CharacterClass(String name, HitDie hitDie, Ability primaryAbility, Set<Ability> savingThrows,
-        Optional<Spellcasting> spellcasting, List<ClassFeature> features) {
+        Optional<Spellcasting> spellcasting, List<ClassFeature> features, LevelTable leveling) {
 
     public static final Codec<CharacterClass> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.STRING.fieldOf("name").forGetter(CharacterClass::name),
@@ -45,7 +46,11 @@ public record CharacterClass(String name, HitDie hitDie, Ability primaryAbility,
                     .forGetter(CharacterClass::savingThrows),
             Spellcasting.CODEC.optionalFieldOf("spellcasting").forGetter(CharacterClass::spellcasting),
             ClassFeature.CODEC.listOf().optionalFieldOf("features", List.of())
-                    .forGetter(CharacterClass::features)
+                    .forGetter(CharacterClass::features),
+            // ARCHITECTURE 5's "leveling milestones". Optional because most packs want the SRD's
+            // pace, and a table every file had to repeat would be a table every file could get wrong.
+            DDCCodecs.LEVEL_TABLE.optionalFieldOf("leveling", LevelTable.SRD)
+                    .forGetter(CharacterClass::leveling)
     ).apply(instance, CharacterClass::new));
 
     public CharacterClass {
@@ -55,6 +60,7 @@ public record CharacterClass(String name, HitDie hitDie, Ability primaryAbility,
         savingThrows = Set.copyOf(Objects.requireNonNull(savingThrows, "savingThrows"));
         Objects.requireNonNull(spellcasting, "spellcasting");
         features = List.copyOf(Objects.requireNonNull(features, "features"));
+        Objects.requireNonNull(leveling, "leveling");
     }
 
     /**
