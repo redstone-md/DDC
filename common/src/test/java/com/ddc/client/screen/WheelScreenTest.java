@@ -83,4 +83,44 @@ class WheelScreenTest {
         assertEquals("Fireball",
                 PlayerWheel.name(net.minecraft.resources.Identifier.fromNamespaceAndPath("ddc", "fireball")));
     }
+
+    @Test
+    @DisplayName("a ring holds its cards without piling them")
+    void theRingFitsItsCards() {
+        int cards = 7;
+        int card = 100;
+
+        int radius = WheelScreen.ringRadius(cards, card, 400);
+
+        // Every card gets its own share of the ring, and the share is wide enough to hold it. Without
+        // this, seven translated options drew on top of each other, which is what a screenshot showed.
+        double share = Math.TAU * radius / cards;
+        assertTrue(share >= card, "each card has " + share + " pixels of ring for a " + card + " card");
+    }
+
+    @Test
+    @DisplayName("a small wheel does not collapse into the middle")
+    void theRingHasAFloor() {
+        assertEquals(76, WheelScreen.ringRadius(2, 40, 400));
+    }
+
+    @Test
+    @DisplayName("Russian is wider than English, so the ring is bigger")
+    void widerCardsPushTheRingOut() {
+        assertTrue(WheelScreen.ringRadius(6, 160, 400) > WheelScreen.ringRadius(6, 92, 400),
+                "the ring grows with what is written on it");
+    }
+
+    @Test
+    @DisplayName("the window wins: a card off the edge cannot be pointed at")
+    void theWindowIsTheLimit() {
+        // Twelve cards of 200 would want a ring far bigger than this window has room for.
+        assertEquals(120, WheelScreen.ringRadius(12, 200, 120));
+    }
+
+    @Test
+    @DisplayName("a tiny window still gets a wheel, crowded or not")
+    void aTinyWindowKeepsTheFloor() {
+        assertEquals(76, WheelScreen.ringRadius(8, 120, 10));
+    }
 }

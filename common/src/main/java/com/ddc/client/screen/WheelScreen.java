@@ -24,10 +24,21 @@ import net.minecraft.network.chat.Component;
 @Environment(EnvType.CLIENT)
 public class WheelScreen extends Screen {
 
-    /** How far the slices sit from the middle. */
-    private static final int RADIUS = 76;
+    /**
+     * How far the slices sit from the middle, at the least.
+     *
+     * <p>At the least, because the wheel grows. A fixed radius with seven translated options piled
+     * the cards on top of each other -- the ring is only so long, and Russian is wider than English.
+     */
+    private static final int MIN_RADIUS = 76;
 
-    private static final int CARD_WIDTH = 92;
+    /** The narrowest a card may be, so a one-word option still reads as a button. */
+    private static final int MIN_CARD_WIDTH = 92;
+
+    /** Room around a label inside its card, and between two cards on the ring. */
+    private static final int CARD_PADDING = 8;
+    private static final int CARD_GAP = 6;
+
     private static final int CARD_HEIGHT = 24;
 
     private static final int BACKDROP = 0x90101010;
@@ -81,9 +92,57 @@ public class WheelScreen extends Screen {
     /** Where a slice's card sits, in screen coordinates. */
     private int[] cardAt(int index) {
         double angle = index * Math.TAU / options.size();
-        int x = (int) (width / 2 + Math.sin(angle) * RADIUS) - CARD_WIDTH / 2;
-        int y = (int) (height / 2 - Math.cos(angle) * RADIUS) - CARD_HEIGHT / 2;
+        int x = (int) (width / 2 + Math.sin(angle) * radius()) - cardWidth(index) / 2;
+        int y = (int) (height / 2 - Math.cos(angle) * radius()) - CARD_HEIGHT / 2;
         return new int[] {x, y};
+    }
+
+    /**
+     * How wide a card has to be to hold what is written on it.
+     *
+     * <p>The card used to be a fixed 92 pixels and the text was drawn centred in it whatever its
+     * length, so a longer label simply ran out over the edges. What a button says decides how big
+     * the button is, not the other way round.
+     */
+    private int cardWidth(int index) {
+        WheelOption option = options.get(index);
+        int text = Math.max(font.width(option.label()), font.width(option.detail()));
+        return Math.max(MIN_CARD_WIDTH, text + CARD_PADDING * 2);
+    }
+
+    /**
+     * How far out the ring sits: far enough that the widest card fits in its own slice.
+     *
+     * <p>Cards are laid around a circle, so the room each one has is the ring's circumference divided
+     * between them. Seven cards needing a hundred pixels each need a ring seven hundred long, and a
+     * ring that short is a pile. So the ring grows to fit rather than the cards shrinking to lie.
+     */
+    private int radius() {
+        int widest = MIN_CARD_WIDTH;
+        for (int index = 0; index < options.size(); index++) {
+            widest = Math.max(widest, cardWidth(index));
+        }
+        return ringRadius(options.size(), widest, Math.min(width, height) / 2 - CARD_HEIGHT);
+    }
+
+    /**
+     * How far out a ring of this many cards of this width has to sit.
+     *
+     * <p>Package-visible and free of the font and the screen, because this is the part that has to be
+     * right: seven cards on a ring built for four is the pile a player photographed.
+     *
+     * @param count  how many cards go on the ring
+     * @param widest how wide the widest of them is
+     * @param limit  how far out the window allows, which wins over crowding
+     */
+    static int ringRadius(int count, int widest, int limit) {
+        // Each card gets a share of the circumference, so the circumference must be big enough for all
+        // of them: TAU * r >= count * (card + gap). The height matters too, or the cards at the sides
+        // of a short list would touch top to bottom.
+        double needed = Math.max(widest + CARD_GAP, CARD_HEIGHT + CARD_GAP) * count / Math.TAU;
+        // Never past the edge of the window: a card that cannot be seen cannot be pointed at, and a
+        // crowded wheel beats one that ran off the screen.
+        return (int) Math.max(MIN_RADIUS, Math.min(needed, Math.max(MIN_RADIUS, limit)));
     }
 
     @Override
@@ -155,6 +214,8 @@ public class WheelScreen extends Screen {
         // one frame is an error the renderer throws on. That crash is how this was found.
         graphics.fill(0, 0, width, height, BACKDROP);
 
+        // The heading sits in the hole in the middle, which is now big enough to hold it: the ring
+        // is pushed out by its cards, and the middle is what is left.
         graphics.centeredText(font, heading, width / 2, height / 2 - 5, TITLE);
         if (options.isEmpty()) {
             graphics.centeredText(font, Component.translatable("ddc.wheel.empty"),
@@ -171,16 +232,17 @@ public class WheelScreen extends Screen {
     private void drawSlice(GuiGraphicsExtractor graphics, int index) {
         WheelOption option = options.get(index);
         int[] at = cardAt(index);
+        int cardWidth = cardWidth(index);
         boolean picked = index == chosen;
 
-        graphics.fill(at[0], at[1], at[0] + CARD_WIDTH, at[1] + CARD_HEIGHT, picked ? CARD_CHOSEN : CARD);
-        graphics.outline(at[0], at[1], CARD_WIDTH, CARD_HEIGHT, picked ? BORDER_CHOSEN : BORDER);
+        graphics.fill(at[0], at[1], at[0] + cardWidth, at[1] + CARD_HEIGHT, picked ? CARD_CHOSEN : CARD);
+        graphics.outline(at[0], at[1], cardWidth, CARD_HEIGHT, picked ? BORDER_CHOSEN : BORDER);
 
         boolean hasDetail = !option.detail().getString().isEmpty();
         int textY = hasDetail ? at[1] + 4 : at[1] + 8;
-        graphics.centeredText(font, option.label(), at[0] + CARD_WIDTH / 2, textY, TEXT);
+        graphics.centeredText(font, option.label(), at[0] + cardWidth / 2, textY, TEXT);
         if (hasDetail) {
-            graphics.centeredText(font, option.detail(), at[0] + CARD_WIDTH / 2, textY + 10, TEXT_DETAIL);
+            graphics.centeredText(font, option.detail(), at[0] + cardWidth / 2, textY + 10, TEXT_DETAIL);
         }
     }
 }

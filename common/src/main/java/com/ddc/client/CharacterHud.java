@@ -134,12 +134,19 @@ public final class CharacterHud {
      */
     private String whoText() {
         String race = sheet.race().map(ClientRules::raceName).orElse("");
-        return race.isEmpty() ? className() : race + " " + className();
+        String who = race.isEmpty() ? className() : race + " " + className();
+        return who + "   LVL " + sheet.level();
     }
 
+    /**
+     * The numbers, in the order a player reads them: how hurt am I, how hard am I to hit.
+     *
+     * <p>The proficiency bonus was here and is not any more. It never changes between levels, it is
+     * on the sheet screen, and it was making the busiest line of a permanently-visible panel one
+     * item busier for no question anybody asks mid-fight.
+     */
     private String headerText(int hitPoints, int maxHitPoints) {
-        return "LVL " + sheet.level() + "  HP " + hitPoints + "/" + maxHitPoints
-                + "  AC " + armorClass + "  PROF +" + sheet.proficiencyBonus();
+        return "HP " + hitPoints + "/" + maxHitPoints + "   AC " + armorClass;
     }
 
     private String abilityText() {

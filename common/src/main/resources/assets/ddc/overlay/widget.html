@@ -55,11 +55,13 @@
     to { opacity: 0; transform: translateX(40px); }
   }
 
-  /* The party lives down the left: a stream's own camera usually sits bottom-right, and the roll
-     alerts already own the top-right corner. */
+  /* Bottom-left. The top-left corner belongs to the game's own HUD, and a widget drawn over the
+     player's own sheet is a widget that hid the thing it was describing -- which is exactly what it
+     did until someone put the two side by side in OBS. The roll alerts own the top-right, and a
+     stream's camera usually sits bottom-right, so this is the corner nobody else wants. */
   #party {
     position: absolute;
-    top: 24px;
+    bottom: 24px;
     left: 24px;
     display: flex;
     flex-direction: column;
@@ -99,10 +101,13 @@
   .member.critical .bar > span { background: #c04040; }
   .member .hp { float: right; font-size: 12px; opacity: 0.75; }
 
+  /* Bottom centre: an error message has no business sitting on top of the party it is apologising
+     for, and every other corner is spoken for. */
   #offline {
     position: absolute;
-    left: 24px;
-    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 8px;
     padding: 8px 14px;
     border-radius: 4px;
     background: rgba(74, 28, 36, 0.9);

@@ -9,6 +9,21 @@ Each GitHub release carries notes generated from that release's commits by
 is written by hand for what the commits cannot say: why a release is shaped the way it is, and what
 it deliberately leaves out.
 
+## [1.7.1] - 2026-07-17
+
+### Fixed
+- **The wheel piled its options on top of each other.** The ring was a fixed 76 pixels whatever was on
+  it, so seven options -- which is what a fighter has now -- had nowhere to sit, and Russian labels are
+  wider than the English ones the size was picked for. The ring grows to fit its cards now, and a card
+  grows to fit its text rather than the text running out over the edges.
+- **The party cards covered the player's own HUD in OBS.** Both drew in the top-left, so the widget
+  hid the sheet it was describing. The party moved to the bottom-left, which is the corner neither the
+  game's HUD nor the roll alerts nor a streamer's camera wants.
+- **The HUD says less, more clearly.** Race and class and level on one line, hit points and armour
+  class on the next. The proficiency bonus is gone from it: it never changes between levels, the sheet
+  screen has it, and it was making the busiest line of an always-on panel busier for a question nobody
+  asks mid-fight.
+
 ## [1.7.0] - 2026-07-17
 
 The parts of the documentation that were still only documentation, and two faults a player found by
