@@ -9,6 +9,52 @@ Each GitHub release carries notes generated from that release's commits by
 is written by hand for what the commits cannot say: why a release is shaped the way it is, and what
 it deliberately leaves out.
 
+## [1.11.0] - 2026-07-17
+
+Every feature in the PRD and the architecture document is now built. What is left is one decision that
+is not mine to make; it is named at the bottom, as always.
+
+### Added
+- **Channel points** (PRD 4.5, the last unbuilt feature). They cannot work the way chat votes do:
+  Twitch only tells a broadcaster about their own redemptions, and only to someone holding that
+  broadcaster's token. So the token is read from the environment — `DDC_TWITCH_CLIENT_ID` and
+  `DDC_TWITCH_TOKEN` — and **never asked for in chat**: a command typed into a chat box puts an
+  account's credentials in a screenshot, a log, and whatever was recording. Nothing is written to
+  disk; a mod that saved a token would be promising to keep one safe, and that is not a promise it
+  should make. A redemption runs a command the streamer mapped, as them, so it can do exactly what
+  they could have typed and no more:
+  `/ddcstream twitch reward "Chaos Spawn" ddc spawn ddc:zombie_patrol`.
+- **`/ddc spawn <encounter>`** — an encounter where the Game Master is looking, since a viewer cannot
+  right-click a wand for them.
+- **The guide shows the crafts.** A player told to craft a spellbook had nowhere to find out how: REI
+  and JEI both show it, and neither is installed on most servers. The page names its ingredients
+  rather than reading the recipe files, and a test checks it against the recipes that ship, so the two
+  cannot drift apart quietly.
+
+### Fixed
+- **The staff had no range.** It cast through the hook vanilla only calls when a creature is within
+  arm's reach, so a fire bolt with 120 feet in the rules could only be cast at things close enough to
+  hit with the staff. The spell decides now: the look vector is followed as far as the spell reaches,
+  and walls stop it.
+- **The fireball hit one thing.** The codec parsed `area_of_effect`, the service implemented the
+  splash, and no shipped spell set it — a feature complete in every part except the one that makes it
+  happen. The codec also reads the object form ARCHITECTURE prints, so a pack copying the docs loads.
+- **Races were decoration.** A dwarf's 25 feet and an elf's darkvision were printed in a chat message
+  and forgotten. A trait nobody can feel is a trait nobody has: a dwarf walks slower now and sees in
+  the dark, both transient, so uninstalling DDC leaves nobody slow forever.
+- **The Game Master was an ordinary survival player.** PRD 3.2 says they are invisible, fly, and pass
+  through blocks; all three are one word in Minecraft and the mod never said it. `/ddc gm` toggles it
+  and gives your body back exactly as you left it.
+- **The dev client stops forgetting your character.** It picked a random name every launch — Player137,
+  Player839 — and a sheet is saved against the player's id, which follows the name, so every launch was
+  a stranger with no class and no race. The mod never forgot anything: the save has all of those
+  characters in it. `./gradlew runClient` is one person now. (A real launcher was never affected;
+  this was only ever the development client.)
+
+### Still not done
+- **Modrinth.** The workflow is written and the jars are built. Publishing a mod under someone's name
+  is their decision, not mine: add `MODRINTH_TOKEN` and create the project, and the next tag ships it.
+
 ## [1.10.0] - 2026-07-17
 
 ### Added

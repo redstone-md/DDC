@@ -13,7 +13,7 @@
 
 DDC introduces an **asymmetric gameplay model**. Players explore the world as heroic characters with D&D classes, spell slots, and dice checks, while a **Game Master (GM)** controls the environment, possesses monsters, triggers sounds, and narrates the adventure in real-time.
 
-> ### Status: 1.10.0
+> ### Status: 1.11.0
 >
 > **This page describes the full design. The released mod is smaller.** Shipping today: the rules
 > engine, `/roll`, character sheets whose hit points are the player's real health, attack rolls
@@ -21,9 +21,12 @@ DDC introduces an **asymmetric gameplay model**. Players explore the world as he
 > encounters from data packs, the GM's wand, mob possession, world control, and GM narration.
 > The PRD is built: dice tumble in the world, the action wheel is on `R` so nothing has to be typed,
 > the sheet is on `C`, the GM panel is on `G`, the OBS overlay is a browser source you can paste a URL
-> into, Twitch chat votes, and a natural 20 slows the world down and grades the screen gold.
-> Everything the mod says is translated into English and Russian. Not built: Modrinth publishing —
-> that is the repository owner's decision to make, not mine.
+> into, Twitch chat votes and channel points, and a natural 20 slows the world down and grades the
+> screen gold. Characters level up, the fighter has manoeuvres, doors ask for a roll, and the guide
+> explains all of it in the game. Everything the mod says is translated into English and Russian.
+>
+> Not built: Modrinth publishing. The workflow is written; publishing under someone's name is their
+> decision, not mine.
 >
 > [**CHANGELOG.md**](CHANGELOG.md) lists exactly what is in the release and what is not. Sections
 > below marked _(planned)_ are design intent, not behaviour.
@@ -53,7 +56,7 @@ DDC introduces an **asymmetric gameplay model**. Players explore the world as he
 
 ---
 
-## 🎲 What 1.10.0 actually does
+## 🎲 What 1.11.0 actually does
 
 | Command | Who | What |
 |---|---|---|
