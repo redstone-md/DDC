@@ -23,5 +23,7 @@ public final class NeoForgeDiceRendering {
     @SubscribeEvent
     static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(DDCEntities.DICE.get(), DiceEntityRenderer::new);
+        event.registerEntityRenderer(DDCEntities.SPELL_BOLT.get(),
+                com.ddc.client.spell.SpellBoltRenderer::new);
     }
 }

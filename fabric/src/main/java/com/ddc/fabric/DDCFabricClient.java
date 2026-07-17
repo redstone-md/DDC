@@ -15,5 +15,7 @@ public final class DDCFabricClient implements ClientModInitializer {
         // Architectury has no entity-renderer registry, so this is one of the few things each loader
         // has to say for itself. What it registers is shared.
         EntityRendererRegistry.register(DDCEntities.DICE.get(), DiceEntityRenderer::new);
+        EntityRendererRegistry.register(DDCEntities.SPELL_BOLT.get(),
+                com.ddc.client.spell.SpellBoltRenderer::new);
     }
 }

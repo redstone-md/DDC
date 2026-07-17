@@ -149,6 +149,7 @@ public final class SpellService {
     /** Rolls the spell's damage and its save, and applies what survives. */
     private Cast resolve(ServerPlayer caster, CharacterSheet sheet, Spellcasting casting, Spell spell,
             LivingEntity target) {
+        throwBolt(caster, spell, target);
         Optional<CheckOutcome> save = spell.savingThrow()
                 .map(throwSpec -> rollSave(target, throwSpec.ability(), saveDc(sheet, casting)));
 
@@ -220,6 +221,46 @@ public final class SpellService {
     private static void announce(ServerPlayer caster, Cast cast, LivingEntity target) {
         caster.sendSystemMessage(net.minecraft.network.chat.Component.translatable(
                 "ddc.spell.landed", cast.spell().name(), target.getDisplayName(), cast.damageDealt()));
+    }
+
+    /**
+     * Throws the bolt that shows the table what just happened.
+     *
+     * <p>Only for a spell with reach: a touch spell has nothing to cross, and a bolt travelling two
+     * feet is a flicker nobody reads. The colour comes from the school, because a fireball and a
+     * sacred flame should not look like the same magic.
+     *
+     * <p>It carries no rules -- the roll and the save are already made, and the damage is applied by
+     * the caller on this same tick. The bolt is a picture; see {@link SpellBoltEntity}.
+     */
+    private static void throwBolt(ServerPlayer caster, Spell spell, LivingEntity target) {
+        if (!(caster.level() instanceof ServerLevel level) || spell.rangeInBlocks() < 2) {
+            return;
+        }
+        level.addFreshEntity(SpellBoltEntity.between(level, caster, target, colourOf(spell)));
+        level.playSound(null, caster.blockPosition(), net.minecraft.sounds.SoundEvents.EVOKER_CAST_SPELL,
+                net.minecraft.sounds.SoundSource.PLAYERS, 0.7f, 1.4f);
+    }
+
+    /**
+     * What colour a school of magic is.
+     *
+     * <p>The schools are the SRD's own, and a pack writes whichever it likes; an unknown one gets the
+     * mod's brass rather than a crash, because a pack inventing a school is a pack doing what packs
+     * are for.
+     */
+    private static int colourOf(Spell spell) {
+        return switch (spell.school().toLowerCase(java.util.Locale.ROOT)) {
+            case "evocation" -> 0xFF7B29;
+            case "necromancy" -> 0x6B3FA0;
+            case "abjuration" -> 0x4FA3E3;
+            case "conjuration" -> 0x54C46A;
+            case "enchantment" -> 0xE86AA6;
+            case "divination" -> 0xF2E27A;
+            case "illusion" -> 0x9B7BE8;
+            case "transmutation" -> 0x3FB6A8;
+            default -> 0xC9973F;
+        };
     }
 
     /** The number a target must beat to resist this caster. */
