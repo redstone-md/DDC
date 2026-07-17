@@ -9,6 +9,28 @@ Each GitHub release carries notes generated from that release's commits by
 is written by hand for what the commits cannot say: why a release is shaped the way it is, and what
 it deliberately leaves out.
 
+## [1.14.0] - 2026-07-17
+
+### Added
+- **GeckoLib is now a required dependency**, and the staff is animated: the stone turns and breathes
+  while it is held, and a cast winds up, throws, and settles. GeckoLib is MIT and publishes for 26.1,
+  which is exactly why it could be taken where Iron's Spells could not. Its assets are MIT too and are
+  **not** used — DDC ships its own model, skin and animations. Only the engine is borrowed.
+
+  **Installing:** GeckoLib 5.5 for 26.1 must be present, or the mod will not load.
+
+### Fixed
+- **Chat was spam.** Eighteen lines of "nothing to cast at" in one screenshot: a miss goes above the
+  hotbar now. And every roll was announced twice — once into the HUD's roll log and once into chat —
+  so five casts wrote ten lines. Chat is for what someone says; a die is not saying anything.
+- **Aiming asked you to be a machine.** It used vanilla's exact-hitbox test. A creature within about a
+  block and a quarter of the crosshair is what you meant now, nearest-to-the-line first, so pointing
+  at the thing behind the thing still picks the thing you are pointing at. Walls still stop it.
+- **The bolt was a pebble that glowed.** A faceted solid with a colour on it is not light — light has
+  no facets. It is particles now, laid along the path it actually travelled, because at a block and a
+  half per tick one particle per tick is a dotted line.
+- **The staff was the size of a fence post** in hand: it has proper display transforms now.
+
 ## [1.13.0] - 2026-07-17
 
 ### Added
