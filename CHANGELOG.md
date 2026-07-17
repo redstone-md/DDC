@@ -9,6 +9,20 @@ Each GitHub release carries notes generated from that release's commits by
 is written by hand for what the commits cannot say: why a release is shaped the way it is, and what
 it deliberately leaves out.
 
+## [1.13.0] - 2026-07-17
+
+### Added
+- **A spell now has a gathering, a flight and a landing.** Light collects at the caster's hand while a
+  spell with a casting time runs, drawing tighter as it goes; the bolt crosses the room; the landing
+  bursts in the school's colour, and an area spell bursts wider, louder, and draws its edge on the
+  floor — how far a fireball reached is the one fact a party needs from it, and a flash cannot say.
+  All of it is Minecraft's own dust particle, which takes any colour: a texture would be an asset to
+  draw, and the game already ships one that can be any colour we ask for.
+
+  On the mod this was compared to: Iron's Spells 'n Spellbooks is **All Rights Reserved** — no assets
+  may be used at all, and modified code may not be distributed. Nothing of theirs is here, not a line
+  and not a texture. What was taken is an observation, which is nobody's property.
+
 ## [1.12.0] - 2026-07-17
 
 ### Added
