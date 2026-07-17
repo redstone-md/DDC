@@ -2,6 +2,7 @@ package com.ddc.client;
 
 import com.ddc.character.CharacterSheet;
 import com.ddc.core.character.Ability;
+import com.ddc.client.screen.Icon;
 import com.ddc.network.ClassSummary;
 import java.util.List;
 import java.util.Optional;
@@ -45,6 +46,10 @@ public final class CharacterHud {
     private static final int SLOT_FULL = 0xFF6699FF;
     private static final int SLOT_SPENT = 0xFF303030;
 
+    /** How tall the row of ability icons is, and how far apart they sit. */
+    private static final int ABILITY_ROW = 16;
+    private static final int ABILITY_GAP = 6;
+
     /** A slot pip, and the gap around it. Small: there can be nine levels of them. */
     private static final int PIP = 5;
     private static final int PIP_GAP = 2;
@@ -74,8 +79,21 @@ public final class CharacterHud {
         return Optional.ofNullable(sheet);
     }
 
+    /**
+     * The font the panel measures itself with.
+     *
+     * <p>Kept from the last frame drawn, because measuring is the caller's font's business and the
+     * card has to be sized before anything is drawn in it.
+     */
+    private Font font;
+
+    private Font font() {
+        return font;
+    }
+
     /** Draws the panel in the top-left corner. Silent until the server has sent a sheet. */
     public void render(GuiGraphicsExtractor graphics, Font font, LocalPlayer player) {
+        this.font = font;
         if (sheet == null || !sheet.hasClass() || player == null) {
             return;
         }
@@ -83,21 +101,68 @@ public final class CharacterHud {
         int maxHitPoints = Math.round(player.getMaxHealth());
         String header = headerText(hitPoints, maxHitPoints);
         String who = whoText();
-        String abilities = abilityText();
         boolean casts = !spellSlots().isEmpty();
-        int width = Math.max(Math.max(font.width(header), font.width(who)), font.width(abilities))
+        int width = Math.max(Math.max(font.width(header), font.width(who)), abilityRowWidth())
                 + PADDING * 2;
-        int height = LINE_HEIGHT * 3 + PADDING * 2 + (casts ? PIP + PIP_GAP : 0);
+        int height = LINE_HEIGHT * 2 + ABILITY_ROW + PADDING * 2 + (casts ? PIP + PIP_GAP + 2 : 0);
 
         graphics.fill(MARGIN, MARGIN, MARGIN + width, MARGIN + height, BACKDROP);
         graphics.outline(MARGIN, MARGIN, width, height, BORDER);
         graphics.text(font, who, MARGIN + PADDING, MARGIN + PADDING, TEXT);
         graphics.text(font, header, MARGIN + PADDING, MARGIN + PADDING + LINE_HEIGHT,
                 hitPointColour(hitPoints, maxHitPoints));
-        graphics.text(font, abilities, MARGIN + PADDING, MARGIN + PADDING + LINE_HEIGHT * 2, TEXT);
+        renderAbilities(graphics, font, MARGIN + PADDING, MARGIN + PADDING + LINE_HEIGHT * 2);
         if (casts) {
-            renderSlots(graphics, MARGIN + PADDING, MARGIN + PADDING + LINE_HEIGHT * 3);
+            renderSlots(graphics, MARGIN + PADDING,
+                    MARGIN + PADDING + LINE_HEIGHT * 2 + ABILITY_ROW + 2);
         }
+    }
+
+    /**
+     * The six abilities, as the game's own pictures with their modifiers beside them.
+     *
+     * <p>They were "STR +0 DEX +1 CON +0 INT +0 WIS +0 CHA +0", which is a spreadsheet: three letters
+     * of jargon a Minecraft player has no reason to know, repeated six times across the busiest line
+     * on the screen. A sword, a feather and a shield say the same thing without a glossary, and they
+     * are vanilla item textures, so a resource pack restyles them along with everything else.
+     *
+     * <p>Only the modifier is shown, not the score. The modifier is the number that gets added to a
+     * roll; the score is where it came from, and the sheet screen has it.
+     */
+    private void renderAbilities(GuiGraphicsExtractor graphics, Font font, int x, int y) {
+        int left = x;
+        for (Ability ability : Ability.values()) {
+            Icon.of(ability).draw(graphics, left, y);
+            String modifier = modifierText(ability);
+            // Baselined against the icon rather than the line: a number sitting on the icon's own
+            // middle reads as belonging to it.
+            graphics.text(font, modifier, left + Icon.SIZE + 1, y + (Icon.SIZE - 8) / 2 + 1,
+                    modifierColour(ability));
+            left += abilityWidth(font, ability) + ABILITY_GAP;
+        }
+    }
+
+    /** How wide the row of abilities is, so the card can be built round it. */
+    private int abilityRowWidth() {
+        int width = 0;
+        for (Ability ability : Ability.values()) {
+            width += abilityWidth(font(), ability) + ABILITY_GAP;
+        }
+        return width - ABILITY_GAP;
+    }
+
+    private int abilityWidth(Font font, Ability ability) {
+        return Icon.SIZE + 1 + font.width(modifierText(ability));
+    }
+
+    private String modifierText(Ability ability) {
+        int modifier = sheet.modifier(ability);
+        return (modifier >= 0 ? "+" : "") + modifier;
+    }
+
+    /** A penalty is worth noticing, so it is the only one that is not the panel's own colour. */
+    private int modifierColour(Ability ability) {
+        return sheet.modifier(ability) < 0 ? HP_HURT : TEXT;
     }
 
     /**
@@ -149,15 +214,7 @@ public final class CharacterHud {
         return "HP " + hitPoints + "/" + maxHitPoints + "   AC " + armorClass;
     }
 
-    private String abilityText() {
-        StringBuilder sb = new StringBuilder();
-        for (Ability ability : Ability.values()) {
-            int modifier = sheet.modifier(ability);
-            sb.append(ability.abbreviation()).append(' ')
-                    .append(modifier >= 0 ? "+" : "").append(modifier).append("  ");
-        }
-        return sb.toString().trim();
-    }
+
 
     /** Hit points turn amber below half and red below a quarter, the usual table warning. */
     private static int hitPointColour(int hitPoints, int maxHitPoints) {

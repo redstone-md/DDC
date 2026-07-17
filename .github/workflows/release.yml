@@ -121,4 +121,6 @@ jobs:
           draft: false
           prerelease: ${{ contains(steps.version.outputs.tag, '-') }}
           fail_on_unmatched_files: true
-          files: dist/*.jar
+          # Everything staged, not only the jars: dist holds the template pack too, and a glob that
+          # named one kind of file silently dropped the other.
+          files: dist/*

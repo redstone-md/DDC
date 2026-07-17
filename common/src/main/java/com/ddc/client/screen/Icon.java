@@ -45,7 +45,29 @@ public enum Icon {
     /** Turning the world: the clock the game already keeps. */
     WORLD("minecraft:clock"),
     NARRATE("minecraft:name_tag"),
-    CHECK("minecraft:tripwire_hook");
+    CHECK("minecraft:tripwire_hook"),
+
+    // The six abilities. Each is the thing in this game that does what the ability means: you hit
+    // with a sword, you dodge like a feather, you take a blow behind a shield, you learn from a book,
+    // you notice through a spyglass, and you are listened to when you are holding an emerald.
+    STRENGTH("minecraft:iron_sword"),
+    DEXTERITY("minecraft:feather"),
+    CONSTITUTION("minecraft:shield"),
+    INTELLIGENCE("minecraft:book"),
+    WISDOM("minecraft:spyglass"),
+    CHARISMA("minecraft:emerald");
+
+    /** The picture for an ability, so the HUD does not have to keep its own table of them. */
+    public static Icon of(com.ddc.core.character.Ability ability) {
+        return switch (ability) {
+            case STRENGTH -> STRENGTH;
+            case DEXTERITY -> DEXTERITY;
+            case CONSTITUTION -> CONSTITUTION;
+            case INTELLIGENCE -> INTELLIGENCE;
+            case WISDOM -> WISDOM;
+            case CHARISMA -> CHARISMA;
+        };
+    }
 
     /** How big an icon is drawn. Vanilla's own item size: anything else would blur it. */
     public static final int SIZE = 16;

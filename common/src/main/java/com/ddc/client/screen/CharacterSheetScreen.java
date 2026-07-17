@@ -34,6 +34,9 @@ public class CharacterSheetScreen extends Screen {
     private static final int MUTED = 0xFFAAAAAA;
     private static final int BRASS = 0xFFC9973F;
 
+    /** A line with a 16-pixel picture on it needs more room than a line of text. */
+    private static final int ABILITY_LINE = 18;
+
     private static final int LINE = 12;
 
     private final CharacterSheet sheet;
@@ -94,19 +97,26 @@ public class CharacterSheetScreen extends Screen {
         graphics.text(font, Component.translatable("ddc.screen.hint"), left + 10, y, MUTED);
     }
 
-    /** The six abilities as score and modifier, two columns, the way a paper sheet reads. */
+    /**
+     * The six abilities as picture, score and modifier, two columns, the way a paper sheet reads.
+     *
+     * <p>The same icons the HUD uses, for the same reason: a sword and a feather say what strength
+     * and dexterity are without asking a Minecraft player to learn three-letter codes first. The
+     * sheet keeps the score as well as the modifier -- this is the screen you open to read, and the
+     * score is what the modifier came from.
+     */
     private int renderAbilities(GuiGraphicsExtractor graphics, int left, int top) {
         Ability[] abilities = Ability.values();
         for (int i = 0; i < abilities.length; i++) {
             Ability ability = abilities[i];
             int modifier = sheet.modifier(ability);
-            String text = ability.abbreviation() + "  " + sheet.scores().get(ability)
-                    + "  (" + (modifier >= 0 ? "+" : "") + modifier + ")";
+            String text = sheet.scores().get(ability) + "  (" + (modifier >= 0 ? "+" : "") + modifier + ")";
 
             int column = left + 10 + (i % 2) * (CARD_WIDTH / 2 - 10);
-            int row = top + (i / 2) * LINE;
-            graphics.text(font, Component.literal(text), column, row, TEXT);
+            int row = top + (i / 2) * ABILITY_LINE;
+            Icon.of(ability).draw(graphics, column, row - 4);
+            graphics.text(font, Component.literal(text), column + Icon.SIZE + 4, row, TEXT);
         }
-        return top + (abilities.length / 2) * LINE + 6;
+        return top + (abilities.length / 2) * ABILITY_LINE + 6;
     }
 }
