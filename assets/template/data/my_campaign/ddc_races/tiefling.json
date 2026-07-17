@@ -1,0 +1,7 @@
+{
+  "name": "Tiefling",
+  "ability_bonuses": { "charisma": 2, "intelligence": 1 },
+  "speed": 30,
+  "traits": ["darkvision", "hellish resistance"],
+  "items": ["minecraft:flint_and_steel", "minecraft:torch"]
+}

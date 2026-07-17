@@ -1,0 +1,10 @@
+{
+  "name": "Searing Smite",
+  "level": 1,
+  "school": "evocation",
+  "range": 5,
+  "cast_time": 1,
+  "components": ["verbal"],
+  "damage_dice": "1d6",
+  "saving_throw": { "ability": "constitution", "effect_on_success": "half_damage" }
+}

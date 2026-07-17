@@ -81,6 +81,9 @@ jobs:
           mkdir -p dist
           cp "fabric/build/libs/ddc-fabric-${v}+${mc}.jar" dist/
           cp "neoforge/build/libs/ddc-neoforge-${v}+${mc}.jar" dist/
+          # PRD 5's companion pack. Zipped from the tag rather than kept as a binary in the repo, so
+          # it can never be a version behind the schema it is teaching.
+          (cd assets/template && zip -qr "../../dist/ddc-srd-template.zip" .)
           ls -l dist
 
       - name: Assemble the release body
@@ -95,6 +98,7 @@ jobs:
             echo "|---|---|"
             echo "| Fabric | \`ddc-fabric-${{ steps.version.outputs.number }}+${mc}.jar\` |"
             echo "| NeoForge | \`ddc-neoforge-${{ steps.version.outputs.number }}+${mc}.jar\` |"
+            echo "| Template data pack | \`ddc-srd-template.zip\` |"
             echo
             echo "Both need Minecraft \`${mc}\`, **Java 25**, and Architectury API. Fabric also needs Fabric API."
             echo

@@ -1,0 +1,9 @@
+{
+  "name": "Goblin Ambush",
+  "members": [
+    { "entity": "minecraft:zombie", "count": 3, "health": 12.0,
+      "equipment": { "mainhand": "minecraft:stone_sword" } },
+    { "entity": "minecraft:zombie", "count": 1, "name": "Goblin Boss", "health": 30.0,
+      "equipment": { "mainhand": "minecraft:iron_axe", "head": "minecraft:golden_helmet" } }
+  ]
+}

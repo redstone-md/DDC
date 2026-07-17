@@ -47,6 +47,9 @@ public class DataRegistry<T> extends SimpleJsonResourceReloadListener<T> {
         // so a broken addon reports itself rather than taking the reload down.
         entries = Map.copyOf(parsed);
         DDC.LOGGER.info("Loaded {} {}: {}", entries.size(), describes, entries.keySet());
+        // ARCHITECTURE 3's registry callback: an addon that wants to react to what a pack defined has
+        // something to hook, rather than the map changing in silence.
+        DDCRegistryEvents.announce(this, entries);
     }
 
     public String directory() {

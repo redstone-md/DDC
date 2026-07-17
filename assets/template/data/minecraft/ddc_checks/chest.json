@@ -1,0 +1,5 @@
+{
+  "ability": "dexterity",
+  "dc": 12,
+  "message": "ddc.check.block.lock"
+}

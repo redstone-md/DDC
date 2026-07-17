@@ -1,0 +1,11 @@
+{
+  "name": "Paladin",
+  "hit_die": "d10",
+  "primary_ability": "strength",
+  "saving_throws": ["wisdom", "charisma"],
+  "features": [
+    { "type": "ddc:second_wind", "dice": "1d8" }
+  ],
+  "leveling": [200, 600, 1800, 4000, 9000, 15000, 22000, 32000, 43000, 57000,
+               67000, 80000, 94000, 110000, 130000, 150000, 177000, 204000, 237000]
+}

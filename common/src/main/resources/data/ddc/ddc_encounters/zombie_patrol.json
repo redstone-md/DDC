@@ -1,6 +1,19 @@
 {
   "name": "Zombie Patrol",
   "members": [
-    { "entity": "minecraft:zombie", "count": 3 }
+    {
+      "entity": "minecraft:zombie",
+      "count": 3
+    },
+    {
+      "entity": "minecraft:zombie",
+      "count": 1,
+      "name": "Patrol Captain",
+      "health": 40.0,
+      "equipment": {
+        "mainhand": "minecraft:iron_sword",
+        "head": "minecraft:iron_helmet"
+      }
+    }
   ]
 }

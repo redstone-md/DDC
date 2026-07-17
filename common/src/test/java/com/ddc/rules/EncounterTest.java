@@ -40,7 +40,7 @@ class EncounterTest {
     }
 
     @ParameterizedTest(name = "the built-in {0} loads and spawns {2}")
-    @CsvSource({"zombie_patrol,Zombie Patrol,3", "skeleton_ambush,Skeleton Ambush,5", "cave_lurkers,Cave Lurkers,5"})
+    @CsvSource({"zombie_patrol,Zombie Patrol,4", "skeleton_ambush,Skeleton Ambush,5", "cave_lurkers,Cave Lurkers,5"})
     void theBuiltInEncountersLoad(String file, String name, int total) throws IOException {
         Encounter encounter = load(file);
 
@@ -86,5 +86,45 @@ class EncounterTest {
                 {"name": "Modded", "members": [{"entity": "some_mod:dragon_lord", "count": 1}]}""");
 
         assertTrue(result.result().isPresent(), "loading must not depend on what else is installed");
+    }
+
+    @Test
+    @DisplayName("a pack can arm a mob, name it, and make it tougher")
+    void aMemberCanBeDressed() throws IOException {
+        Encounter patrol = load("zombie_patrol");
+
+        Encounter.Member captain = patrol.members().stream()
+                .filter(member -> member.name().isPresent())
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("the patrol has a captain"));
+
+        assertEquals("Patrol Captain", captain.name().orElseThrow());
+        assertEquals(40.0, captain.health().orElseThrow());
+        assertEquals(net.minecraft.resources.Identifier.parse("minecraft:iron_sword"),
+                captain.equipment().get(net.minecraft.world.entity.EquipmentSlot.MAINHAND));
+    }
+
+    @Test
+    @DisplayName("a mob a pack says nothing about is an ordinary mob that stays put")
+    void everythingIsOptional() {
+        Encounter.Member plain = new Encounter.Member(
+                net.minecraft.resources.Identifier.parse("minecraft:zombie"), 2);
+
+        assertTrue(plain.equipment().isEmpty());
+        assertTrue(plain.health().isEmpty());
+        assertTrue(plain.name().isEmpty());
+        assertTrue(plain.persistent(), "a placed encounter that despawned would delete a GM's ambush");
+    }
+
+    @Test
+    @DisplayName("an unknown equipment slot is an error against the file, not a guess")
+    void badSlotIsReported() {
+        var result = Encounter.CODEC.parse(com.mojang.serialization.JsonOps.INSTANCE,
+                com.google.gson.JsonParser.parseString("""
+                        {"name": "Bad", "members": [{"entity": "minecraft:zombie",
+                         "equipment": {"hat": "minecraft:iron_helmet"}}]}"""));
+
+        assertTrue(result.error().isPresent());
+        assertTrue(result.error().get().message().contains("hat"), result.error().get().message());
     }
 }

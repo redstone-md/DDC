@@ -4,7 +4,10 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.List;
 import java.util.Objects;
+import java.util.Map;
+import java.util.Optional;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.EquipmentSlot;
 
 /**
  * A group of monsters the Game Master can drop into the world, as a data pack describes it.
@@ -79,19 +82,53 @@ public record Encounter(String name, List<Member> members) {
     /**
      * One kind of monster in the group.
      *
-     * @param entity the entity type's id; unknown ids are reported when the encounter is spawned
-     *               rather than at load, since another mod may register the type later
-     * @param count  how many
+     * @param entity     the entity type's id; unknown ids are reported when the encounter is spawned
+     *                   rather than at load, since another mod may register the type later
+     * @param count      how many
+     * @param equipment  what they are carrying and wearing, by slot: {@code {"mainhand": "minecraft:iron_sword"}}
+     * @param health     how many hit points each has, or empty for whatever the mob normally has
+     * @param persistent whether they stay when nobody is looking, which is what a placed encounter
+     *                   usually wants
+     * @param name       what floats above them, or empty for an ordinary mob
      */
-    public record Member(Identifier entity, int count) {
+    public record Member(Identifier entity, int count, Map<EquipmentSlot, Identifier> equipment,
+            Optional<Double> health, boolean persistent, Optional<String> name) {
+
+        /** Enough for a boss; not enough for a typo to make an unkillable one. */
+        private static final double MAX_HEALTH = 1024.0;
+
+        private static final Codec<EquipmentSlot> SLOT = Codec.STRING.comapFlatMap(
+                key -> {
+                    for (EquipmentSlot slot : EquipmentSlot.values()) {
+                        if (slot.getName().equalsIgnoreCase(key)) {
+                            return com.mojang.serialization.DataResult.success(slot);
+                        }
+                    }
+                    return com.mojang.serialization.DataResult.error(() -> "Unknown equipment slot: " + key);
+                },
+                EquipmentSlot::getName);
 
         public static final Codec<Member> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 Identifier.CODEC.fieldOf("entity").forGetter(Member::entity),
-                Codec.intRange(1, MAX_TOTAL).optionalFieldOf("count", 1).forGetter(Member::count)
+                Codec.intRange(1, MAX_TOTAL).optionalFieldOf("count", 1).forGetter(Member::count),
+                // PRD 4.2 asks for custom equipment and AI parameters. All optional: an encounter that
+                // only names a mob is the common case and should stay one line long.
+                Codec.unboundedMap(SLOT, Identifier.CODEC).optionalFieldOf("equipment", Map.of())
+                        .forGetter(Member::equipment),
+                Codec.doubleRange(1, MAX_HEALTH).optionalFieldOf("health").forGetter(Member::health),
+                Codec.BOOL.optionalFieldOf("persistent", true).forGetter(Member::persistent),
+                Codec.STRING.optionalFieldOf("name").forGetter(Member::name)
         ).apply(instance, Member::new));
+
+        public Member(Identifier entity, int count) {
+            this(entity, count, Map.of(), Optional.empty(), true, Optional.empty());
+        }
 
         public Member {
             Objects.requireNonNull(entity, "entity");
+            equipment = Map.copyOf(Objects.requireNonNull(equipment, "equipment"));
+            Objects.requireNonNull(health, "health");
+            Objects.requireNonNull(name, "name");
         }
     }
 }

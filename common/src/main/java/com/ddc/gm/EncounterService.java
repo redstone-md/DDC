@@ -2,13 +2,16 @@ package com.ddc.gm;
 
 import com.ddc.rules.Encounter;
 import java.util.Optional;
+import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 
 /**
@@ -56,7 +59,7 @@ public final class EncounterService {
                 return new Result(Optional.of(Failure.UNKNOWN_ENTITY), spawned);
             }
             for (int i = 0; i < member.count(); i++) {
-                if (spawnOne(type.get(), level, offsetFor(centre, index++))) {
+                if (spawnOne(type.get(), level, offsetFor(centre, index++), member)) {
                     spawned++;
                 }
             }
@@ -71,10 +74,53 @@ public final class EncounterService {
         return centre.add(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
     }
 
-    private static boolean spawnOne(EntityType<?> type, ServerLevel level, Vec3 at) {
+    private static boolean spawnOne(EntityType<?> type, ServerLevel level, Vec3 at,
+            Encounter.Member member) {
         BlockPos pos = BlockPos.containing(at);
         Entity entity = type.spawn(level, pos, EntitySpawnReason.COMMAND);
-        return entity != null;
+        if (entity == null) {
+            return false;
+        }
+        dress(entity, member);
+        return true;
+    }
+
+    /**
+     * Gives a spawned mob what the pack said it carries.
+     *
+     * <p>PRD 4.2's "custom equipment and AI parameters". A Game Master placing a captain of the guard
+     * should get a captain of the guard, not a zombie they then have to arm by hand while the party
+     * watches.
+     *
+     * <p>Silent about equipment it cannot find: an encounter written for a modpack should still place
+     * its mobs on a server without that mod, wearing what it does have.
+     */
+    private static void dress(Entity entity, Encounter.Member member) {
+        if (!(entity instanceof LivingEntity living)) {
+            return;
+        }
+        member.name().ifPresent(name -> {
+            living.setCustomName(net.minecraft.network.chat.Component.literal(name));
+            living.setCustomNameVisible(true);
+        });
+        member.health().ifPresent(health -> {
+            net.minecraft.world.entity.ai.attributes.AttributeInstance max =
+                    living.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.MAX_HEALTH);
+            if (max != null) {
+                max.setBaseValue(health);
+                living.setHealth((float) (double) health);
+            }
+        });
+        for (Map.Entry<net.minecraft.world.entity.EquipmentSlot, Identifier> worn
+                : member.equipment().entrySet()) {
+            BuiltInRegistries.ITEM.getOptional(worn.getValue()).ifPresent(item ->
+                    living.setItemSlot(worn.getKey(), new net.minecraft.world.item.ItemStack(item)));
+        }
+        // Placed monsters are placed on purpose: one that despawned while the party walked round the
+        // corner would be a GM's ambush deleting itself.
+        if (member.persistent() && living instanceof net.minecraft.world.entity.Mob mob) {
+            mob.setPersistenceRequired();
+        }
     }
 
     /**
