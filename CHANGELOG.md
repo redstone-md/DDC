@@ -9,6 +9,20 @@ Each GitHub release carries notes generated from that release's commits by
 is written by hand for what the commits cannot say: why a release is shaped the way it is, and what
 it deliberately leaves out.
 
+## [1.8.0] - 2026-07-17
+
+### Added
+- **The wheel has icons.** Every one is a vanilla item rather than art drawn for DDC — a bed is rest,
+  a sword is a manoeuvre, an eye of ender is the Game Master watching. Beyond taste: a resource pack
+  that restyles Minecraft restyles these with it, where hand-drawn PNGs would keep their own look
+  while the game changed around them. Minecraft has no picture of a d20, so the shiniest polyhedron it
+  does draw stands in.
+- **A guide, in the game, in your language.** DDC asks a Minecraft player to learn a second game and
+  told them nothing about it — the rules were in a README on the internet, which is the last place
+  someone standing in a world with a wand in their hand will look. Twelve chapters: what a character
+  is, what they do, how the dice decide it, and the Game Master's three at the end. On every wheel, at
+  `/ddcguide`, and named once in chat when you join.
+
 ## [1.7.1] - 2026-07-17
 
 ### Fixed
