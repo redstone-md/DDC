@@ -9,6 +9,27 @@ Each GitHub release carries notes generated from that release's commits by
 is written by hand for what the commits cannot say: why a release is shaped the way it is, and what
 it deliberately leaves out.
 
+## [1.14.1] - 2026-07-17
+
+### Removed
+- **GeckoLib.** Added in 1.14.0 and removed a day later, because I did not check the one thing that
+  mattered before asking anyone to install it: **it cannot draw a d20.** Bedrock geometry is cuboids;
+  the format has a `poly_mesh` field and GeckoLib parses it, but nothing in the model baker ever reads
+  it. So the one thing in this mod that genuinely needs an animation engine is the one thing that
+  engine cannot represent, and what was left was a required dependency that bought a hand-built staff.
+  A mandatory dependency doing nothing is worse than no dependency. **No install needed again.**
+
+### Fixed
+- **The dice showed their own insides.** They are drawn with the game's debug render type, which does
+  not cull back faces — right for a hitbox outline, wrong for a solid — so a translucent die is twenty
+  triangles laid over each other. The geometry was right all along (three corners per d20 face, five
+  per d12, checked numerically); the transparency was the bug. Opaque now, with the fade spent on the
+  last moments where a die is leaving rather than arriving.
+- **Casting had no cost in real time.** A cantrip costs no slot — that is the SRD, and at a table it
+  costs your *turn*. Minecraft has no turns, so it cost nothing: a fire bolt every tick for as long as
+  you hold the button. A cantrip is a second now, a levelled spell six (the SRD's round), a scroll a
+  second, all on vanilla's own cooldown so the hotbar draws the sweep.
+
 ## [1.14.0] - 2026-07-17
 
 ### Added
