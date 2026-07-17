@@ -9,6 +9,18 @@ Each GitHub release carries notes generated from that release's commits by
 is written by hand for what the commits cannot say: why a release is shaped the way it is, and what
 it deliberately leaves out.
 
+## [1.9.2] - 2026-07-17
+
+### Fixed
+- **The dice were drawn with holes in them.** New in 1.9.0, and a screenshot caught it: sorting a
+  face's corners by angle puts them in the right order and leaves the *direction* to whichever way
+  the basis happened to point, so half the faces wound inward — and a face wound inward is one the
+  renderer culls. The d10 had the same bug from the other side: its normal was negated to face
+  outward while its winding stayed put. Corners are swapped now rather than normals flipped, because
+  the winding is the one the renderer believes, and a test walks every triangle of every die.
+- **The HUD was a third of the screen wide.** The abilities are three across and two down now — the
+  same six facts at half the width, in the order every character sheet in this hobby prints them.
+
 ## [1.9.1] - 2026-07-17
 
 ### Changed
