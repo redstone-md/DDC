@@ -9,6 +9,54 @@ Each GitHub release carries notes generated from that release's commits by
 is written by hand for what the commits cannot say: why a release is shaped the way it is, and what
 it deliberately leaves out.
 
+## [1.7.0] - 2026-07-17
+
+The parts of the documentation that were still only documentation, and two faults a player found by
+playing.
+
+### Added
+- **Wands and staffs** (PRD 3.1's "spells are cast using wands/staffs"). Hold one, right-click what
+  you are aiming at, and your chosen spell goes off; sneak-click cycles the choice. A wand carries
+  cantrips and never runs dry, a staff carries anything prepared. Casting through a menu works and
+  always will, but a wizard at a table points at a thing and says a word.
+- **Races hand over a starting kit** — an elf's bow, a dwarf's axe. Which items is the pack's story
+  about what an elf is, so it lives in the race's file: `"items": ["minecraft:bow"]`.
+- **Levelling** (ADR-0002's "XP levels via data packs", ARCHITECTURE 5's "leveling milestones"). It
+  did not exist: every character was level 1 forever, and hit points, proficiency and spell slots all
+  read from that level, so the whole progression half of the rules was dead code. Killing something
+  earns experience — a creature is worth its hit points, since D&D measures in challenge rating and
+  Minecraft has none — and `/ddc xp` lets a Game Master award it for the evening's talking rather
+  than its fighting. The table is the class's, so a pack can level a party in a weekend.
+- **The fighter is a class now** (PRD 3.1). It had second wind and nothing else. Action surge grants
+  an extra action in the SRD and there are no turns here to take one in, so it buys seconds instead:
+  a few of swinging and moving faster than anyone. Manoeuvres — trip, parry, push — spend superiority
+  dice. All of it is on the wheel, aimed at what you are looking at.
+- **Locked doors ask for the roll themselves** (PRD 3.1's headline). It was a command a player had to
+  remember to run, which is the bookkeeping DDC exists to remove. Which blocks ask is data:
+  `data/minecraft/ddc_checks/iron_door.json`.
+- **Armour class and spell slots on the HUD**, which PRD 3.1 lists and the HUD never had. Armour class
+  could not be shown because it was never sent; slots are pips, because the question at a table is
+  "have I got a second level left".
+- **The OBS widget draws party health cards** (PRD 4.5). The event existed with no caller and the page
+  could not have drawn it. The server sends the party once a second, and only when it changed.
+- **A possessed monster can attack** (ARCHITECTURE 6's `ddc:possess_mob`, listed as planned). A GM
+  could steer a monster and never hit anyone with it. It hits what the GM looks at; the client sends
+  only that the click happened, because a packet naming its own target is the thing ADR-0003 refuses.
+- **`cast_time`, `components` and `area_of_effect` are parsed.** ARCHITECTURE's own example schema
+  printed all three and the codec ignored them, so a pack copying the documentation had two thirds of
+  its file silently dropped. Casting time also makes PRD 4.4's runes mean something: the ground lights
+  up and the spell lands after, rather than both in the same tick.
+
+### Fixed
+- **Your race looked like it reset every time you rejoined.** It never did — the save had it all along
+  — but nothing displayed it anywhere, so there was no way to tell remembered from lost. The HUD says
+  it now.
+- **Picking a race twice paid twice.** Scores are stored with the bonus already in them, and a player
+  who could not see their race would naturally pick again to be sure. Changing race hands the old
+  one's bonuses back first.
+- **Refreshing the OBS browser source left the party blank** until somebody's health changed. The
+  party is a state, not a moment, so a widget is told where things stand the moment it connects.
+
 ## [1.6.1] - 2026-07-17
 
 ### Fixed
