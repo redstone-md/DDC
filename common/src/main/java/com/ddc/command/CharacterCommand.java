@@ -52,6 +52,7 @@ public final class CharacterCommand {
     private final EncounterCommand encounters;
     private final ExperienceCommand experience;
     private final SoundCommand sounds;
+    private final LockCommand locks = new LockCommand();
 
     public CharacterCommand(CharacterService characters, DataRegistry<CharacterClass> classes,
             DataRegistry<Race> races, NarrateCommand narration, SpellCommand spells,
@@ -96,7 +97,9 @@ public final class CharacterCommand {
                 .then(world.branch())
                 .then(encounters.branch())
                 .then(experience.branch())
-                .then(sounds.branch()));
+                .then(sounds.branch())
+                .then(locks.lockBranch())
+                .then(locks.unlockBranch()));
     }
 
     private SuggestionProvider<CommandSourceStack> classSuggestions() {

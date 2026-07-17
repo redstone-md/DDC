@@ -102,6 +102,30 @@ public final class SpellService {
     }
 
     /**
+     * Casts from a scroll: no slot, no preparation, every other rule.
+     *
+     * <p>That is what a scroll is for in the SRD -- it carries the preparation with it, and burns.
+     * Range still applies, because a scroll does not lengthen your arm, and the class still has to be
+     * able to cast at all: reading magic is a thing wizards learn, and a fighter holding a scroll is
+     * a fighter holding paper.
+     */
+    public Either<Failure, Cast> castFromScroll(ServerPlayer caster, Spell spell, LivingEntity target) {
+        CharacterSheet sheet = characters.get(caster);
+        Optional<CharacterClass> definition = characters.definitionFor(sheet);
+        if (definition.isEmpty()) {
+            return Either.left(Failure.NO_CLASS);
+        }
+        Optional<Spellcasting> casting = definition.get().spellcasting();
+        if (casting.isEmpty()) {
+            return Either.left(Failure.CLASS_CANNOT_CAST);
+        }
+        if (caster.distanceTo(target) > spell.rangeInBlocks()) {
+            return Either.left(Failure.OUT_OF_RANGE);
+        }
+        return Either.right(resolve(caster, sheet, casting.get(), spell, target));
+    }
+
+    /**
      * Spends the slot the spell costs. A cantrip costs nothing.
      *
      * @return the reason the slot could not be paid, or empty once it has been

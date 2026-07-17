@@ -425,6 +425,31 @@ def make_focus_texture(name, length, head, glow):
     print(f"wrote {target}")
 
 
+def make_scroll_texture(size=16, ss=16):
+    """The scroll's item texture: rolled parchment with a wax seal, in the banner's palette."""
+    s = size * ss
+    img = Image.new("RGBA", (s, s), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img, "RGBA")
+
+    # The sheet, rolled at both ends: two darker cylinders with the page between them.
+    draw.rectangle([s * 0.24, s * 0.20, s * 0.76, s * 0.80], fill=(*PARCHMENT, 255),
+                   outline=(*INK, 200), width=max(1, s // 40))
+    for y in (0.20, 0.74):
+        draw.rounded_rectangle([s * 0.18, s * y, s * 0.82, s * (y + 0.06)], radius=s * 0.03,
+                               fill=(210, 196, 164, 255), outline=(*INK, 220), width=max(1, s // 48))
+    # Writing, suggested rather than drawn: at sixteen pixels a line is a word.
+    for y in (0.36, 0.46, 0.56):
+        draw.line([s * 0.32, s * y, s * 0.66, s * y], fill=(*BRASS_DARK, 190), width=max(1, int(s * 0.04)))
+    # The seal.
+    draw.ellipse([s * 0.56, s * 0.56, s * 0.78, s * 0.78], fill=(*OXBLOOD, 255), outline=(*INK, 220))
+
+    img = img.resize((size, size), Image.LANCZOS)
+    target = Path("common/src/main/resources/assets/ddc/textures/item/spell_scroll.png")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    img.save(target, optimize=True)
+    print(f"wrote {target}")
+
+
 if __name__ == "__main__":
     make_banner(OUT_DIR / "banner.png")
     make_icon()
@@ -433,3 +458,4 @@ if __name__ == "__main__":
     # A wand is short with a small stone; a staff is long with a big one.
     make_focus_texture("wand", 0.44, 0.18, (108, 160, 230))
     make_focus_texture("staff", 0.62, 0.26, (150, 118, 220))
+    make_scroll_texture()

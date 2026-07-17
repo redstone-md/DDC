@@ -70,8 +70,22 @@ public final class BlockCheckListener {
         return InteractionResult.PASS;
     }
 
-    /** The rule for whatever is at that position, if a pack wrote one. */
+    /**
+     * What this block asks for: the Game Master's own seal first, then whatever a pack said about
+     * blocks of its kind.
+     *
+     * <p>The GM wins, because a GM who sealed this door meant this door. A pack saying iron doors are
+     * DC 15 is a rule about iron doors in general; a seal is a rule about the one in front of you, and
+     * the specific answer is the one a table wants.
+     */
     private Optional<BlockCheck> checkFor(ServerPlayer player, BlockPos pos) {
+        if (player.level() instanceof net.minecraft.server.level.ServerLevel level) {
+            Optional<BlockCheck> sealed = com.ddc.gm.GmLocks.of(level).at(level, pos)
+                    .map(com.ddc.gm.GmLocks.Lock::asCheck);
+            if (sealed.isPresent()) {
+                return sealed;
+            }
+        }
         BlockState state = player.level().getBlockState(pos);
         Identifier id = BuiltInRegistries.BLOCK.getKey(state.getBlock());
         return checks.get(id);

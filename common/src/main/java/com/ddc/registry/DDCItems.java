@@ -62,6 +62,25 @@ public final class DDCItems {
     /** A caster's staff: anything they have prepared. */
     public static RegistrySupplier<Item> STAFF;
 
+    /** A spell scroll: one spell, once, without preparing it. */
+    public static RegistrySupplier<Item> SPELL_SCROLL;
+
+    private static final DeferredRegister<net.minecraft.core.component.DataComponentType<?>> COMPONENTS =
+            DeferredRegister.create(DDC.MOD_ID, Registries.DATA_COMPONENT_TYPE);
+
+    /**
+     * Which spell is written on a scroll.
+     *
+     * <p>A component rather than an item per spell, which is what lets a data pack's own spell have a
+     * scroll: a mod registering one item per spell could only ever have scrolls for its own.
+     */
+    public static final RegistrySupplier<net.minecraft.core.component.DataComponentType<Identifier>> SPELL =
+            COMPONENTS.register("spell", () ->
+                    net.minecraft.core.component.DataComponentType.<Identifier>builder()
+                            .persistent(Identifier.CODEC)
+                            .networkSynchronized(Identifier.STREAM_CODEC)
+                            .build());
+
     /**
      * Registers the items that need the rules to work: a wand casts, and casting is a service.
      *
@@ -81,6 +100,12 @@ public final class DDCItems {
                 .rarity(Rarity.RARE)
                 .setId(ResourceKey.create(Registries.ITEM, DDC.id("staff"))),
                 com.ddc.item.SpellFocusItem.Power.STAFF, characters, spells, casting));
+        SPELL_SCROLL = ITEMS.register("spell_scroll", () -> new com.ddc.item.SpellScrollItem(
+                new Item.Properties()
+                        .stacksTo(16)
+                        .rarity(Rarity.UNCOMMON)
+                        .setId(ResourceKey.create(Registries.ITEM, DDC.id("spell_scroll"))),
+                spells, casting, SPELL.get()));
     }
 
     public static final RegistrySupplier<CreativeModeTab> TAB = TABS.register("ddc",
@@ -93,9 +118,10 @@ public final class DDCItems {
 
     /** Called once from the shared bootstrap, before registries freeze. */
     public static void register() {
+        COMPONENTS.register();
         ITEMS.register();
         TABS.register();
-        CreativeTabRegistry.append(TAB, GM_WAND, SPELLBOOK, WAND, STAFF);
+        CreativeTabRegistry.append(TAB, GM_WAND, SPELLBOOK, WAND, STAFF, SPELL_SCROLL);
         POSSESSIONS.register();
     }
 
