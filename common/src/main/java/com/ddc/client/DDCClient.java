@@ -98,6 +98,11 @@ public final class DDCClient {
         return new CharacterSheetScreen(CHARACTER_HUD.sheet().orElse(null), CHARACTER_HUD.className());
     }
 
+    /** What the streamer's chat voted, which the wheel's roll carries. */
+    public static ChatVote vote() {
+        return VOTE;
+    }
+
     /** The fanfare, for the loader hooks that have to drive the camera themselves. */
     public static Fanfare fanfare() {
         return FANFARE;

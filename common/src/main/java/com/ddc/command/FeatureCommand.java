@@ -24,11 +24,16 @@ import net.minecraft.server.level.ServerPlayer;
 public final class FeatureCommand {
 
     private static final String ARG_MANEUVER = "maneuver";
+    private static final String ARG_DIVINITY = "divinity";
     private static final String ARG_TARGET = "target";
 
     private static final com.mojang.brigadier.exceptions.DynamicCommandExceptionType UNKNOWN_MANEUVER =
             new com.mojang.brigadier.exceptions.DynamicCommandExceptionType(
                     key -> Component.translatable("ddc.error.unknown_maneuver", key));
+
+    private static final com.mojang.brigadier.exceptions.DynamicCommandExceptionType UNKNOWN_DIVINITY =
+            new com.mojang.brigadier.exceptions.DynamicCommandExceptionType(
+                    key -> Component.translatable("ddc.error.unknown_divinity", key));
 
     private final FeatureService features;
 
@@ -73,10 +78,28 @@ public final class FeatureCommand {
         return use(context, subject -> features.maneuver(subject, maneuver, living));
     }
 
-    /** The cleric's branch. */
+    /**
+     * The cleric's branch: turning by default, mending or blessing on request.
+     *
+     * <p>Turning is the default because it is what the channel was for a version ago, and a command
+     * someone has in a macro should keep meaning what it meant.
+     */
     public ArgumentBuilder<CommandSourceStack, ?> channelDivinityBranch() {
         return Commands.literal("channel-divinity")
-                .executes(context -> use(context, features::channelDivinity));
+                .executes(context -> use(context,
+                        player -> features.channelDivinity(player, FeatureService.Divinity.TURN)))
+                .then(Commands.argument(ARG_DIVINITY, StringArgumentType.word())
+                        .suggests((context, builder) -> net.minecraft.commands.SharedSuggestionProvider.suggest(
+                                java.util.Arrays.stream(FeatureService.Divinity.values())
+                                        .map(FeatureService.Divinity::id), builder))
+                        .executes(this::channel));
+    }
+
+    private int channel(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        String key = StringArgumentType.getString(context, ARG_DIVINITY);
+        FeatureService.Divinity what = FeatureService.Divinity.byId(key)
+                .orElseThrow(() -> UNKNOWN_DIVINITY.create(key));
+        return use(context, player -> features.channelDivinity(player, what));
     }
 
     private int use(CommandContext<CommandSourceStack> context,

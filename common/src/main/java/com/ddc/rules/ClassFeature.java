@@ -147,17 +147,28 @@ public sealed interface ClassFeature {
     }
 
     /**
-     * The cleric's channel divinity: turn the undead away, once per rest.
+     * The cleric's channel divinity: turn the undead away, mend the party, or steady them.
      *
-     * @param radius how far the divinity reaches, in blocks
-     * @param seconds how long the turned undead flee for
+     * <p>PRD 3.1 asks for all three and only turning existed. A cleric is a healer everywhere else in
+     * this hobby, and DDC's could do nothing for anybody. It is one channel with three things to
+     * spend it on, which is the SRD's own shape.
+     *
+     * @param radius  how far the divinity reaches, in blocks
+     * @param seconds how long the turned undead flee, and how long a blessing lasts
+     * @param heal    what mending the party rolls
      */
-    record ChannelDivinity(double radius, int seconds) implements ClassFeature {
+    record ChannelDivinity(double radius, int seconds, DiceExpression heal) implements ClassFeature {
 
         static final MapCodec<ChannelDivinity> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
                 Codec.doubleRange(1, 64).optionalFieldOf("radius", 6.0).forGetter(ChannelDivinity::radius),
-                Codec.intRange(1, 300).optionalFieldOf("seconds", 30).forGetter(ChannelDivinity::seconds)
+                Codec.intRange(1, 300).optionalFieldOf("seconds", 30).forGetter(ChannelDivinity::seconds),
+                DDCCodecs.DICE_EXPRESSION.optionalFieldOf("heal", DiceExpression.parse("2d8"))
+                        .forGetter(ChannelDivinity::heal)
         ).apply(instance, ChannelDivinity::new));
+
+        public ChannelDivinity {
+            Objects.requireNonNull(heal, "heal");
+        }
 
         @Override
         public Type type() {

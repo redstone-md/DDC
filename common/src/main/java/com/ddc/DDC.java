@@ -103,7 +103,8 @@ public final class DDC {
                 new WorldCommand(new WorldControlService()),
                 new PrepareCommand(characters, DDCRegistries.SPELLS),
                 new EncounterCommand(DDCRegistries.ENCOUNTERS),
-                new ExperienceCommand(experience));
+                new ExperienceCommand(experience),
+                new com.ddc.command.SoundCommand(new com.ddc.gm.SoundscapeService()));
 
         CommandRegistrationEvent.EVENT.register((dispatcher, registry, selection) -> {
             rollCommand.register(dispatcher);

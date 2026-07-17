@@ -201,6 +201,8 @@ public class WheelScreen extends Screen {
             case PlayerWheel.Wheels.SHEET_SCREEN -> com.ddc.client.DDCClient.sheetScreen();
             case PlayerWheel.Wheels.GM_PANEL -> new GameMasterScreen();
             case PlayerWheel.Wheels.GUIDE_SCREEN -> new GuideScreen();
+            case PlayerWheel.Wheels.CHANNEL_MENU -> new WheelScreen(
+                    Component.translatable("ddc.wheel.channel"), PlayerWheel.channel());
             case PlayerWheel.Wheels.MANEUVER_MENU -> new WheelScreen(
                     Component.translatable("ddc.wheel.maneuver"), PlayerWheel.maneuvers());
             default -> this;

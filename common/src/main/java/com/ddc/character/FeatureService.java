@@ -80,27 +80,107 @@ public final class FeatureService {
      * weak and visible instead: it stops being the threat it was, and the table can see who is
      * affected, which is what the moment is for.
      */
-    public Either<Failure, Used> channelDivinity(ServerPlayer player) {
+    public Either<Failure, Used> channelDivinity(ServerPlayer player, Divinity what) {
         return use(player, ClassFeature.ChannelDivinity.class, ClassFeature.Type.CHANNEL_DIVINITY,
                 (sheet, feature) -> {
                     ServerLevel level = player.level();
-                    int ticks = feature.seconds() * 20;
-                    int turnedCount = 0;
-                    for (LivingEntity undead : level.getEntitiesOfClass(LivingEntity.class,
-                            player.getBoundingBox().inflate(feature.radius()),
-                            entity -> entity != player && isUndead(entity))) {
-                        undead.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, ticks, 2));
-                        undead.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, ticks, 1));
-                        undead.addEffect(new MobEffectInstance(MobEffects.GLOWING, ticks, 0));
-                        turnedCount++;
-                    }
+                    Used used = switch (what) {
+                        case TURN -> turnUndead(player, level, feature);
+                        case HEAL -> mendTheParty(player, level, feature);
+                        case BLESS -> blessTheParty(player, level, feature);
+                    };
                     level.sendParticles(ParticleTypes.END_ROD, player.getX(), player.getY() + 1,
                             player.getZ(), 60, feature.radius() / 2, 1.0, feature.radius() / 2, 0.05);
                     level.playSound(null, player.blockPosition(), SoundEvents.BEACON_ACTIVATE,
                             SoundSource.PLAYERS, 1.0f, 1.4f);
-                    return new Used(net.minecraft.network.chat.Component.translatable(
-                            "ddc.feature.channel_divinity", turnedCount));
+                    return used;
                 });
+    }
+
+    /** What a cleric can spend their channel on. */
+    public enum Divinity {
+        TURN("turn"),
+        HEAL("heal"),
+        BLESS("bless");
+
+        private final String id;
+
+        Divinity(String id) {
+            this.id = id;
+        }
+
+        public String id() {
+            return id;
+        }
+
+        /** The one a command named, if it named one. */
+        public static Optional<Divinity> byId(String key) {
+            for (Divinity value : values()) {
+                if (value.id.equalsIgnoreCase(key)) {
+                    return Optional.of(value);
+                }
+            }
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Turns the undead: the SRD's cleric drives them off rather than killing them.
+     *
+     * <p>Minecraft has no fleeing state DDC can set from here, so a turned undead is slowed and made
+     * weak and visible instead: it stops being the threat it was, and the table can see who is
+     * affected, which is what the moment is for.
+     */
+    private static Used turnUndead(ServerPlayer player, ServerLevel level,
+            ClassFeature.ChannelDivinity feature) {
+        int ticks = feature.seconds() * 20;
+        int turnedCount = 0;
+        for (LivingEntity undead : level.getEntitiesOfClass(LivingEntity.class,
+                player.getBoundingBox().inflate(feature.radius()),
+                entity -> entity != player && isUndead(entity))) {
+            undead.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, ticks, 2));
+            undead.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, ticks, 1));
+            undead.addEffect(new MobEffectInstance(MobEffects.GLOWING, ticks, 0));
+            turnedCount++;
+        }
+        return new Used(net.minecraft.network.chat.Component.translatable(
+                "ddc.feature.channel_divinity", turnedCount));
+    }
+
+    /**
+     * Mends everyone nearby, the cleric included.
+     *
+     * <p>One roll for the whole party rather than a roll each: it is one channel, and five separate
+     * d8s for one button would bury the moment in dice.
+     */
+    private Used mendTheParty(ServerPlayer player, ServerLevel level,
+            ClassFeature.ChannelDivinity feature) {
+        RollResult roll = rolls.rollPublic(player, feature.heal(), com.ddc.core.dice.RollMode.NORMAL);
+        int healed = 0;
+        for (ServerPlayer ally : level.getServer().getPlayerList().getPlayers()) {
+            if (ally.distanceTo(player) <= feature.radius() && ally.isAlive()) {
+                ally.heal(roll.total());
+                healed++;
+            }
+        }
+        return new Used(net.minecraft.network.chat.Component.translatable(
+                "ddc.feature.channel_heal", roll.total(), healed));
+    }
+
+    /** Steadies everyone nearby: PRD 3.1's "buff attributes", in the words this game has for it. */
+    private static Used blessTheParty(ServerPlayer player, ServerLevel level,
+            ClassFeature.ChannelDivinity feature) {
+        int ticks = feature.seconds() * 20;
+        int blessed = 0;
+        for (ServerPlayer ally : level.getServer().getPlayerList().getPlayers()) {
+            if (ally.distanceTo(player) <= feature.radius() && ally.isAlive()) {
+                ally.addEffect(new MobEffectInstance(MobEffects.STRENGTH, ticks, 0));
+                ally.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, ticks, 0));
+                blessed++;
+            }
+        }
+        return new Used(net.minecraft.network.chat.Component.translatable(
+                "ddc.feature.channel_bless", blessed, feature.seconds()));
     }
 
     /**

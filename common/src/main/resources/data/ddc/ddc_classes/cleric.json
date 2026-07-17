@@ -163,7 +163,8 @@
     {
       "type": "ddc:channel_divinity",
       "radius": 6.0,
-      "seconds": 30
+      "seconds": 30,
+      "heal": "2d8"
     }
   ]
 }

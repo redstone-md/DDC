@@ -100,8 +100,7 @@ public final class PlayerWheel {
     /** The wheel for a character who does. */
     private static List<WheelOption> actions(CharacterSheet sheet, ClassSummary klass) {
         List<WheelOption> options = new ArrayList<>();
-        options.add(new WheelOption(Component.translatable("ddc.wheel.roll"),
-                Component.literal("1d20"), "roll 1d20", Icon.ROLL));
+        options.add(roll());
 
         if (klass.canCast()) {
             options.add(new WheelOption(Component.translatable("ddc.wheel.cast"),
@@ -121,7 +120,8 @@ public final class PlayerWheel {
         }
         if (klass.has(ClassFeature.Type.CHANNEL_DIVINITY)) {
             options.add(new WheelOption(Component.translatable("ddc.wheel.channel"),
-                    Component.translatable("ddc.wheel.channel.detail"), "ddc channel-divinity", Icon.CHANNEL_DIVINITY));
+                    Component.translatable("ddc.wheel.channel.detail"), Wheels.CHANNEL_MENU,
+                    Icon.CHANNEL_DIVINITY));
         }
         options.add(new WheelOption(Component.translatable("ddc.wheel.rest"),
                 Component.translatable("ddc.wheel.rest.detail"), "ddc rest", Icon.REST));
@@ -154,10 +154,51 @@ public final class PlayerWheel {
                 .toList();
     }
 
+    /**
+     * The roll, carrying whatever the streamer's chat voted for.
+     *
+     * <p>PRD 4.5 promises viewers can vote the streamer advantage or disadvantage, and the tally was
+     * counted and then thrown away: nothing read it. It rides on the roll now.
+     *
+     * <p>This is the client choosing a roll mode, which is allowed for exactly one reason: it is the
+     * same choice the streamer could make by typing {@code /roll 1d20 advantage} themselves. The vote
+     * is their chat, their stream, their decision to let it in. It is not a rule the server relaxes.
+     */
+    private static WheelOption roll() {
+        com.ddc.core.dice.RollMode mode = com.ddc.client.DDCClient.vote().mode();
+        String command = mode == com.ddc.core.dice.RollMode.NORMAL
+                ? "roll 1d20"
+                : "roll 1d20 " + mode.name().toLowerCase(java.util.Locale.ROOT);
+        Component detail = mode == com.ddc.core.dice.RollMode.NORMAL
+                ? Component.literal("1d20")
+                : Component.translatable("ddc.wheel.roll.voted",
+                        Component.translatable("ddc.roll.mode." + mode.name().toLowerCase(java.util.Locale.ROOT)));
+        return new WheelOption(Component.translatable("ddc.wheel.roll"), detail, command, Icon.ROLL);
+    }
+
     /** The way out of not knowing. On every wheel, because that is where someone lost will look. */
     private static WheelOption guide() {
         return new WheelOption(Component.translatable("ddc.wheel.guide"),
                 Component.translatable("ddc.wheel.guide.detail"), Wheels.GUIDE_SCREEN, Icon.GUIDE);
+    }
+
+    /**
+     * The three things a cleric can spend their channel on.
+     *
+     * <p>A submenu rather than three slices on the main wheel: they are one feature, spent once, and
+     * a wheel that offered them side by side would read as three separate things a cleric has.
+     */
+    public static List<WheelOption> channel() {
+        return List.of(
+                new WheelOption(Component.translatable("ddc.divinity.turn"),
+                        Component.translatable("ddc.divinity.turn.detail"),
+                        "ddc channel-divinity turn", Icon.CHANNEL_DIVINITY),
+                new WheelOption(Component.translatable("ddc.divinity.heal"),
+                        Component.translatable("ddc.divinity.heal.detail"),
+                        "ddc channel-divinity heal", Icon.SECOND_WIND),
+                new WheelOption(Component.translatable("ddc.divinity.bless"),
+                        Component.translatable("ddc.divinity.bless.detail"),
+                        "ddc channel-divinity bless", Icon.CAST));
     }
 
     /** The classes a player may pick, as the server's packs define them. */
@@ -230,6 +271,7 @@ public final class PlayerWheel {
         public static final String SHEET_SCREEN = "@sheet";
         public static final String MANEUVER_MENU = "@maneuver";
         public static final String GUIDE_SCREEN = "@guide";
+        public static final String CHANNEL_MENU = "@channel";
         public static final String GM_PANEL = "@gm";
 
         private Wheels() {

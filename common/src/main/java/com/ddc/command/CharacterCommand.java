@@ -51,11 +51,12 @@ public final class CharacterCommand {
     private final PrepareCommand preparation;
     private final EncounterCommand encounters;
     private final ExperienceCommand experience;
+    private final SoundCommand sounds;
 
     public CharacterCommand(CharacterService characters, DataRegistry<CharacterClass> classes,
             DataRegistry<Race> races, NarrateCommand narration, SpellCommand spells,
             FeatureCommand features, CheckCommand checks, WorldCommand world,
-            PrepareCommand preparation, EncounterCommand encounters, ExperienceCommand experience) {
+            PrepareCommand preparation, EncounterCommand encounters, ExperienceCommand experience, SoundCommand sounds) {
         this.characters = characters;
         this.classes = classes;
         this.races = races;
@@ -67,6 +68,7 @@ public final class CharacterCommand {
         this.preparation = preparation;
         this.encounters = encounters;
         this.experience = experience;
+        this.sounds = sounds;
     }
 
     public void register(CommandDispatcher<CommandSourceStack> dispatcher) {
@@ -93,7 +95,8 @@ public final class CharacterCommand {
                 .then(narration.branch())
                 .then(world.branch())
                 .then(encounters.branch())
-                .then(experience.branch()));
+                .then(experience.branch())
+                .then(sounds.branch()));
     }
 
     private SuggestionProvider<CommandSourceStack> classSuggestions() {

@@ -52,7 +52,8 @@ class CharacterCommandTest {
                 new WorldCommand(new com.ddc.gm.WorldControlService()),
                 new PrepareCommand(characters, spells),
                 new EncounterCommand(DDCRegistries.ENCOUNTERS),
-                new ExperienceCommand(new com.ddc.character.ExperienceService(characters)))
+                new ExperienceCommand(new com.ddc.character.ExperienceService(characters)),
+                new com.ddc.command.SoundCommand(new com.ddc.gm.SoundscapeService()))
                 .register(dispatcher);
     }
 
