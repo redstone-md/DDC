@@ -60,6 +60,7 @@ public final class DDC {
         DDCEntities.register();
 
         CharacterService characters = new CharacterService(DDCRegistries.CLASSES);
+        characters.withRaces(DDCRegistries.RACES);
         // The GM's monster hits what its driver is looking at. The click has to be sent because a
         // possessing GM is a spectator, whose click reaches nothing; the server decides everything
         // else, so the packet carries nothing but the fact that it happened.

@@ -207,6 +207,25 @@ public final class DDCClient {
                                     return 1;
                                 })));
 
+        // PRD 3.2's context menu. The click is caught on the client because a screen can only be
+        // opened here; the server never hears about it, so the wand's own placing is untouched for
+        // anyone the menu does not open for -- and every option on the menu is a command the server
+        // checks exactly as if it had been typed.
+        dev.architectury.event.events.common.InteractionEvent.RIGHT_CLICK_BLOCK.register(
+                (player, hand, pos, face) -> {
+                    if (!player.level().isClientSide()
+                            || hand != net.minecraft.world.InteractionHand.MAIN_HAND
+                            || !ClientRules.isGameMaster()
+                            || !player.getMainHandItem().is(com.ddc.registry.DDCItems.GM_WAND.get())
+                            || player.isCrouching()) {
+                        return net.minecraft.world.InteractionResult.PASS;
+                    }
+                    Minecraft.getInstance().schedule(() ->
+                            Minecraft.getInstance().setScreen(
+                                    com.ddc.client.screen.BlockWheel.forBlock(pos)));
+                    return net.minecraft.world.InteractionResult.FAIL;
+                });
+
         new OverlayCommand(OVERLAY).register();
         new TwitchCommand(TWITCH, VOTE, REWARDS, REWARD_ACTIONS).register();
         KeyMappingRegistry.register(SHEET_KEY);

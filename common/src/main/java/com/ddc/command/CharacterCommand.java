@@ -54,6 +54,7 @@ public final class CharacterCommand {
     private final SoundCommand sounds;
     private final LockCommand locks = new LockCommand();
     private final SpawnCommand spawns;
+    private final GameMasterCommand gameMaster = new GameMasterCommand();
 
     public CharacterCommand(CharacterService characters, DataRegistry<CharacterClass> classes,
             DataRegistry<Race> races, NarrateCommand narration, SpellCommand spells,
@@ -103,7 +104,8 @@ public final class CharacterCommand {
                 .then(sounds.branch())
                 .then(locks.lockBranch())
                 .then(locks.unlockBranch())
-                .then(spawns.branch()));
+                .then(spawns.branch())
+                .then(gameMaster.branch()));
     }
 
     private SuggestionProvider<CommandSourceStack> classSuggestions() {

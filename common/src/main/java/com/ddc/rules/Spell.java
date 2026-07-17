@@ -48,8 +48,32 @@ public record Spell(String name, int level, String school, int range,
     /** Seconds. Long enough for a ritual, short enough that a table does not wait out an evening. */
     private static final int MAX_CAST_TIME = 30;
 
-    /** Blocks. A fireball's twenty-foot radius is about six of them. */
+    /** Blocks. A fireball's twenty-foot radius is four of them; this allows far more. */
     private static final int MAX_AREA = 32;
+
+    /**
+     * How far a spell splashes, written either way.
+     *
+     * <p>ARCHITECTURE 5 prints {@code "area_of_effect": {"type": "sphere", "radius": 20}} and the
+     * codec took a bare number, so a pack copying the documentation failed to load. Both are read
+     * now: the docs are not wrong, they are just longer than they need to be, and a file that is
+     * already written should not have to be rewritten to be right.
+     *
+     * <p>The radius is in feet, like every other distance a spell states, and turns into blocks the
+     * same way -- five feet to the block.
+     */
+    private static final Codec<Integer> AREA = Codec.either(
+            Codec.intRange(0, MAX_AREA * 5),
+            RecordCodecBuilder.<Sphere>create(sphere -> sphere.group(
+                    Codec.STRING.optionalFieldOf("type", "sphere").forGetter(Sphere::type),
+                    Codec.intRange(0, MAX_AREA * 5).fieldOf("radius").forGetter(Sphere::radius)
+            ).apply(sphere, Sphere::new)))
+            .xmap(either -> either.map(feet -> feet, Sphere::radius),
+                    com.mojang.datafixers.util.Either::left);
+
+    /** The long way of writing a radius, as the architecture document prints it. */
+    private record Sphere(String type, int radius) {
+    }
 
     public static final Codec<Spell> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.STRING.fieldOf("name").forGetter(Spell::name),
@@ -62,7 +86,7 @@ public record Spell(String name, int level, String school, int range,
             // of them: a pack copying the documentation had two thirds of its file silently dropped.
             Codec.intRange(0, MAX_CAST_TIME).optionalFieldOf("cast_time", 0).forGetter(Spell::castTime),
             Codec.STRING.listOf().optionalFieldOf("components", List.of()).forGetter(Spell::components),
-            Codec.intRange(0, MAX_AREA).optionalFieldOf("area_of_effect", 0).forGetter(Spell::areaOfEffect)
+            AREA.optionalFieldOf("area_of_effect", 0).forGetter(Spell::areaOfEffect)
     ).apply(instance, Spell::new));
 
     public Spell {
@@ -81,6 +105,11 @@ public record Spell(String name, int level, String school, int range,
     /** Whether this spell catches more than what it was aimed at. */
     public boolean isAreaOfEffect() {
         return areaOfEffect > 0;
+    }
+
+    /** How far the splash reaches, in blocks. Feet, like every distance a spell states. */
+    public double areaInBlocks() {
+        return areaOfEffect / 5.0;
     }
 
     /** A cantrip costs no slot. */

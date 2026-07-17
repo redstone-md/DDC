@@ -67,7 +67,7 @@ public final class GuideScreen extends Screen {
             new Chapter(Icon.REST, "rest", 2),
             new Chapter(Icon.CHECK, "checks", 2),
             new Chapter(Icon.SHEET, "levelling", 2),
-            new Chapter(Icon.GM, "gm", 3),
+            new Chapter(Icon.GM, "gm", 4),
             new Chapter(Icon.ENCOUNTER, "gm_wand", 3),
             new Chapter(Icon.WORLD, "gm_world", 3),
             new Chapter(Icon.NARRATE, "streaming", 3));

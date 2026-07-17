@@ -2,6 +2,7 @@ package com.ddc.character;
 
 import com.ddc.network.CharacterSheetPayload;
 import com.ddc.rules.CharacterClass;
+import com.ddc.rules.Race;
 import com.ddc.rules.DataRegistry;
 import dev.architectury.networking.NetworkManager;
 import java.util.Optional;
@@ -19,6 +20,19 @@ public final class CharacterService {
 
     private final DataRegistry<CharacterClass> classes;
     private final HealthService health = new HealthService(this);
+
+    /**
+     * The races, for the traits a body has to be told about.
+     *
+     * <p>Optional because the service is built in tests with only classes, and a race registry that
+     * every test had to supply would be a registry every test had to know about.
+     */
+    private java.util.Optional<DataRegistry<Race>> races = java.util.Optional.empty();
+
+    /** Tells the service where the races live. Called once, by the bootstrap. */
+    public void withRaces(DataRegistry<Race> registry) {
+        this.races = java.util.Optional.of(registry);
+    }
 
     public CharacterService(DataRegistry<CharacterClass> classes) {
         this.classes = classes;
@@ -43,6 +57,7 @@ public final class CharacterService {
     public CharacterSheet update(ServerPlayer player, UnaryOperator<CharacterSheet> change) {
         CharacterSheet updated = store(player).update(player.getUUID(), change);
         health.apply(player);
+        traits(player);
         sync(player, updated);
         return updated;
     }
@@ -50,6 +65,7 @@ public final class CharacterService {
     /** Sends the player their sheet and sizes their health. Call on join and on respawn. */
     public void sync(ServerPlayer player) {
         health.apply(player);
+        traits(player);
         sync(player, get(player));
     }
 
@@ -82,6 +98,16 @@ public final class CharacterService {
             health.applyAndHeal(player);
             return updated;
         });
+    }
+
+    /**
+     * Applies the race's speed and darkvision, wherever health is applied.
+     *
+     * <p>The same moments and the same reasons: both are things a sheet decides and a player's body
+     * has to be told about, and both are transient so they never outlive the mod.
+     */
+    private void traits(ServerPlayer player) {
+        RaceTraits.apply(player, races.flatMap(registry -> get(player).race().flatMap(registry::get)));
     }
 
     /** The definition behind a sheet's class, empty when unset or when its pack is gone. */

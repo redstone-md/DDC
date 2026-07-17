@@ -69,6 +69,8 @@ public final class PlayerWheel {
                 Component.translatable("ddc.wheel.lock.detail"), "ddc lock dexterity 15", Icon.CHECK));
         options.add(new WheelOption(Component.translatable("ddc.wheel.unlock"),
                 Component.translatable("ddc.wheel.unlock.detail"), "ddc unlock", Icon.CHECK));
+        options.add(new WheelOption(Component.translatable("ddc.wheel.gm_mode"),
+                Component.translatable("ddc.wheel.gm_mode.detail"), "ddc gm", Icon.GM));
         options.add(new WheelOption(Component.translatable("ddc.wheel.gm"),
                 Component.translatable("ddc.wheel.gm.detail"), Wheels.GM_PANEL, Icon.GM));
         options.add(guide());

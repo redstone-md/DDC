@@ -35,11 +35,14 @@ subprojects {
     }
 
     loom {
-        runs.configureEach {
+        runs.named("client") {
             // A dev client picks a random name -- Player137, Player839 -- and a character sheet is
             // saved against the player's id, which follows the name. So every launch was a new person
             // with no class and no race, and the mod looked like it forgot everything on restart. It
             // never did; the tester was a different player each time. One name, one character.
+            //
+            // The client only: a dedicated server has no username to be, and telling it to have one
+            // stops it booting.
             programArgs "--username", "DDCTester"
         }
     }

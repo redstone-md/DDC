@@ -174,7 +174,7 @@ public final class SpellService {
             return dealt;
         }
         for (LivingEntity caught : target.level().getEntitiesOfClass(LivingEntity.class,
-                target.getBoundingBox().inflate(spell.areaOfEffect()))) {
+                target.getBoundingBox().inflate(spell.areaInBlocks()))) {
             // Not the caster, and not the target twice. A wizard standing in their own fireball is a
             // rule for another day; killing yourself with a menu button is not the day's lesson.
             if (caught != target && caught != caster && caught.isAlive()) {

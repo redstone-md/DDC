@@ -57,16 +57,23 @@ public class SpellFocusItem extends Item {
     }
 
     /**
-     * Casts at what was clicked, or cycles the choice when sneaking.
+     * Casting at range, which is what a staff is for.
      *
-     * <p>Everything about whether the spell may be cast -- the slot, the range, the preparation -- is
-     * the spell service's answer, the same one the command and the wheel get. This is a way of asking,
-     * not a second set of rules.
+     * <p>This used to hang off clicking a creature, and vanilla only calls that when the creature is
+     * within arm's reach -- about three blocks. So a fire bolt with a hundred and twenty feet of range
+     * in the rules could be cast at things close enough to hit with the staff instead. It was, as a
+     * player put it, no range at all.
+     *
+     * <p>Now the spell decides. The look vector is followed as far as the spell reaches and the first
+     * creature on it is the target, which is what pointing at something means. Everything about
+     * whether it may be cast is still the spell service's answer, the same one the command and the
+     * wheel get.
      */
     @Override
-    public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity target,
+    public InteractionResult use(net.minecraft.world.level.Level level, Player player,
             InteractionHand hand) {
         if (!(player instanceof ServerPlayer caster)) {
+            // The client is told the swing happened; the server decides whether anything else did.
             return InteractionResult.SUCCESS;
         }
         List<Identifier> castable = castable(caster);
@@ -87,7 +94,58 @@ public class SpellFocusItem extends Item {
             announce(caster, SpellSelection.next(caster, castable));
             return InteractionResult.FAIL;
         }
-        return cast(caster, spell.get(), chosen, target);
+
+        Optional<LivingEntity> target = aimedAt(caster, spell.get());
+        if (target.isEmpty()) {
+            caster.sendSystemMessage(Component.translatable("ddc.focus.no_target",
+                    (int) spell.get().rangeInBlocks()).withStyle(ChatFormatting.RED));
+            return InteractionResult.FAIL;
+        }
+        return cast(caster, spell.get(), chosen, target.get());
+    }
+
+    /**
+     * The first creature along the caster's own line of sight, within the spell's range.
+     *
+     * <p>Blocks stop it, because a spell through a wall is not aiming, it is a bug report. The caster
+     * is skipped for the obvious reason.
+     */
+    private static Optional<LivingEntity> aimedAt(ServerPlayer caster, Spell spell) {
+        double range = spell.rangeInBlocks();
+        net.minecraft.world.phys.Vec3 eye = caster.getEyePosition();
+        net.minecraft.world.phys.Vec3 end = eye.add(caster.getLookAngle().scale(range));
+
+        // A wall between you and it means you are not pointing at it, whatever the maths says.
+        net.minecraft.world.phys.BlockHitResult wall = caster.level().clip(
+                new net.minecraft.world.level.ClipContext(eye, end,
+                        net.minecraft.world.level.ClipContext.Block.COLLIDER,
+                        net.minecraft.world.level.ClipContext.Fluid.NONE, caster));
+        net.minecraft.world.phys.Vec3 reach = wall.getType() == net.minecraft.world.phys.HitResult.Type.MISS
+                ? end
+                : wall.getLocation();
+
+        net.minecraft.world.phys.EntityHitResult hit =
+                net.minecraft.world.entity.projectile.ProjectileUtil.getEntityHitResult(
+                        caster, eye, reach,
+                        caster.getBoundingBox().expandTowards(caster.getLookAngle().scale(range)).inflate(1),
+                        entity -> entity instanceof LivingEntity && entity != caster && entity.isAlive(),
+                        0.0);
+        return hit == null || !(hit.getEntity() instanceof LivingEntity living)
+                ? Optional.empty()
+                : Optional.of(living);
+    }
+
+    /**
+     * Casting at something you are touching.
+     *
+     * <p>Kept because vanilla calls this instead of {@link #use} when a creature is under the
+     * crosshair and in reach, and a staff that did nothing when you clicked the thing directly in
+     * front of you would be a staff that felt broken at exactly the wrong moment.
+     */
+    @Override
+    public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity target,
+            InteractionHand hand) {
+        return use(player.level(), player, hand);
     }
 
     private InteractionResult cast(ServerPlayer caster, Spell spell, Identifier id, LivingEntity target) {
