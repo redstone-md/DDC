@@ -108,6 +108,25 @@ public final class DDCClient {
                 && Minecraft.getInstance().player.getUUID().equals(roller);
     }
 
+    /**
+     * Sends the attack key on to the server while the player is driving a monster.
+     *
+     * <p>A possessing Game Master is a spectator, and vanilla throws a spectator's clicks away before
+     * anything can see them -- which is why the GM could steer a monster but never hit anyone with it.
+     *
+     * <p>Spectating something that is not yourself is the whole test. The server checks whether this
+     * player is really possessing that mob before anything is hit, so a client that sent this at the
+     * wrong moment gets nothing for it.
+     */
+    private static void sendPossessedAttacks(Minecraft client) {
+        if (client.player == null || client.getCameraEntity() == client.player) {
+            return;
+        }
+        while (client.options.keyAttack.consumeClick()) {
+            NetworkManager.sendToServer(new com.ddc.network.PossessActionPayload());
+        }
+    }
+
     public static void init() {
         // Payloads arrive on the netty thread; queue() hops to the client thread before touching any
         // game state.
@@ -175,6 +194,7 @@ public final class DDCClient {
             while (WHEEL_KEY.consumeClick()) {
                 openWheel(client);
             }
+            sendPossessedAttacks(client);
         });
 
         ClientGuiEvent.RENDER_HUD.register((graphics, delta) -> {

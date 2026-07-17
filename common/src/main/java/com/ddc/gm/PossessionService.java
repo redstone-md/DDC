@@ -10,6 +10,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -159,6 +160,56 @@ public final class PossessionService {
         }
     }
 
+    /**
+     * The possessed monster attacks whatever its Game Master is looking at.
+     *
+     * <p>The target is worked out here, from the mob's own reach, rather than named by the client:
+     * ADR-0003's rule is that a client's word is never taken for who may be hit, and a packet that
+     * carried a target would be exactly that.
+     *
+     * <p>The mob's own attack is what lands, so its damage, its knockback and its enchantments are
+     * whatever the mob's are -- including the boss scaling a possession already applies.
+     */
+    public boolean attack(ServerPlayer gameMaster) {
+        Mob mob = possessedBy(gameMaster).orElse(null);
+        if (mob == null || !(mob.level() instanceof ServerLevel level)) {
+            return false;
+        }
+        LivingEntity target = lookedAt(gameMaster, mob);
+        if (target == null) {
+            return false;
+        }
+        mob.swing(net.minecraft.world.InteractionHand.MAIN_HAND);
+        return mob.doHurtTarget(level, target);
+    }
+
+    /**
+     * What the GM is pointing the monster at, within the monster's reach.
+     *
+     * <p>Nearest to the line of sight rather than nearest to the mob: a GM aiming at the cleric behind
+     * the fighter means the cleric, and a monster that always mauled whoever was closest would be
+     * playing itself.
+     */
+    private static LivingEntity lookedAt(ServerPlayer gameMaster, Mob mob) {
+        net.minecraft.world.phys.Vec3 look = gameMaster.getLookAngle();
+        LivingEntity best = null;
+        double bestAlignment = ATTACK_CONE;
+        for (LivingEntity candidate : mob.level().getEntitiesOfClass(LivingEntity.class,
+                mob.getBoundingBox().inflate(ATTACK_REACH))) {
+            if (candidate == mob || candidate == gameMaster || !candidate.isAlive()) {
+                continue;
+            }
+            net.minecraft.world.phys.Vec3 toward = candidate.getEyePosition()
+                    .subtract(mob.getEyePosition()).normalize();
+            double alignment = look.dot(toward);
+            if (alignment > bestAlignment) {
+                bestAlignment = alignment;
+                best = candidate;
+            }
+        }
+        return best;
+    }
+
     /** Points the mob at where the GM is, and turns its head to match theirs. */
     private static void drive(ServerPlayer gameMaster, Mob mob) {
         mob.getLookControl().setLookAt(gameMaster.getLookAngle().scale(10).add(mob.position()));
@@ -169,6 +220,15 @@ public final class PossessionService {
             mob.getNavigation().stop();
         }
     }
+
+    /** How far a possessed monster can reach, in blocks. Generous: a boss is bigger than a player. */
+    private static final double ATTACK_REACH = 4.0;
+
+    /**
+     * How closely the GM must be looking at something to hit it: the dot product of the two, so 0.5
+     * is roughly a sixty-degree cone. Aiming near enough is aiming.
+     */
+    private static final double ATTACK_CONE = 0.5;
 
     /** Makes a possessed mob worth fearing. */
     private static void scaleUp(Mob mob) {
