@@ -46,9 +46,16 @@ public final class CharacterHud {
     private static final int SLOT_FULL = 0xFF6699FF;
     private static final int SLOT_SPENT = 0xFF303030;
 
-    /** How tall the row of ability icons is, and how far apart they sit. */
-    private static final int ABILITY_ROW = 16;
-    private static final int ABILITY_GAP = 6;
+    /**
+     * The abilities' grid: three across, two down.
+     *
+     * <p>Six abilities in one row made a panel a third of the screen wide, which is a lot of furniture
+     * for a number that changes once a level. Three columns is half the width and the same six facts,
+     * and STR/DEX/CON above INT/WIS/CHA is the order every character sheet in the hobby prints.
+     */
+    private static final int ABILITY_COLUMNS = 3;
+    private static final int ABILITY_ROW = 14;
+    private static final int ABILITY_GAP = 5;
 
     /** A slot pip, and the gap around it. Small: there can be nine levels of them. */
     private static final int PIP = 5;
@@ -104,7 +111,8 @@ public final class CharacterHud {
         boolean casts = !spellSlots().isEmpty();
         int width = Math.max(Math.max(font.width(header), font.width(who)), abilityRowWidth())
                 + PADDING * 2;
-        int height = LINE_HEIGHT * 2 + ABILITY_ROW + PADDING * 2 + (casts ? PIP + PIP_GAP + 2 : 0);
+        int height = LINE_HEIGHT * 2 + ABILITY_ROW * abilityRows() + PADDING * 2
+                + (casts ? PIP + PIP_GAP + 2 : 0);
 
         graphics.fill(MARGIN, MARGIN, MARGIN + width, MARGIN + height, BACKDROP);
         graphics.outline(MARGIN, MARGIN, width, height, BORDER);
@@ -114,7 +122,7 @@ public final class CharacterHud {
         renderAbilities(graphics, font, MARGIN + PADDING, MARGIN + PADDING + LINE_HEIGHT * 2);
         if (casts) {
             renderSlots(graphics, MARGIN + PADDING,
-                    MARGIN + PADDING + LINE_HEIGHT * 2 + ABILITY_ROW + 2);
+                    MARGIN + PADDING + LINE_HEIGHT * 2 + ABILITY_ROW * abilityRows() + 2);
         }
     }
 
@@ -130,29 +138,42 @@ public final class CharacterHud {
      * roll; the score is where it came from, and the sheet screen has it.
      */
     private void renderAbilities(GuiGraphicsExtractor graphics, Font font, int x, int y) {
-        int left = x;
-        for (Ability ability : Ability.values()) {
-            Icon.of(ability).draw(graphics, left, y);
-            String modifier = modifierText(ability);
+        Ability[] abilities = Ability.values();
+        int column = columnWidth(font);
+        for (int i = 0; i < abilities.length; i++) {
+            int left = x + (i % ABILITY_COLUMNS) * (column + ABILITY_GAP);
+            int top = y + (i / ABILITY_COLUMNS) * ABILITY_ROW;
+
+            Icon.of(abilities[i]).draw(graphics, left, top);
             // Baselined against the icon rather than the line: a number sitting on the icon's own
             // middle reads as belonging to it.
-            graphics.text(font, modifier, left + Icon.SIZE + 1, y + (Icon.SIZE - 8) / 2 + 1,
-                    modifierColour(ability));
-            left += abilityWidth(font, ability) + ABILITY_GAP;
+            graphics.text(font, modifierText(abilities[i]), left + Icon.SIZE + 1,
+                    top + (Icon.SIZE - 8) / 2 + 1, modifierColour(abilities[i]));
         }
     }
 
-    /** How wide the row of abilities is, so the card can be built round it. */
-    private int abilityRowWidth() {
-        int width = 0;
+    /** How many rows the six abilities take at this many columns. */
+    private static int abilityRows() {
+        return (Ability.values().length + ABILITY_COLUMNS - 1) / ABILITY_COLUMNS;
+    }
+
+    /**
+     * How wide one ability's cell is.
+     *
+     * <p>The same for all of them, so the columns line up: a grid whose cells were each as wide as
+     * their own number would be six numbers scattered about, not a grid.
+     */
+    private int columnWidth(Font font) {
+        int widest = 0;
         for (Ability ability : Ability.values()) {
-            width += abilityWidth(font(), ability) + ABILITY_GAP;
+            widest = Math.max(widest, font.width(modifierText(ability)));
         }
-        return width - ABILITY_GAP;
+        return Icon.SIZE + 1 + widest;
     }
 
-    private int abilityWidth(Font font, Ability ability) {
-        return Icon.SIZE + 1 + font.width(modifierText(ability));
+    /** How wide the grid of abilities is, so the card can be built round it. */
+    private int abilityRowWidth() {
+        return ABILITY_COLUMNS * columnWidth(font()) + (ABILITY_COLUMNS - 1) * ABILITY_GAP;
     }
 
     private String modifierText(Ability ability) {

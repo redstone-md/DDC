@@ -126,7 +126,14 @@ public final class DiceMesh {
         return new Solid(List.copyOf(triangles), List.copyOf(sides));
     }
 
-    /** Sorts a face's corners into the order they go round it, seen from outside. */
+    /**
+     * Sorts a face's corners into the order they go round it, seen from outside.
+     *
+     * <p>Anticlockwise from outside, which is what the renderer means by a front face. Sorting them
+     * by angle alone gets the order right and the direction by luck: the basis this uses to measure
+     * the angle can be either way round, so half the faces came out wound backwards and were culled.
+     * The die was drawn with holes in it, which is exactly what it looked like.
+     */
     private static List<Vector3f> sortAround(List<Vector3f> corners, Vector3f normal) {
         Vector3f centre = new Vector3f();
         corners.forEach(centre::add);
@@ -135,12 +142,26 @@ public final class DiceMesh {
         Vector3f right = new Vector3f(corners.getFirst()).sub(centre).normalize();
         Vector3f up = new Vector3f(normal).cross(right).normalize();
 
-        return corners.stream()
+        List<Vector3f> sorted = new ArrayList<>(corners.stream()
                 .sorted(Comparator.comparingDouble(corner -> {
                     Vector3f spoke = new Vector3f(corner).sub(centre);
                     return Math.atan2(spoke.dot(up), spoke.dot(right));
                 }))
-                .toList();
+                .toList());
+
+        if (!isAnticlockwise(sorted, normal)) {
+            java.util.Collections.reverse(sorted);
+        }
+        return sorted;
+    }
+
+    /** Whether these corners wind anticlockwise about the face's own normal. */
+    private static boolean isAnticlockwise(List<Vector3f> corners, Vector3f normal) {
+        Vector3f a = corners.get(0);
+        Vector3f b = corners.get(1);
+        Vector3f c = corners.get(2);
+        Vector3f facing = new Vector3f(b).sub(a).cross(new Vector3f(c).sub(a));
+        return facing.dot(normal) > 0;
     }
 
     /** Cuts a face into triangles from its first corner. Every face here is convex, so a fan works. */
@@ -276,15 +297,19 @@ public final class DiceMesh {
         return new Solid(List.copyOf(triangles), List.copyOf(sides));
     }
 
-    /** A triangle, with its normal turned outward against the middle of the die. */
+    /**
+     * A triangle, turned to face outward.
+     *
+     * <p>The corners are swapped rather than the normal negated. Negating gives a face that is lit
+     * correctly and still wound inward, so the renderer culls it and the die is drawn with a hole
+     * where it was -- the normal and the winding have to agree, and the winding is the one the
+     * renderer believes.
+     */
     private static Face faceOf(Vector3f a, Vector3f b, Vector3f c) {
         Vector3f normal = new Vector3f(b).sub(a).cross(new Vector3f(c).sub(a)).normalize();
         Vector3f centre = new Vector3f(a).add(b).add(c).div(3);
-        // The winding of a face built this way cannot be assumed, so the normal is turned outward
-        // against the face's own centre. Without it, half the die is lit as though from inside and
-        // culled away -- the same fault the banner's generator had.
         if (normal.dot(centre) < 0) {
-            normal.negate();
+            return faceOf(a, c, b);
         }
         return new Face(new Vector3f(a), new Vector3f(b), new Vector3f(c), normal);
     }

@@ -82,4 +82,21 @@ class DiceMeshTest {
             }
         }
     }
+
+    @Test
+    @DisplayName("every triangle faces outward, so no face is culled away")
+    void everyTriangleWindsTheRightWay() {
+        for (Die die : Die.values()) {
+            for (DiceMesh.Face face : DiceMesh.facesOf(die)) {
+                // A face wound the other way is invisible from outside and visible from inside: the
+                // renderer throws it away, and the die is drawn with holes in it. Which is exactly how
+                // this shipped -- the corners were sorted by angle, which fixes the order but leaves
+                // the direction to whichever way the basis happened to point.
+                Vector3f facing = new Vector3f(face.b()).sub(face.a())
+                        .cross(new Vector3f(face.c()).sub(face.a()));
+                assertTrue(facing.dot(face.normal()) > 0,
+                        die + " has a triangle wound inward, which the renderer will cull");
+            }
+        }
+    }
 }
