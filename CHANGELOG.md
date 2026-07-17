@@ -9,6 +9,19 @@ Each GitHub release carries notes generated from that release's commits by
 is written by hand for what the commits cannot say: why a release is shaped the way it is, and what
 it deliberately leaves out.
 
+## [1.9.1] - 2026-07-17
+
+### Changed
+- **The abilities are pictures.** "STR +0 DEX +1 CON +0 INT +0 WIS +0 CHA +0" was a spreadsheet on
+  the busiest line of the screen, and six pieces of jargon a Minecraft player has no reason to know.
+  A sword, a feather, a shield, a book, a spyglass and an emerald say the same thing without a
+  glossary — and they are vanilla item textures, so a resource pack restyles them too. The HUD shows
+  the modifier, which is what gets added to a roll; the sheet screen keeps the score beside it.
+
+### Fixed
+- **The template pack never reached the release.** It was built and staged, and the upload asked for
+  `dist/*.jar` while the zip sat in the same folder. 1.9.0 has no template attached; this one does.
+
 ## [1.9.0] - 2026-07-17
 
 Everything left in the documentation that could be built, built. What remains unbuilt is named at the
