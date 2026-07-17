@@ -453,26 +453,37 @@ def make_scroll_texture(size=16, ss=16):
 def make_staff_geo_texture():
     """The 32x32 sheet the staff's 3D model is skinned with.
 
-    Laid out to the model's own UVs: the shaft at 0,0, the claw at 8,0, the stone at 0,17. Generated
-    beside the model that reads it, so the two cannot drift apart.
+    Laid out to the model's own UVs: the tapered shaft at 0,0 and 4,0, the grip at 12,0, the claws at
+    16,0, the stone at 0,17 and its inner facet at 8,17. Generated beside the model that reads it, so
+    the two cannot drift apart.
     """
     size = 32
     img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img, "RGBA")
 
-    # Shaft: wood, with a darker edge so the round reads at this size.
-    draw.rectangle([0, 0, 3, 15], fill=(96, 66, 34, 255))
-    draw.rectangle([0, 0, 0, 15], fill=(58, 40, 20, 255))
-    draw.rectangle([3, 0, 3, 15], fill=(140, 102, 58, 255))
+    # Shaft, both thicknesses: dark wood with a lit edge, which is how every vanilla rod reads.
+    for x0 in (0, 4):
+        draw.rectangle([x0, 0, x0 + 3, 15], fill=(88, 60, 32, 255))
+        draw.rectangle([x0, 0, x0, 15], fill=(52, 35, 18, 255))
+        draw.rectangle([x0 + 3, 0, x0 + 3, 15], fill=(132, 96, 54, 255))
 
-    # Claw: brass.
-    draw.rectangle([8, 0, 15, 7], fill=(*BRASS_DARK, 255))
-    draw.rectangle([9, 1, 14, 6], fill=(*BRASS, 255))
+    # Grip: leather wrap, banded so a hand has somewhere to be.
+    draw.rectangle([12, 0, 15, 15], fill=(74, 48, 34, 255))
+    for y in range(1, 15, 3):
+        draw.rectangle([12, y, 15, y], fill=(46, 30, 20, 255))
 
-    # Stone: amethyst, lit from the top-left the way every vanilla item is.
-    draw.rectangle([0, 17, 11, 28], fill=(112, 84, 176, 255))
-    draw.rectangle([0, 17, 5, 22], fill=(150, 118, 220, 255))
-    draw.rectangle([8, 25, 11, 28], fill=(74, 52, 128, 255))
+    # Claws: brass, bright at the tip where the light would catch.
+    draw.rectangle([16, 0, 21, 15], fill=(*BRASS_DARK, 255))
+    draw.rectangle([17, 0, 20, 6], fill=(*BRASS, 255))
+    draw.rectangle([17, 0, 20, 1], fill=(*BRASS_LIGHT, 255))
+
+    # Stone: amethyst, lit from the top-left like every vanilla item.
+    draw.rectangle([0, 17, 7, 24], fill=(112, 84, 176, 255))
+    draw.rectangle([0, 17, 3, 20], fill=(158, 126, 228, 255))
+    draw.rectangle([5, 22, 7, 24], fill=(70, 48, 122, 255))
+    # The inner facet, brighter: it is meant to look lit from within.
+    draw.rectangle([8, 17, 14, 23], fill=(186, 158, 250, 255))
+    draw.rectangle([8, 17, 10, 19], fill=(226, 208, 255, 255))
 
     target = Path("common/src/main/resources/assets/ddc/textures/item/staff_geo.png")
     target.parent.mkdir(parents=True, exist_ok=True)

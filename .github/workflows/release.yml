@@ -100,7 +100,7 @@ jobs:
             echo "| NeoForge | \`ddc-neoforge-${{ steps.version.outputs.number }}+${mc}.jar\` |"
             echo "| Template data pack | \`ddc-srd-template.zip\` |"
             echo
-            echo "Both need Minecraft \`${mc}\`, **Java 25**, **GeckoLib 5.5**, and Architectury API. Fabric also needs Fabric API."
+            echo "Both need Minecraft \`${mc}\`, **Java 25**, and Architectury API. Fabric also needs Fabric API."
             echo
             echo "---"
             echo

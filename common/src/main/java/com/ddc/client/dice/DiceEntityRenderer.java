@@ -86,9 +86,17 @@ public class DiceEntityRenderer extends EntityRenderer<DiceEntity, DiceRenderSta
         float scale = DiceMesh.scaleOf(die.die());
         pose.scale(scale, scale, scale);
 
-        // A discarded advantage die is drawn faint: it was thrown, it just did not count.
-        int alpha = (int) (255 * DiceThrow.alpha(seconds) * (die.discarded() ? 0.35 : 1.0));
-        int[] colour = colourFor(die);
+        // Opaque, and here is why. The render type these are drawn with is the game's own debug box:
+        // it does not cull back faces, which is right for a hitbox outline and wrong for a solid. A
+        // translucent die shows its own far side through its near side, and twenty triangles laid over
+        // each other read as a broken shape -- which is exactly what a player photographed and called
+        // broken faces. Opaque, the depth test hides the far side and the solid reads as a solid.
+        //
+        // The fade is spent on the last moments only, when the die is small on screen and going away.
+        int alpha = (int) (255 * fadeOf(seconds));
+        // A discarded advantage die is drawn dark rather than faint: it was thrown, it just did not
+        // count, and that has to be said in colour rather than in transparency now.
+        int[] colour = die.discarded() ? dim(colourFor(die)) : colourFor(die);
 
         collector.submitCustomGeometry(pose, RenderTypes.debugFilledBox(),
                 (entry, consumer) -> emitDie(entry.pose(), consumer, die, colour, alpha));
@@ -119,6 +127,23 @@ public class DiceEntityRenderer extends EntityRenderer<DiceEntity, DiceRenderSta
         // Slerp from where it ends to where it is: at rest the ease is zero and this is the landed
         // orientation exactly, which is the half that has to be right.
         return landed.slerp(tumbling, (float) flight.tumbleEase(seconds));
+    }
+
+    /**
+     * How solid the die is right now: entirely, until the last of its life.
+     *
+     * <p>{@link DiceThrow#alpha} fades in as well as out, which is a fade a die spends most of its
+     * life inside. Without culling that is most of its life spent see-through, so the fade is kept for
+     * the end, where it is a die leaving rather than a die arriving.
+     */
+    private static float fadeOf(double seconds) {
+        float alpha = (float) DiceThrow.alpha(seconds);
+        return alpha > 0.75f ? 1.0f : alpha / 0.75f;
+    }
+
+    /** A colour, darkened: what a die that did not count looks like. */
+    private static int[] dim(int[] colour) {
+        return new int[] {colour[0] / 3, colour[1] / 3, colour[2] / 3};
     }
 
     private static int[] colourFor(DieRoll die) {

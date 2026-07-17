@@ -77,6 +77,7 @@ public class SpellScrollItem extends Item {
                 // The scroll burns. That is the whole bargain: a spell you did not prepare, once.
                 stack.shrink(1);
                 caster.swing(hand);
+                caster.getCooldowns().addCooldown(stack, 20);
                 yield InteractionResult.SUCCESS;
             }
         };

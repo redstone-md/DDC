@@ -50,6 +50,20 @@ public class SpellFocusItem extends Item {
      */
     private static final double AIM_FORGIVENESS = 1.25;
 
+    /**
+     * How long after a cast before the next one, in ticks.
+     *
+     * <p>The SRD says a cantrip costs no slot, and it is right: it costs your <em>turn</em>, and a
+     * table's turn is a minute of everyone waiting. Minecraft has no turns, so DDC had nothing at all
+     * -- a fire bolt every tick for as long as you can hold the button, which is not a wizard, it is a
+     * machine gun.
+     *
+     * <p>Six seconds is the SRD's round, which is exactly what a cast is worth: one action. A cantrip
+     * is quicker because it is the small thing you do when you have nothing better to spend.
+     */
+    private static final int CANTRIP_COOLDOWN = 20;
+    private static final int SPELL_COOLDOWN = 120;
+
     private final Power power;
     private final CharacterService characters;
     private final DataRegistry<Spell> spells;
@@ -100,6 +114,12 @@ public class SpellFocusItem extends Item {
         if (spell.isEmpty()) {
             // The pack that defined it is gone since it was chosen. Pick again rather than fail.
             announce(caster, SpellSelection.next(caster, castable));
+            return InteractionResult.FAIL;
+        }
+
+        // Nothing about a cooldown is a rule the SRD wrote, so nothing about it is on the sheet: it is
+        // the cost of a game that runs in real time rather than in turns.
+        if (caster.getCooldowns().isOnCooldown(stackIn(caster, hand))) {
             return InteractionResult.FAIL;
         }
 
@@ -185,14 +205,28 @@ public class SpellFocusItem extends Item {
     private InteractionResult cast(ServerPlayer caster, Spell spell, Identifier id, LivingEntity target) {
         return switch (casting.cast(caster, spell, id, target)) {
             case SpellService.Either.Left<SpellService.Failure, SpellService.Cast> left -> {
-                caster.sendSystemMessage(left.value().message().copy().withStyle(ChatFormatting.RED));
+                // Above the hotbar: a refusal is a glance, not a conversation.
+                caster.sendSystemMessage(left.value().message().copy().withStyle(ChatFormatting.RED), true);
                 yield InteractionResult.FAIL;
             }
             case SpellService.Either.Right<SpellService.Failure, SpellService.Cast> right -> {
                 caster.swing(InteractionHand.MAIN_HAND);
+                // Vanilla's own cooldown, so the hotbar draws the sweep: the game already has a way to
+                // say "not yet", and a second one would be a second thing to learn.
+                caster.getCooldowns().addCooldown(stackIn(caster, InteractionHand.MAIN_HAND),
+                        cooldownFor(spell));
                 yield InteractionResult.SUCCESS;
             }
         };
+    }
+
+    /** What a spell costs in seconds, since it cannot cost a turn. */
+    static int cooldownFor(Spell spell) {
+        return spell.isCantrip() ? CANTRIP_COOLDOWN : SPELL_COOLDOWN;
+    }
+
+    private static ItemStack stackIn(ServerPlayer caster, InteractionHand hand) {
+        return caster.getItemInHand(hand);
     }
 
     /**
