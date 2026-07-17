@@ -23,8 +23,17 @@ import net.minecraft.network.chat.Component;
 @Environment(EnvType.CLIENT)
 public final class GuideScreen extends Screen {
 
-    /** A chapter: an icon, a title, and the paragraphs under it. */
-    private record Chapter(Icon icon, String key, int paragraphs) {
+    /**
+     * A chapter: an icon, a title, and the paragraphs under it.
+     *
+     * @param recipes whether the crafts are drawn under the words, which one chapter needs and the
+     *                rest do not
+     */
+    private record Chapter(Icon icon, String key, int paragraphs, boolean recipes) {
+
+        Chapter(Icon icon, String key, int paragraphs) {
+            this(icon, key, paragraphs, false);
+        }
 
         Component title() {
             return Component.translatable("ddc.guide." + key + ".title");
@@ -51,16 +60,28 @@ public final class GuideScreen extends Screen {
             new Chapter(Icon.ROLL, "dice", 3),
             new Chapter(Icon.MANEUVER, "combat", 3),
             new Chapter(Icon.CAST, "magic", 3),
+            // The crafts, right after the chapter that tells you to go and craft a spellbook. A player
+            // told to make one had nowhere to find out how: REI and JEI show it and neither is
+            // installed on most servers, so the mod that asked says what it costs.
+            new Chapter(Icon.SHEET, "crafting", 1, true),
             new Chapter(Icon.REST, "rest", 2),
             new Chapter(Icon.CHECK, "checks", 2),
             new Chapter(Icon.SHEET, "levelling", 2),
             new Chapter(Icon.GM, "gm", 3),
             new Chapter(Icon.ENCOUNTER, "gm_wand", 3),
             new Chapter(Icon.WORLD, "gm_world", 3),
-            new Chapter(Icon.NARRATE, "streaming", 2));
+            new Chapter(Icon.NARRATE, "streaming", 3));
 
     private static final int PANEL_WIDTH = 300;
-    private static final int PANEL_HEIGHT = 190;
+
+    /**
+     * How tall a page is: prose, and the taller one the crafts need.
+     *
+     * <p>One height for every chapter put the last craft's line under the Done button, which a
+     * screenshot caught. A page is as tall as what is on it.
+     */
+    private static final int PROSE_HEIGHT = 190;
+    private static final int RECIPE_HEIGHT = 250;
     private static final int PADDING = 12;
     private static final int LINE_HEIGHT = 10;
 
@@ -79,10 +100,15 @@ public final class GuideScreen extends Screen {
         super(Component.translatable("ddc.guide.title"));
     }
 
+    /** How tall this chapter's page is. */
+    private int panelHeight() {
+        return CHAPTERS.get(chapter).recipes() ? RECIPE_HEIGHT : PROSE_HEIGHT;
+    }
+
     @Override
     protected void init() {
         int left = (width - PANEL_WIDTH) / 2;
-        int bottom = (height + PANEL_HEIGHT) / 2 - PADDING - 20;
+        int bottom = (height + panelHeight()) / 2 - PADDING - 20;
 
         addRenderableWidget(Button.builder(Component.literal("<"), button -> turn(-1))
                 .bounds(left + PADDING, bottom, 20, 20).build());
@@ -92,9 +118,20 @@ public final class GuideScreen extends Screen {
                 .bounds(width / 2 - 40, bottom, 80, 20).build());
     }
 
-    /** Turns a page, stopping at each end rather than wrapping. */
+    /**
+     * Turns a page, stopping at each end rather than wrapping.
+     *
+     * <p>The buttons are laid out again, because the page they sit on changes size: the crafts need a
+     * taller one than a page of prose, and buttons left where the last page put them would be inside
+     * this one's text.
+     */
     private void turn(int by) {
-        chapter = Math.clamp(chapter + by, 0, CHAPTERS.size() - 1);
+        int wanted = Math.clamp(chapter + by, 0, CHAPTERS.size() - 1);
+        if (wanted == chapter) {
+            return;
+        }
+        chapter = wanted;
+        rebuildWidgets();
     }
 
     /** Arrow keys turn pages, because a book with only mouse buttons is a website. */
@@ -117,9 +154,9 @@ public final class GuideScreen extends Screen {
         graphics.fill(0, 0, width, height, BACKDROP);
 
         int left = (width - PANEL_WIDTH) / 2;
-        int top = (height - PANEL_HEIGHT) / 2;
-        graphics.fill(left, top, left + PANEL_WIDTH, top + PANEL_HEIGHT, PANEL);
-        graphics.outline(left, top, PANEL_WIDTH, PANEL_HEIGHT, BORDER);
+        int top = (height - panelHeight()) / 2;
+        graphics.fill(left, top, left + PANEL_WIDTH, top + panelHeight(), PANEL);
+        graphics.outline(left, top, PANEL_WIDTH, panelHeight(), BORDER);
 
         Chapter current = CHAPTERS.get(chapter);
         current.icon().draw(graphics, left + PADDING, top + PADDING);
@@ -139,6 +176,9 @@ public final class GuideScreen extends Screen {
                 y += LINE_HEIGHT;
             }
             y += 4;
+        }
+        if (current.recipes()) {
+            RecipePage.render(graphics, font, left + PADDING, y, PANEL_WIDTH - PADDING * 2);
         }
 
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);

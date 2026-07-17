@@ -5,6 +5,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import dev.architectury.event.events.client.ClientCommandRegistrationEvent;
 import dev.architectury.event.events.client.ClientCommandRegistrationEvent.ClientCommandSourceStack;
+import java.util.Optional;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.ChatFormatting;
@@ -25,11 +26,17 @@ import net.minecraft.network.chat.Component;
 public final class TwitchCommand {
 
     private static final String ARG_CHANNEL = "channel";
+    private static final String ARG_REWARD = "reward";
+    private static final String ARG_COMMAND = "command";
 
     private final TwitchChat chat;
     private final ChatVote vote;
+    private final TwitchRewards rewards;
+    private final RewardActions actions;
 
-    public TwitchCommand(TwitchChat chat, ChatVote vote) {
+    public TwitchCommand(TwitchChat chat, ChatVote vote, TwitchRewards rewards, RewardActions actions) {
+        this.rewards = rewards;
+        this.actions = actions;
         this.chat = chat;
         this.vote = vote;
     }
@@ -50,7 +57,9 @@ public final class TwitchCommand {
                         .then(ClientCommandRegistrationEvent.literal("vote")
                                 .executes(this::openVote))
                         .then(ClientCommandRegistrationEvent.literal("close")
-                                .executes(this::closeVote))));
+                                .executes(this::closeVote))
+                        .then(rewardBranches())
+                        .then(mapBranch())));
     }
 
     private int connect(CommandContext<ClientCommandSourceStack> context) {
@@ -69,11 +78,86 @@ public final class TwitchCommand {
                 });
     }
 
+    /**
+     * Starts listening for channel-point redemptions.
+     *
+     * <p>The token is not a parameter here and never will be: a command typed into a chat box puts an
+     * account's credentials in a screenshot, a log, and whatever was recording at the time. It comes
+     * from the environment, and the message says so when it is missing.
+     */
+    private int startRewards(CommandContext<ClientCommandSourceStack> context) {
+        Optional<String> failure = rewards.start();
+        if (failure.isPresent()) {
+            context.getSource().arch$sendFailure(Component.translatable(failure.get()));
+            return 0;
+        }
+        context.getSource().arch$sendSuccess(() -> Component.translatable("ddc.stream.rewards_started")
+                .withStyle(ChatFormatting.GOLD), false);
+        return 1;
+    }
+
+    private int stopRewards(CommandContext<ClientCommandSourceStack> context) {
+        rewards.close();
+        context.getSource().arch$sendSuccess(
+                () -> Component.translatable("ddc.stream.rewards_stopped"), false);
+        return 1;
+    }
+
+    /** Maps a reward's title to a command, which is the only thing a redemption can ever do. */
+    private int mapReward(CommandContext<ClientCommandSourceStack> context) {
+        String reward = StringArgumentType.getString(context, ARG_REWARD);
+        String command = StringArgumentType.getString(context, ARG_COMMAND);
+        actions.map(reward, command);
+        context.getSource().arch$sendSuccess(
+                () -> Component.translatable("ddc.stream.reward_mapped", reward, command), false);
+        return 1;
+    }
+
+    private int forgetReward(CommandContext<ClientCommandSourceStack> context) {
+        String reward = StringArgumentType.getString(context, ARG_REWARD);
+        if (!actions.forget(reward)) {
+            context.getSource().arch$sendFailure(
+                    Component.translatable("ddc.stream.reward_unknown", reward));
+            return 0;
+        }
+        context.getSource().arch$sendSuccess(
+                () -> Component.translatable("ddc.stream.reward_forgotten", reward), false);
+        return 1;
+    }
+
+    private int listRewards(CommandContext<ClientCommandSourceStack> context) {
+        if (actions.isEmpty()) {
+            context.getSource().arch$sendSuccess(
+                    () -> Component.translatable("ddc.stream.rewards_none"), false);
+            return 0;
+        }
+        actions.all().forEach((reward, command) -> context.getSource().arch$sendSuccess(
+                () -> Component.translatable("ddc.stream.reward_mapped", reward, command), false));
+        return actions.all().size();
+    }
+
     private int disconnect(CommandContext<ClientCommandSourceStack> context) {
         chat.close();
         vote.close();
         context.getSource().arch$sendSuccess(() -> Component.translatable("ddc.stream.twitch_stopped"), false);
         return 1;
+    }
+
+    /** The {@code rewards} and {@code reward} branches, for PRD 4.5's channel points. */
+    private com.mojang.brigadier.builder.ArgumentBuilder<ClientCommandSourceStack, ?> rewardBranches() {
+        return ClientCommandRegistrationEvent.literal("rewards")
+                .then(ClientCommandRegistrationEvent.literal("start").executes(this::startRewards))
+                .then(ClientCommandRegistrationEvent.literal("stop").executes(this::stopRewards))
+                .then(ClientCommandRegistrationEvent.literal("list").executes(this::listRewards));
+    }
+
+    private com.mojang.brigadier.builder.ArgumentBuilder<ClientCommandSourceStack, ?> mapBranch() {
+        return ClientCommandRegistrationEvent.literal("reward")
+                .then(ClientCommandRegistrationEvent.argument(ARG_REWARD, StringArgumentType.string())
+                        .then(ClientCommandRegistrationEvent.argument(ARG_COMMAND,
+                                        StringArgumentType.greedyString())
+                                .executes(this::mapReward))
+                        .executes(this::forgetReward));
     }
 
     private int openVote(CommandContext<ClientCommandSourceStack> context) {

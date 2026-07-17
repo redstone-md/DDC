@@ -56,6 +56,30 @@ public final class DDCClient {
     /** Twitch chat, for PRD 4.4's viewer votes. Reads nothing until a streamer asks it to. */
     private static final TwitchChat TWITCH = new TwitchChat();
     private static final ChatVote VOTE = new ChatVote();
+    private static final com.ddc.client.stream.RewardActions REWARD_ACTIONS =
+            new com.ddc.client.stream.RewardActions();
+
+    /**
+     * PRD 4.5's channel points: a viewer spends theirs and something happens.
+     *
+     * <p>What happens is a command the streamer mapped, run as the streamer, on the client thread --
+     * so a redemption can do exactly what they could have typed and nothing more. The server checks it
+     * the same way it checks anything else they type, which is why a viewer cannot buy a spawn on a
+     * server that would not let the streamer spawn one.
+     */
+    private static final com.ddc.client.stream.TwitchRewards REWARDS =
+            new com.ddc.client.stream.TwitchRewards(redemption -> {
+                Minecraft client = Minecraft.getInstance();
+                client.execute(() -> REWARD_ACTIONS.commandFor(redemption).ifPresent(command -> {
+                    if (client.player != null) {
+                        client.player.sendSystemMessage(
+                                net.minecraft.network.chat.Component.translatable(
+                                        "ddc.stream.reward_redeemed", redemption.viewer(),
+                                        redemption.reward()).withStyle(net.minecraft.ChatFormatting.GOLD));
+                        client.player.connection.sendCommand(command);
+                    }
+                }));
+            });
 
     /** PRD 3.1's sheet key. */
     private static final KeyMapping SHEET_KEY = new KeyMapping("key.ddc.sheet",
@@ -184,7 +208,7 @@ public final class DDCClient {
                                 })));
 
         new OverlayCommand(OVERLAY).register();
-        new TwitchCommand(TWITCH, VOTE).register();
+        new TwitchCommand(TWITCH, VOTE, REWARDS, REWARD_ACTIONS).register();
         KeyMappingRegistry.register(SHEET_KEY);
         KeyMappingRegistry.register(PANEL_KEY);
         KeyMappingRegistry.register(WHEEL_KEY);
@@ -204,6 +228,7 @@ public final class DDCClient {
             OVERLAY.forgetState();
             OVERLAY.stop();
             TWITCH.close();
+            REWARDS.close();
         });
 
         // The shake moves the player's own head, so it has to happen on the client tick rather than
