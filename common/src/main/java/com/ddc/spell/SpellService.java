@@ -204,6 +204,12 @@ public final class SpellService {
             long now = server.getTickCount();
             for (Pending cast : pending) {
                 if (now < cast.dueTick()) {
+                    // Light gathering at the caster's hand while they work. The runes warn the target;
+                    // this shows the party who is doing it.
+                    if (cast.caster().level() instanceof ServerLevel level && now % 2 == 0) {
+                        SpellEffects.gather(level, cast.caster(), cast.spell(),
+                                1 - (cast.dueTick() - now) / (float) Math.max(1, cast.spell().castTime() * 20));
+                    }
                     continue;
                 }
                 pending.remove(cast);
@@ -234,33 +240,17 @@ public final class SpellService {
      * the caller on this same tick. The bolt is a picture; see {@link SpellBoltEntity}.
      */
     private static void throwBolt(ServerPlayer caster, Spell spell, LivingEntity target) {
-        if (!(caster.level() instanceof ServerLevel level) || spell.rangeInBlocks() < 2) {
+        if (!(caster.level() instanceof ServerLevel level)) {
             return;
         }
-        level.addFreshEntity(SpellBoltEntity.between(level, caster, target, colourOf(spell)));
-        level.playSound(null, caster.blockPosition(), net.minecraft.sounds.SoundEvents.EVOKER_CAST_SPELL,
-                net.minecraft.sounds.SoundSource.PLAYERS, 0.7f, 1.4f);
-    }
-
-    /**
-     * What colour a school of magic is.
-     *
-     * <p>The schools are the SRD's own, and a pack writes whichever it likes; an unknown one gets the
-     * mod's brass rather than a crash, because a pack inventing a school is a pack doing what packs
-     * are for.
-     */
-    private static int colourOf(Spell spell) {
-        return switch (spell.school().toLowerCase(java.util.Locale.ROOT)) {
-            case "evocation" -> 0xFF7B29;
-            case "necromancy" -> 0x6B3FA0;
-            case "abjuration" -> 0x4FA3E3;
-            case "conjuration" -> 0x54C46A;
-            case "enchantment" -> 0xE86AA6;
-            case "divination" -> 0xF2E27A;
-            case "illusion" -> 0x9B7BE8;
-            case "transmutation" -> 0x3FB6A8;
-            default -> 0xC9973F;
-        };
+        SpellEffects.speak(level, caster, spell);
+        if (spell.rangeInBlocks() >= 2) {
+            // A touch spell has nothing to cross, and a bolt travelling two feet is a flicker nobody
+            // reads.
+            level.addFreshEntity(SpellBoltEntity.between(level, caster, target,
+                    SpellEffects.colourOf(spell)));
+        }
+        SpellEffects.land(level, spell, target);
     }
 
     /** The number a target must beat to resist this caster. */
