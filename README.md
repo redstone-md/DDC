@@ -13,7 +13,7 @@
 
 DDC introduces an **asymmetric gameplay model**. Players explore the world as heroic characters with D&D classes, spell slots, and dice checks, while a **Game Master (GM)** controls the environment, possesses monsters, triggers sounds, and narrates the adventure in real-time.
 
-> ### Status: 1.9.2
+> ### Status: 1.10.0
 >
 > **This page describes the full design. The released mod is smaller.** Shipping today: the rules
 > engine, `/roll`, character sheets whose hit points are the player's real health, attack rolls
@@ -53,7 +53,7 @@ DDC introduces an **asymmetric gameplay model**. Players explore the world as he
 
 ---
 
-## 🎲 What 1.9.2 actually does
+## 🎲 What 1.10.0 actually does
 
 | Command | Who | What |
 |---|---|---|
@@ -70,6 +70,12 @@ DDC introduces an **asymmetric gameplay model**. Players explore the world as he
 | `/ddc narrate <text>` | Game Master | Letterboxed cinematic narration on every screen. |
 | `/ddc world <change>` | Game Master | Day, night, storm, stop the clock, freeze the party. |
 | `/ddc encounter <id>` | Game Master | Sets what the wand will place. The wand still chooses where. |
+| `/ddc lock <ability> <dc>` | Game Master | Seals the block you are looking at: it asks for a check before it opens. |
+| `/ddc unlock` | Game Master | Takes the seal off. |
+| `/ddc xp <amount> [players]` | Game Master | Awards experience for the evening's talking rather than its fighting. |
+| `/ddc sound <id>` | Game Master | Plays a soundscape for the whole table. |
+| `/ddc maneuver <name> <target>` | Fighter | Spends a superiority die: trip, parry, push. |
+| `/ddc action-surge` | Fighter | A few seconds of everything at once. |
 
 **Nothing has to be typed.** Press `R` for the wheel: it makes your character, and then it plays
 them. A Game Master holding the wand gets the wand's wheel instead — their encounters, one press away.

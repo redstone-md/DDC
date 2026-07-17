@@ -9,6 +9,28 @@ Each GitHub release carries notes generated from that release's commits by
 is written by hand for what the commits cannot say: why a release is shaped the way it is, and what
 it deliberately leaves out.
 
+## [1.10.0] - 2026-07-17
+
+### Added
+- **A Game Master can seal a block** (PRD 3.2's "lock/unlock door"). `/ddc lock dexterity 15` seals
+  whatever you are looking at; `/ddc unlock` takes it off; both are on the wand's wheel. A data pack
+  can say every iron door is hard to open — only a GM can say that *this* door has the wizard's seal
+  on it, so a seal is on a place rather than a kind of block, and it wins over the pack's general
+  rule. Saved with the world, because a dungeon that unsealed itself on restart is a dungeon built
+  twice.
+- **Spell scrolls** (PRD 6.2). REI and JEI both exist for 26.1 and both read the game's own recipes,
+  so the way to be discoverable in them is to be craftable rather than to ship a plugin: paper, an
+  amethyst shard and ink, one recipe per spell. Which spell a scroll holds is a component on the
+  stack, not an item per spell — that is what keeps the promise for data packs. A scroll costs no
+  slot and needs no preparation, which is the SRD's whole reason for them, and it burns.
+
+### Still not done
+- **Channel-point rewards** (PRD 4.5). DDC reads Twitch chat anonymously; channel points need an
+  authenticated connection and a registered application — an account's credentials, which is the
+  streamer's to give and not a thing this mod will ask for lightly. Chat votes work and now reach the
+  dice.
+- **Modrinth.** The workflow is written. Publishing is the owner's call, not mine.
+
 ## [1.9.2] - 2026-07-17
 
 ### Fixed
