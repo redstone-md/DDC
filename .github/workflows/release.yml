@@ -131,3 +131,22 @@ jobs:
           # Everything staged, not only the jars: dist holds the template pack too, and a glob that
           # named one kind of file silently dropped the other.
           files: dist/*
+
+      # Modrinth, per PRD 5. It runs only once the repo owner has opted in by setting the
+      # MODRINTH_PROJECT_ID variable and a MODRINTH_TOKEN secret -- publishing under someone's account
+      # is their decision, so an unconfigured fork releases to GitHub and quietly skips this. mc-publish
+      # reads each jar's own metadata for its loader, game version and dependencies, so only the mod
+      # jars go up (not the data-pack zips) and nothing is restated here to drift.
+      - name: Publish to Modrinth
+        if: ${{ vars.MODRINTH_PROJECT_ID != '' }}
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          modrinth-id: ${{ vars.MODRINTH_PROJECT_ID }}
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          files: |
+            dist/ddc-fabric-*.jar
+            dist/ddc-neoforge-*.jar
+          name: DDC ${{ steps.version.outputs.number }}
+          version: ${{ steps.version.outputs.number }}
+          version-type: ${{ contains(steps.version.outputs.tag, '-') && 'beta' || 'release' }}
+          changelog-file: RELEASE_NOTES.md

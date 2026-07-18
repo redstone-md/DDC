@@ -25,11 +25,14 @@ DDC introduces an **asymmetric gameplay model**. Players explore the world as he
 > screen gold. Characters level up, the fighter has manoeuvres, doors ask for a roll, and the guide
 > explains all of it in the game. Everything the mod says is translated into English and Russian.
 >
-> Not built: Modrinth publishing. The workflow is written; publishing under someone's name is their
-> decision, not mine.
+> Works with other mods when they are installed: Iron's Spells (mapped DDC spells cast as Iron's
+> spells) and L_Ender's Cataclysm / Mutant Monsters (their bosses as GM encounters).
 >
-> [**CHANGELOG.md**](CHANGELOG.md) lists exactly what is in the release and what is not. Sections
-> below marked _(planned)_ are design intent, not behaviour.
+> One thing waits on a person, not code: **Modrinth publishing**. The release workflow has the step
+> written and it stays dormant until the repo owner sets a `MODRINTH_PROJECT_ID` variable and a
+> `MODRINTH_TOKEN` secret — publishing under someone's account is their decision, not mine.
+>
+> [**CHANGELOG.md**](CHANGELOG.md) lists exactly what is in the release and what is not.
 
 🇷🇺 **[Нажмите здесь, чтобы прочитать README на русском языке.](file:///d:/projects/DDC/README.RU.md)**
 
@@ -56,7 +59,7 @@ DDC introduces an **asymmetric gameplay model**. Players explore the world as he
 
 ---
 
-## 🎲 What 1.14.1 actually does
+## 🎲 What 1.15.0 actually does
 
 | Command | Who | What |
 |---|---|---|
@@ -120,7 +123,7 @@ DDC needs no other mod, but connects to the big ones on 1.21.1 when they are the
 
 ## 🛡️ Gameplay Perspectives _(design intent; see the status note above)_
 
-### 1. From the Player's Perspective _(partly planned)_
+### 1. From the Player's Perspective _(shipped)_
 
 Players experience the mod as an immersive 3D RPG:
 
@@ -138,7 +141,7 @@ Players experience the mod as an immersive 3D RPG:
 
 ---
 
-### 2. From the Game Master's (GM) Perspective _(narration shipped; the rest planned)_
+### 2. From the Game Master's (GM) Perspective _(shipped)_
 
 The GM does not play survival; they act as a director/storyteller:
 
@@ -155,7 +158,7 @@ The GM does not play survival; they act as a director/storyteller:
 
 ---
 
-### 3. From the Streamer / Twitch Audience Perspective ("Twitch-Ready") _(planned)_
+### 3. From the Streamer / Twitch Audience Perspective ("Twitch-Ready") _(shipped)_
 
 DDC is built to turn campaigns into interactive streaming content:
 
