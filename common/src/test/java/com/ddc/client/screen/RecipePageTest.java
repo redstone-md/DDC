@@ -75,7 +75,7 @@ class RecipePageTest {
     private static List<String> ingredientsOf(JsonObject recipe) {
         List<String> ingredients = new ArrayList<>();
         if (recipe.has("ingredients")) {
-            recipe.getAsJsonArray("ingredients").forEach(item -> ingredients.add(item.getAsString()));
+            recipe.getAsJsonArray("ingredients").forEach(item -> ingredients.add(nameOf(item)));
             return ingredients;
         }
         JsonObject key = recipe.getAsJsonObject("key");
@@ -83,11 +83,23 @@ class RecipePageTest {
         for (JsonElement row : pattern) {
             for (char slot : row.getAsString().toCharArray()) {
                 if (slot != ' ') {
-                    ingredients.add(key.get(String.valueOf(slot)).getAsString());
+                    ingredients.add(nameOf(key.get(String.valueOf(slot))));
                 }
             }
         }
         return ingredients;
+    }
+
+    /**
+     * The item an ingredient names, however it is written.
+     *
+     * <p>1.21.1 wants an ingredient as {@code {"item": "..."}}; older packs wrote the id bare. The
+     * page draws the same item either way, so this reads both into the id it is.
+     */
+    private static String nameOf(JsonElement ingredient) {
+        return ingredient.isJsonObject()
+                ? ingredient.getAsJsonObject().get("item").getAsString()
+                : ingredient.getAsString();
     }
 
     private static JsonObject read(Path file) {
