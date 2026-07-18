@@ -1,0 +1,6 @@
+{
+  "name": "The Mutant Zombie Lord",
+  "members": [
+    { "entity": "mutantmonsters:mutant_zombie", "count": 1, "name": "Zombie Lord", "health": 250.0 }
+  ]
+}

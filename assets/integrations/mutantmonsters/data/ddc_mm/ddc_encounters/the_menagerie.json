@@ -1,0 +1,7 @@
+{
+  "name": "The Beastmaster's Menagerie",
+  "members": [
+    { "entity": "mutantmonsters:spider_pig", "count": 2 },
+    { "entity": "mutantmonsters:mutant_snow_golem", "count": 1, "name": "Frostheart", "health": 120.0 }
+  ]
+}

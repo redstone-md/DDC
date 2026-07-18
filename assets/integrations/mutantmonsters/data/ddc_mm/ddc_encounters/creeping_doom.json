@@ -1,0 +1,7 @@
+{
+  "name": "Creeping Doom",
+  "members": [
+    { "entity": "mutantmonsters:mutant_creeper", "count": 1, "name": "Creeping Doom", "health": 180.0 },
+    { "entity": "mutantmonsters:creeper_minion", "count": 3 }
+  ]
+}

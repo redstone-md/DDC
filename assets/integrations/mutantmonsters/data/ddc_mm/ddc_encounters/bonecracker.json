@@ -1,0 +1,7 @@
+{
+  "name": "Bonecracker",
+  "members": [
+    { "entity": "mutantmonsters:mutant_skeleton", "count": 1, "name": "Bonecracker", "health": 150.0 },
+    { "entity": "minecraft:skeleton", "count": 4 }
+  ]
+}

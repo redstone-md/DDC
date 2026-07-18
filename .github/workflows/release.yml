@@ -84,6 +84,11 @@ jobs:
           # PRD 5's companion pack. Zipped from the tag rather than kept as a binary in the repo, so
           # it can never be a version behind the schema it is teaching.
           (cd assets/template && zip -qr "../../dist/ddc-srd-template.zip" .)
+          # Optional integration packs: one zip each, so a player takes only the ones for mods they run.
+          for pack in assets/integrations/*/; do
+            name=$(basename "$pack")
+            (cd "$pack" && zip -qr "$GITHUB_WORKSPACE/dist/ddc-$name.zip" .)
+          done
           ls -l dist
 
       - name: Assemble the release body
@@ -99,6 +104,7 @@ jobs:
             echo "| Fabric | \`ddc-fabric-${{ steps.version.outputs.number }}+${mc}.jar\` |"
             echo "| NeoForge | \`ddc-neoforge-${{ steps.version.outputs.number }}+${mc}.jar\` |"
             echo "| Template data pack | \`ddc-srd-template.zip\` |"
+            echo "| Mutant Monsters pack | \`ddc-mutantmonsters.zip\` (needs the mod) |"
             echo
             echo "Both need Minecraft \`${mc}\`, **Java 25**, and Architectury API. Fabric also needs Fabric API."
             echo

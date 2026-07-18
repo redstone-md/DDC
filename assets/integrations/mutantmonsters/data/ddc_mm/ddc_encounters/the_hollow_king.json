@@ -1,0 +1,7 @@
+{
+  "name": "The Hollow King",
+  "members": [
+    { "entity": "mutantmonsters:mutant_enderman", "count": 1, "name": "The Hollow King", "health": 300.0 },
+    { "entity": "mutantmonsters:endersoul_clone", "count": 2 }
+  ]
+}
