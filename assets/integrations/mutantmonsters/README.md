@@ -8,7 +8,7 @@ any other encounter — to spawn, to possess, and to hand out experience for.
 
 1. Have [DDC](https://github.com/redstone-md/DDC) **and**
    [L_Ender's Mutant Monsters](https://modrinth.com/mod/mutant-monsters) installed, both on Minecraft
-   26.1.2.
+   1.21.1.
 2. Unzip into `<world>/datapacks/` (or keep the zip there — Minecraft reads either), and `/reload`.
 3. The encounters are on the wand: hold it, press the wheel key, and there they are.
 
@@ -34,11 +34,11 @@ with the wand's boss abilities on 1, 2 and 3.
 This pack is nothing but DDC's own encounter format pointing at another mod's entity ids. **That is the
 whole pattern**, and it needs no code and no dependency: DDC scans every namespace's `ddc_encounters/`
 directory, and an entity id it does not recognise is reported at spawn rather than crashing a load. So
-any mod's mobs become DDC encounters the day that mod ships for Minecraft 26 — write a file like these,
-point it at their ids, and `/reload`.
+any mod's mobs become DDC encounters — write a file like these, point it at their ids, and `/reload`.
 
-Mutant Monsters is used here because it is one of the few large mob mods with a 26.1.2 build. When
-Cataclysm, Bosses of Mass Destruction and the rest follow, their packs will look exactly like this one.
+The [Cataclysm pack](../cataclysm/) next door is the same pattern pointed at a different mod's bosses.
+Any large mob mod on 1.21.1 — Bosses of Mass Destruction, Alex's Mobs, and the rest — takes a pack
+that looks exactly like this one.
 
 ## Credit and licence
 

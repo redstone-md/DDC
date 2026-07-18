@@ -1,0 +1,1 @@
+{ "name": "The Kobold Arena", "members": [ { "entity": "cataclysm:kobolediator", "count": 1 }, { "entity": "cataclysm:koboleton", "count": 5 } ] }

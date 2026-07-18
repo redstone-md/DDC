@@ -1,0 +1,1 @@
+{ "name": "The Ender Guardian", "members": [ { "entity": "cataclysm:ender_guardian", "count": 1 }, { "entity": "cataclysm:endermaptera", "count": 3 } ] }

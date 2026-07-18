@@ -70,6 +70,42 @@ class IntegrationPackTest {
         assertTrue(namesTheMod, "an integration pack that never names the mod integrates with nothing");
     }
 
+    @Test
+    @DisplayName("the Cataclysm pack points at that mod's own namespace")
+    void theCataclysmPackNamesItsMod() throws IOException {
+        Path pack = INTEGRATIONS.resolve("cataclysm/data/ddc_cataclysm/ddc_encounters");
+        assertTrue(Files.isDirectory(pack), "the cataclysm encounters are where the pack expects");
+
+        boolean namesTheMod;
+        try (Stream<Path> files = Files.list(pack)) {
+            namesTheMod = files.anyMatch(file -> {
+                try {
+                    return Files.readString(file).contains("cataclysm:");
+                } catch (IOException e) {
+                    throw new java.io.UncheckedIOException(e);
+                }
+            });
+        }
+        assertTrue(namesTheMod, "an integration pack that never names the mod integrates with nothing");
+    }
+
+    @Test
+    @DisplayName("every integration pack declares the 1.21.1 data pack format")
+    void everyPackDeclaresTheFormat() throws IOException {
+        try (Stream<Path> packs = Files.list(INTEGRATIONS)) {
+            List<Path> metas = packs.filter(Files::isDirectory)
+                    .map(dir -> dir.resolve("pack.mcmeta"))
+                    .filter(Files::exists)
+                    .toList();
+            assertFalse(metas.isEmpty(), "an integration pack needs a pack.mcmeta to load at all");
+            for (Path meta : metas) {
+                int format = JsonParser.parseString(Files.readString(meta)).getAsJsonObject()
+                        .getAsJsonObject("pack").get("pack_format").getAsInt();
+                assertTrue(format == 48, meta + ": pack_format is " + format + ", not 48 (Minecraft 1.21.1)");
+            }
+        }
+    }
+
     private static List<Path> integrationEncounters() throws IOException {
         if (!Files.isDirectory(INTEGRATIONS)) {
             return List.of();

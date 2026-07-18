@@ -1,0 +1,1 @@
+{ "name": "The Deepling Raid", "members": [ { "entity": "cataclysm:deepling_priest", "count": 1 }, { "entity": "cataclysm:deepling_brute", "count": 2 }, { "entity": "cataclysm:deepling_warlock", "count": 2 }, { "entity": "cataclysm:deepling", "count": 5 } ] }

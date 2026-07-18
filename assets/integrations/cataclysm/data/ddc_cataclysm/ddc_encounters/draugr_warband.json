@@ -1,0 +1,1 @@
+{ "name": "The Draugr Warband", "members": [ { "entity": "cataclysm:royal_draugr", "count": 1 }, { "entity": "cataclysm:elite_draugr", "count": 2 }, { "entity": "cataclysm:draugr", "count": 6 } ] }
