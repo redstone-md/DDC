@@ -107,6 +107,9 @@ jobs:
             echo "| Cataclysm bosses | \`ddc-cataclysm.zip\` (needs L_Ender's Cataclysm) |"
             echo "| Monsters & Spellbooks | \`ddc-monsterspellbooks.zip\` (needs that mod + Iron's) |"
             echo "| Hazen 'N Stuff | \`ddc-hazennstuff.zip\` (needs that mod + Iron's) |"
+            echo "| Magic From The East | \`ddc-magicfromtheeast.zip\` (needs that mod + Iron's) |"
+            echo "| Apprentice's Codex | \`ddc-apprenticecodex.zip\` (needs that mod + Iron's) |"
+            echo "| Cataclysm: Spellbooks | \`ddc-cataclysm_spellbooks.zip\` (needs that mod + Iron's) |"
             echo "| Mutant Monsters pack | \`ddc-mutantmonsters.zip\` (needs the mod) |"
             echo
             echo "Both need Minecraft \`${mc}\`, **Java 21**, and Architectury API. Fabric also needs Fabric API."
