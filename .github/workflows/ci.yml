@@ -20,12 +20,12 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      # Minecraft 26.1.2 runs on Java 25 and the mod is compiled for it.
-      - name: Set up JDK 25
+      # Minecraft 1.21.1 runs on Java 21.
+      - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '25'
+          java-version: '21'
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
@@ -63,11 +63,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Set up JDK 25
+      - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '25'
+          java-version: '21'
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
