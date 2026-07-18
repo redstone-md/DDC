@@ -72,27 +72,83 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
 
-      - name: Accept the Minecraft EULA for this run
+      # Booting is done on a *real* server built from the shipped jar, not `./gradlew runServer`.
+      # 1.21.1 is obfuscated, so the dev run goes through Architectury's dev transformer, which
+      # cannot resolve the intermediary `class_1937` (Level) and dies before the game starts --
+      # regardless of loom version. The production `remapJar` uses the same transform and works, so
+      # the jar a player installs is what gets booted here. This is the only path that proves it,
+      # and it is closer to what a player actually runs.
+      - name: Read the versions
+        id: v
         run: |
-          mkdir -p ${{ matrix.loader }}/run
-          echo "eula=true" > ${{ matrix.loader }}/run/eula.txt
+          for k in minecraft_version fabric_loader_version fabric_api_version neoforge_version architectury_api_version; do
+            echo "$k=$(grep "^$k=" gradle.properties | cut -d= -f2)" >> "$GITHUB_OUTPUT"
+          done
+
+      - name: Build the ${{ matrix.loader }} jar
+        run: ./gradlew :${{ matrix.loader }}:remapJar --console=plain
+
+      - name: Set up a standalone Fabric server
+        if: matrix.loader == 'fabric'
+        env:
+          MC: ${{ steps.v.outputs.minecraft_version }}
+          FL: ${{ steps.v.outputs.fabric_loader_version }}
+          FAPI: ${{ steps.v.outputs.fabric_api_version }}
+          ARCH: ${{ steps.v.outputs.architectury_api_version }}
+        run: |
+          set -euo pipefail
+          mkdir -p run/mods
+          inst=$(curl -sf https://meta.fabricmc.net/v2/versions/installer | jq -r '.[0].version')
+          curl -sfL -o run/server.jar "https://meta.fabricmc.net/v2/versions/loader/$MC/$FL/$inst/server/jar"
+          curl -sfL -o run/mods/fabric-api.jar "https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/$FAPI/fabric-api-$FAPI.jar"
+          curl -sfL -o run/mods/architectury.jar "https://maven.architectury.dev/dev/architectury/architectury-fabric/$ARCH/architectury-fabric-$ARCH.jar"
+          jar=$(ls fabric/build/libs/ddc-fabric-*.jar | grep -Ev -- '-(sources|raw|dev|dev-shadow)\.jar$' | head -1)
+          cp "$jar" run/mods/
+          echo "START=java -Xmx2G -jar server.jar nogui" >> "$GITHUB_ENV"
+
+      - name: Set up a standalone NeoForge server
+        if: matrix.loader == 'neoforge'
+        env:
+          NEO: ${{ steps.v.outputs.neoforge_version }}
+          ARCH: ${{ steps.v.outputs.architectury_api_version }}
+        run: |
+          set -euo pipefail
+          curl -sfL -o installer.jar "https://maven.neoforged.net/releases/net/neoforged/neoforge/$NEO/neoforge-$NEO-installer.jar"
+          mkdir -p run && (cd run && java -jar ../installer.jar --installServer)
+          mkdir -p run/mods
+          curl -sfL -o run/mods/architectury.jar "https://maven.architectury.dev/dev/architectury/architectury-neoforge/$ARCH/architectury-neoforge-$ARCH.jar"
+          jar=$(ls neoforge/build/libs/ddc-neoforge-*.jar | grep -Ev -- '-(sources|raw|dev|dev-shadow)\.jar$' | head -1)
+          cp "$jar" run/mods/
+          echo "-Xmx2G" > run/user_jvm_args.txt
+          echo "START=./run.sh nogui" >> "$GITHUB_ENV"
 
       # Compiling proves the mod builds; only booting proves it loads. The data pack pipeline is the
-      # part most likely to break silently, so the log line it prints is the assertion.
+      # part most likely to break silently, so the log line it prints is the assertion. The server
+      # never stops on its own, so poll the log and stop as soon as it is up (or has crashed) rather
+      # than idling to a timeout.
       - name: Boot the server and check the mod loads
+        working-directory: run
         run: |
-          set -o pipefail
-          timeout 480 ./gradlew :${{ matrix.loader }}:runServer --console=plain < /dev/null \
-            2>&1 | tee server.log || true
+          echo "eula=true" > eula.txt
+          timeout 420 $START > server.log 2>&1 &
+          pid=$!
+          for _ in $(seq 1 420); do
+            grep -q "Done (" server.log && break
+            grep -qiE "Failed to start|A problem occurred|Exception in server tick|Crash report" server.log && break
+            kill -0 $pid 2>/dev/null || break
+            sleep 1
+          done
+          kill $pid 2>/dev/null || true
+          wait $pid 2>/dev/null || true
 
           grep -q "Initialising Dungeons, Dragons & Crafting" server.log \
-            || { echo "::error::the mod did not initialise"; exit 1; }
+            || { echo "::error::the mod did not initialise"; tail -40 server.log; exit 1; }
           for line in "Loaded 4 character classes" "Loaded 4 races" "Loaded 5 spells" "Loaded 3 encounters"; do
             grep -q "$line" server.log \
               || { echo "::error::the built-in data pack did not load: expected '$line'"; exit 1; }
           done
           grep -q "Done (" server.log \
-            || { echo "::error::the server never finished starting"; exit 1; }
+            || { echo "::error::the server never finished starting"; tail -40 server.log; exit 1; }
           grep -o 'Loaded [0-9]* [a-z ]*: \[.*' server.log
 
       - name: Upload the log
@@ -100,5 +156,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.side }}-log-${{ matrix.loader }}
-          path: server.log
+          path: run/server.log
           retention-days: 7
