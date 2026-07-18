@@ -59,7 +59,8 @@ public class SpellScrollItem extends Item {
         if (!(player instanceof ServerPlayer caster)) {
             return InteractionResult.SUCCESS;
         }
-        Optional<Spell> spell = spellOn(stack).flatMap(spells::get);
+        Optional<ResourceLocation> spellId = spellOn(stack);
+        Optional<Spell> spell = spellId.flatMap(spells::get);
         if (spell.isEmpty()) {
             // A scroll for a spell whose pack is gone. It says so rather than doing nothing, because
             // a blank scroll and a broken one look identical in a hand.
@@ -68,7 +69,7 @@ public class SpellScrollItem extends Item {
             return InteractionResult.FAIL;
         }
 
-        return switch (casting.castFromScroll(caster, spell.get(), target)) {
+        return switch (casting.castFromScroll(caster, spell.get(), spellId.get(), target)) {
             case SpellService.Either.Left<SpellService.Failure, SpellService.Cast> left -> {
                 caster.sendSystemMessage(left.value().message().copy().withStyle(ChatFormatting.RED));
                 yield InteractionResult.FAIL;

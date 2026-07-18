@@ -98,7 +98,7 @@ public final class SpellService {
         if (payment.isPresent()) {
             return Either.left(payment.get());
         }
-        return Either.right(resolve(caster, sheet, casting.get(), spell, target));
+        return Either.right(resolve(caster, sheet, casting.get(), spell, spellId, target));
     }
 
     /**
@@ -109,7 +109,8 @@ public final class SpellService {
      * able to cast at all: reading magic is a thing wizards learn, and a fighter holding a scroll is
      * a fighter holding paper.
      */
-    public Either<Failure, Cast> castFromScroll(ServerPlayer caster, Spell spell, LivingEntity target) {
+    public Either<Failure, Cast> castFromScroll(ServerPlayer caster, Spell spell, ResourceLocation spellId,
+            LivingEntity target) {
         CharacterSheet sheet = characters.get(caster);
         Optional<CharacterClass> definition = characters.definitionFor(sheet);
         if (definition.isEmpty()) {
@@ -122,7 +123,7 @@ public final class SpellService {
         if (caster.distanceTo(target) > spell.rangeInBlocks()) {
             return Either.left(Failure.OUT_OF_RANGE);
         }
-        return Either.right(resolve(caster, sheet, casting.get(), spell, target));
+        return Either.right(resolve(caster, sheet, casting.get(), spell, spellId, target));
     }
 
     /**
@@ -148,7 +149,13 @@ public final class SpellService {
 
     /** Rolls the spell's damage and its save, and applies what survives. */
     private Cast resolve(ServerPlayer caster, CharacterSheet sheet, Spellcasting casting, Spell spell,
-            LivingEntity target) {
+            ResourceLocation spellId, LivingEntity target) {
+        // An addon may cast this spell itself -- Iron's Spells casts its own equivalent, with its own
+        // damage and its own look. DDC gated it by the rules and paid the slot; if the addon takes it,
+        // the effect is entirely the addon's and DDC neither rolls its own dice nor draws its own bolt.
+        if (SpellPresentations.present(caster, spell, spellId, target)) {
+            return new Cast(spell, Optional.empty(), Optional.empty(), 0);
+        }
         throwBolt(caster, spell, target);
         Optional<CheckOutcome> save = spell.savingThrow()
                 .map(throwSpec -> rollSave(target, throwSpec.ability(), saveDc(sheet, casting)));
@@ -193,7 +200,7 @@ public final class SpellService {
      * pack asked for to do something about it.
      */
     private record Pending(ServerPlayer caster, CharacterSheet sheet, Spellcasting casting, Spell spell,
-            LivingEntity target, long dueTick) {
+            ResourceLocation spellId, LivingEntity target, long dueTick) {
     }
 
     private final java.util.List<Pending> pending = new java.util.concurrent.CopyOnWriteArrayList<>();
@@ -217,7 +224,7 @@ public final class SpellService {
                 // fireball from a corpse is nobody's idea of a rule.
                 if (cast.caster().isAlive() && cast.target().isAlive()) {
                     announce(cast.caster(), resolve(cast.caster(), cast.sheet(), cast.casting(),
-                            cast.spell(), cast.target()), cast.target());
+                            cast.spell(), cast.spellId(), cast.target()), cast.target());
                 }
             }
         });

@@ -11,6 +11,20 @@ it deliberately leaves out.
 
 ## [1.15.0] - 2026-07-18
 
+### Added
+- **Iron's Spells 'n Spellbooks bridge.** With Iron's installed, a DDC spell that has an equivalent
+  casts as that Iron's spell — its projectile, its animation, its light — while DDC keeps the rules
+  (class, slot, range). Five spells map today: fire bolt → firebolt, fireball → fireball, magic
+  missile → magic missile, sacred flame → guiding bolt, burning hands → flaming barrage; the ids were
+  read from Iron's own spell classes. Iron's is All Rights Reserved and allows addons but not the reuse
+  of its code or assets, so the bridge holds no Iron's class at compile time and ships no Iron's file:
+  it reaches the mod's public API by reflection, guarded by a check that the API is present. Absent —
+  on Fabric, where Iron's does not exist, or a NeoForge install without it — DDC's own particle spells
+  run exactly as before. Addons hook in through a new `SpellPresentation` seam that any mod can use.
+- **L_Ender's Cataclysm integration pack.** Sixteen encounters — the eight dungeon bosses each as a
+  set-piece, plus eight warbands from the lesser monsters — as a data-only pack pointing at Cataclysm's
+  entity ids. No code, no dependency; ships as `ddc-cataclysm.zip`.
+
 ### Changed
 - **Minecraft 1.21.1 is now the primary target.** DDC was built for 26.1.2, but the mods worth
   connecting to — Iron's Spells 'n Spellbooks and L_Ender's Cataclysm — live on 1.21.1 and have not

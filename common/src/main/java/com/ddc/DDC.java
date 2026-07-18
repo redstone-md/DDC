@@ -99,6 +99,10 @@ public final class DDC {
         new com.ddc.check.BlockCheckListener(DDCRegistries.BLOCK_CHECKS, checkService).register();
         SpellService spellService = new SpellService(characters, diceRolls, DiceRoller.random());
         spellService.register();
+        // If Iron's Spells is installed, mapped DDC spells cast as its spells instead of DDC's own
+        // particles. Absent -- as on Fabric, where Iron's does not exist -- this finds nothing and DDC
+        // keeps its own effects.
+        com.ddc.integration.irons.IronsSpellbooks.install();
         // The wand and the staff cast through the same service a command does, so they are registered
         // once it exists rather than as static fields that could not have it.
         DDCItems.registerCasting(characters, DDCRegistries.SPELLS, spellService);
