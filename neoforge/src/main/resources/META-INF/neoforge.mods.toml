@@ -30,7 +30,7 @@ side = "BOTH"
 [[dependencies.${mod_id}]]
 modId = "architectury"
 type = "required"
-versionRange = "[20.0.9,)"
+versionRange = "[13.0.8,)"
 ordering = "AFTER"
 side = "BOTH"
 

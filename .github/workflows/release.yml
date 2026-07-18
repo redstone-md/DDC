@@ -106,7 +106,7 @@ jobs:
             echo "| Template data pack | \`ddc-srd-template.zip\` |"
             echo "| Mutant Monsters pack | \`ddc-mutantmonsters.zip\` (needs the mod) |"
             echo
-            echo "Both need Minecraft \`${mc}\`, **Java 25**, and Architectury API. Fabric also needs Fabric API."
+            echo "Both need Minecraft \`${mc}\`, **Java 21**, and Architectury API. Fabric also needs Fabric API."
             echo
             echo "---"
             echo

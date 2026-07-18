@@ -2,11 +2,18 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    "minecraft:book",
-    "minecraft:amethyst_shard",
-    "minecraft:ink_sac"
+    {
+      "item": "minecraft:book"
+    },
+    {
+      "item": "minecraft:amethyst_shard"
+    },
+    {
+      "item": "minecraft:ink_sac"
+    }
   ],
   "result": {
-    "id": "ddc:spellbook"
+    "id": "ddc:spellbook",
+    "count": 1
   }
 }

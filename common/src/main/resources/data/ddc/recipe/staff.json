@@ -7,11 +7,18 @@
     "s  "
   ],
   "key": {
-    "a": "minecraft:amethyst_shard",
-    "b": "minecraft:amethyst_block",
-    "s": "minecraft:stick"
+    "a": {
+      "item": "minecraft:amethyst_shard"
+    },
+    "b": {
+      "item": "minecraft:amethyst_block"
+    },
+    "s": {
+      "item": "minecraft:stick"
+    }
   },
   "result": {
-    "id": "ddc:staff"
+    "id": "ddc:staff",
+    "count": 1
   }
 }

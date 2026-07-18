@@ -40,14 +40,3 @@ jar {
     archiveClassifier = "dev"
 }
 
-sourcesJar {
-    def commonSources = project(":common").tasks.named("sourcesJar")
-    dependsOn commonSources
-    from commonSources.map { zipTree(it.archiveFile) }
-}
-
-components.java {
-    withVariantsFromConfiguration(project.configurations.shadowRuntimeElements) {
-        skip()
-    }
-}

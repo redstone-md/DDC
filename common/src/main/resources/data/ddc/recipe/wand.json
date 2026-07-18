@@ -7,10 +7,15 @@
     "s  "
   ],
   "key": {
-    "a": "minecraft:amethyst_shard",
-    "s": "minecraft:stick"
+    "a": {
+      "item": "minecraft:amethyst_shard"
+    },
+    "s": {
+      "item": "minecraft:stick"
+    }
   },
   "result": {
-    "id": "ddc:wand"
+    "id": "ddc:wand",
+    "count": 1
   }
 }
