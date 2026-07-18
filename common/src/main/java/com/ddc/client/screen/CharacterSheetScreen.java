@@ -59,8 +59,8 @@ public class CharacterSheetScreen extends Screen {
      * {@code extractRenderState} rather than the {@code render} older versions had.
      */
     @Override
-    public void extractRenderState(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        super.render(graphics, mouseX, mouseY, partialTick);
 
         int left = (width - CARD_WIDTH) / 2;
         int top = (height - CARD_HEIGHT) / 2;

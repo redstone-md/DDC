@@ -94,7 +94,7 @@ public class GameMasterScreen extends Screen {
     }
 
     @Override
-    public void extractRenderState(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         int left = (width - PANEL_WIDTH) / 2;
         int top = height / 2 - 84;
         int panelHeight = 14 + (BUTTON_HEIGHT + GAP) * 2 + 8
@@ -105,6 +105,6 @@ public class GameMasterScreen extends Screen {
         graphics.renderOutline(left - 8, top, PANEL_WIDTH + 16, panelHeight, BORDER);
         graphics.drawString(font, Component.translatable("ddc.screen.gm"), left, top + 6, BRASS);
 
-        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
+        super.render(graphics, mouseX, mouseY, partialTick);
     }
 }

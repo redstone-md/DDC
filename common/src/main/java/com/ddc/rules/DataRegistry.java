@@ -73,6 +73,15 @@ public class DataRegistry<T> extends SimpleJsonResourceReloadListener {
         return Optional.ofNullable(entries.get(id));
     }
 
+    /**
+     * Sets the entries directly, standing in for a reload. Package-visible so only a test in this
+     * package can reach it -- a registry anything could write to would be a registry no pack owned.
+     */
+    void putForTest(Map<ResourceLocation, T> loaded) {
+        entries = Map.copyOf(loaded);
+        DDCRegistryEvents.announce(this, entries);
+    }
+
     public Set<ResourceLocation> ids() {
         return Collections.unmodifiableSet(entries.keySet());
     }

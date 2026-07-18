@@ -1,7 +1,6 @@
 package com.ddc.client;
 
 import com.ddc.DDC;
-import com.ddc.mixin.client.GameRendererInvoker;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -43,10 +42,10 @@ public final class ColourGrade {
             return;
         }
         Minecraft client = Minecraft.getInstance();
-        if (client.gameRenderer == null || client.gameRenderer.currentPostEffect() != null) {
+        if (client.gameRenderer == null || client.gameRenderer.currentEffect() != null) {
             return;
         }
-        ((GameRendererInvoker) client.gameRenderer).ddc$setPostEffect(natural20 ? CRITICAL : FUMBLE);
+        ((com.ddc.mixin.client.GameRendererInvoker) client.gameRenderer).ddc$loadEffect(natural20 ? CRITICAL : FUMBLE);
         grading = true;
         endsAtMs = nowMs + GRADE_MS;
     }
@@ -64,7 +63,7 @@ public final class ColourGrade {
         grading = false;
         Minecraft client = Minecraft.getInstance();
         if (client.gameRenderer != null) {
-            client.gameRenderer.clearPostEffect();
+            client.gameRenderer.shutdownEffect();
         }
     }
 

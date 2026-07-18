@@ -23,7 +23,6 @@ import com.mojang.brigadier.tree.CommandNode;
 import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.permissions.PermissionSet;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import org.junit.jupiter.api.BeforeAll;
@@ -58,8 +57,8 @@ class CharacterCommandTest {
                 .register(dispatcher);
     }
 
-    private static CommandSourceStack source(PermissionSet permissions) {
-        return new CommandSourceStack(CommandSource.NULL, Vec3.ZERO, Vec2.ZERO, null, permissions,
+    private static CommandSourceStack source(int permission) {
+        return new CommandSourceStack(CommandSource.NULL, Vec3.ZERO, Vec2.ZERO, null, permission,
                 "tester", Component.literal("tester"), null, null);
     }
 
@@ -74,8 +73,8 @@ class CharacterCommandTest {
 
     @Test
     void everyPlayerCanReadTheirSheetAndPickAClass() {
-        assertTrue(node("ddc", "sheet").canUse(source(PermissionSet.NO_PERMISSIONS)));
-        assertTrue(node("ddc", "class").canUse(source(PermissionSet.NO_PERMISSIONS)));
+        assertTrue(node("ddc", "sheet").canUse(source(0)));
+        assertTrue(node("ddc", "class").canUse(source(0)));
     }
 
     @Test
@@ -83,8 +82,8 @@ class CharacterCommandTest {
     void narrationIsGameMasterOnly() {
         CommandNode<CommandSourceStack> narrate = node("ddc", "narrate");
 
-        assertFalse(narrate.canUse(source(PermissionSet.NO_PERMISSIONS)));
-        assertTrue(narrate.canUse(source(PermissionSet.ALL_PERMISSIONS)));
+        assertFalse(narrate.canUse(source(0)));
+        assertTrue(narrate.canUse(source(4)));
     }
 
     /**
@@ -93,7 +92,7 @@ class CharacterCommandTest {
      */
     @Test
     void anOrdinaryPlayerCannotParseANarration() {
-        var results = dispatcher.parse("ddc narrate the walls tremble", source(PermissionSet.NO_PERMISSIONS));
+        var results = dispatcher.parse("ddc narrate the walls tremble", source(0));
 
         assertTrue(results.getReader().canRead(), "the narration text was never consumed");
         assertEquals(1, results.getContext().getNodes().size(), "parsing stopped at /ddc");
@@ -101,7 +100,7 @@ class CharacterCommandTest {
 
     @Test
     void aGameMastersNarrationParses() {
-        var results = dispatcher.parse("ddc narrate the walls tremble", source(PermissionSet.ALL_PERMISSIONS));
+        var results = dispatcher.parse("ddc narrate the walls tremble", source(4));
 
         assertTrue(results.getExceptions().isEmpty());
         assertFalse(results.getReader().canRead());
@@ -114,8 +113,8 @@ class CharacterCommandTest {
     void worldControlIsGameMasterOnly() {
         CommandNode<CommandSourceStack> world = node("ddc", "world");
 
-        assertFalse(world.canUse(source(PermissionSet.NO_PERMISSIONS)));
-        assertTrue(world.canUse(source(PermissionSet.ALL_PERMISSIONS)));
+        assertFalse(world.canUse(source(0)));
+        assertTrue(world.canUse(source(4)));
     }
 
     @Test
@@ -130,11 +129,11 @@ class CharacterCommandTest {
 
     @Test
     void everyPlayerCanRollAnAbilityCheckAndUseTheirFeatures() {
-        assertTrue(node("ddc", "check").canUse(source(PermissionSet.NO_PERMISSIONS)));
-        assertTrue(node("ddc", "second-wind").canUse(source(PermissionSet.NO_PERMISSIONS)));
-        assertTrue(node("ddc", "channel-divinity").canUse(source(PermissionSet.NO_PERMISSIONS)));
-        assertTrue(node("ddc", "cast").canUse(source(PermissionSet.NO_PERMISSIONS)));
-        assertTrue(node("ddc", "rest").canUse(source(PermissionSet.NO_PERMISSIONS)));
+        assertTrue(node("ddc", "check").canUse(source(0)));
+        assertTrue(node("ddc", "second-wind").canUse(source(0)));
+        assertTrue(node("ddc", "channel-divinity").canUse(source(0)));
+        assertTrue(node("ddc", "cast").canUse(source(0)));
+        assertTrue(node("ddc", "rest").canUse(source(0)));
     }
 
     @Test

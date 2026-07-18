@@ -15,7 +15,6 @@ import com.mojang.brigadier.tree.CommandNode;
 import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.permissions.PermissionSet;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import org.junit.jupiter.api.BeforeAll;
@@ -37,20 +36,20 @@ class CheckCommandTest {
                         new DiceRollService(DiceRoller.replaying(1L)))).branch()));
     }
 
-    private static CommandSourceStack source(PermissionSet permissions) {
-        return new CommandSourceStack(CommandSource.NULL, Vec3.ZERO, Vec2.ZERO, null, permissions,
+    private static CommandSourceStack source(int permission) {
+        return new CommandSourceStack(CommandSource.NULL, Vec3.ZERO, Vec2.ZERO, null, permission,
                 "tester", Component.literal("tester"), null, null);
     }
 
-    private static boolean parsesCleanly(String command, PermissionSet permissions) {
-        var results = dispatcher.parse(command, source(permissions));
+    private static boolean parsesCleanly(String command, int permission) {
+        var results = dispatcher.parse(command, source(permission));
         return !results.getReader().canRead() && results.getExceptions().isEmpty();
     }
 
     @Test
     void anyPlayerCanCallForTheirOwnCheck() {
-        assertTrue(parsesCleanly("ddc check dexterity 15", PermissionSet.NO_PERMISSIONS));
-        assertTrue(parsesCleanly("ddc check str 10", PermissionSet.NO_PERMISSIONS));
+        assertTrue(parsesCleanly("ddc check dexterity 15", 0));
+        assertTrue(parsesCleanly("ddc check str 10", 0));
     }
 
     @Test
@@ -60,13 +59,13 @@ class CheckCommandTest {
                 .getChild("ddc").getChild("check").getChild("ability").getChild("dc").getChild("player");
         assertNotNull(node, "the GM branch is missing");
 
-        assertFalse(node.canUse(source(PermissionSet.NO_PERMISSIONS)));
-        assertTrue(node.canUse(source(PermissionSet.ALL_PERMISSIONS)));
+        assertFalse(node.canUse(source(0)));
+        assertTrue(node.canUse(source(4)));
     }
 
     @Test
     void aPlayerCannotRollSomeoneElsesDice() {
-        var results = dispatcher.parse("ddc check dexterity 15 Steve", source(PermissionSet.NO_PERMISSIONS));
+        var results = dispatcher.parse("ddc check dexterity 15 Steve", source(0));
 
         assertTrue(results.getReader().canRead(), "the player argument was never consumed");
     }
@@ -74,15 +73,15 @@ class CheckCommandTest {
     @Test
     @DisplayName("the difficulty stays inside the SRD's range")
     void refusesADifficultyOutsideTheTable() {
-        assertFalse(parsesCleanly("ddc check dexterity 0", PermissionSet.NO_PERMISSIONS));
-        assertFalse(parsesCleanly("ddc check dexterity 31", PermissionSet.NO_PERMISSIONS));
-        assertTrue(parsesCleanly("ddc check dexterity 30", PermissionSet.NO_PERMISSIONS));
+        assertFalse(parsesCleanly("ddc check dexterity 0", 0));
+        assertFalse(parsesCleanly("ddc check dexterity 31", 0));
+        assertTrue(parsesCleanly("ddc check dexterity 30", 0));
     }
 
     @Test
     void everyAbilityIsSuggested() {
         var suggestions = dispatcher.getCompletionSuggestions(
-                        dispatcher.parse("ddc check ", source(PermissionSet.NO_PERMISSIONS)))
+                        dispatcher.parse("ddc check ", source(0)))
                 .join().getList();
 
         assertEquals(6, suggestions.size(), "all six abilities");

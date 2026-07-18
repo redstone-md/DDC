@@ -45,12 +45,12 @@ public final class DDCClient {
     private static final KeyMapping STREAMER_KEY = new KeyMapping("key.ddc.streamer",
             org.lwjgl.glfw.GLFW.GLFW_KEY_O, keyCategory());
 
-    private static KeyMapping.Category keyCategory() {
+    /** 1.21.1 keybinds are grouped by a translation-key string, not a Category object. */
+    private static final String KEY_CATEGORY = "key.categories.ddc";
+
+    private static String keyCategory() {
         return KEY_CATEGORY;
     }
-
-    private static final KeyMapping.Category KEY_CATEGORY =
-            KeyMapping.Category.register(com.ddc.DDC.id("keys"));
 
     private static final RollLog ROLL_LOG = new RollLog();
     private static final CharacterHud CHARACTER_HUD = new CharacterHud();
@@ -209,9 +209,9 @@ public final class DDCClient {
         };
         client.options.setCameraType(next);
         // Above the hotbar: a camera change is a thing you see happen, not a thing to read about.
-        client.player.sendOverlayMessage(net.minecraft.network.chat.Component.translatable(
+        client.player.displayClientMessage(net.minecraft.network.chat.Component.translatable(
                 "ddc.gm.view", net.minecraft.network.chat.Component.translatable(
-                        "options.thirdperson." + next.name().toLowerCase(java.util.Locale.ROOT))));
+                        "options.thirdperson." + next.name().toLowerCase(java.util.Locale.ROOT))), true);
     }
 
     public static void init() {
@@ -266,7 +266,7 @@ public final class DDCClient {
                                 .executes(context -> {
                                     // Opened on the next tick: a screen cannot be set from inside the
                                     // command that is still running.
-                                    Minecraft.getInstance().schedule(
+                                    Minecraft.getInstance().execute(
                                             () -> Minecraft.getInstance().setScreen(new GuideScreen()));
                                     return 1;
                                 })));
@@ -282,12 +282,12 @@ public final class DDCClient {
                             || !ClientRules.isGameMaster()
                             || !player.getMainHandItem().is(com.ddc.registry.DDCItems.GM_WAND.get())
                             || player.isCrouching()) {
-                        return net.minecraft.world.InteractionResult.PASS;
+                        return dev.architectury.event.EventResult.pass();
                     }
-                    Minecraft.getInstance().schedule(() ->
+                    Minecraft.getInstance().execute(() ->
                             Minecraft.getInstance().setScreen(
                                     com.ddc.client.screen.BlockWheel.forBlock(pos)));
-                    return net.minecraft.world.InteractionResult.FAIL;
+                    return dev.architectury.event.EventResult.interruptFalse();
                 });
 
         new OverlayCommand(OVERLAY).register();

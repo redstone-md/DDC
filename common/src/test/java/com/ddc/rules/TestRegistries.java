@@ -47,7 +47,7 @@ public final class TestRegistries {
      * and a test in the package is the one caller that has business standing in for a reload.
      */
     private static <T> DataRegistry<T> loaded(DataRegistry<T> registry, Map<ResourceLocation, T> entries) {
-        registry.apply(entries, null, null);
+        registry.putForTest(entries);
         return registry;
     }
 

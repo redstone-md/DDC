@@ -153,15 +153,15 @@ public class WheelScreen extends Screen {
 
     /** Minecraft 26 hands input in as events rather than as loose numbers. */
     @Override
-    public boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent event, boolean doubleClick) {
-        mouseMoved(event.x(), event.y());
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        mouseMoved(mouseX, mouseY);
         run();
         return true;
     }
 
     /** Releasing the key that opened it runs the choice, which is what makes it one gesture. */
     @Override
-    public boolean keyReleased(net.minecraft.client.input.KeyEvent event) {
+    public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
         run();
         return true;
     }
@@ -210,7 +210,7 @@ public class WheelScreen extends Screen {
     }
 
     @Override
-    public void extractRenderState(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         // Follows the mouse even when it has not moved since the wheel opened.
         chosen = pointingAt(mouseX - width / 2.0, mouseY - height / 2.0, options.size()).orElse(-1);
 
@@ -230,7 +230,7 @@ public class WheelScreen extends Screen {
         for (int i = 0; i < options.size(); i++) {
             drawSlice(graphics, i);
         }
-        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
+        super.render(graphics, mouseX, mouseY, partialTick);
     }
 
     private void drawSlice(GuiGraphics graphics, int index) {

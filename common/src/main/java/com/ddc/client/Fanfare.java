@@ -68,7 +68,7 @@ public final class Fanfare {
         // Some sound constants are plain events and some are registry holders in 26.x; unwrap the
         // holder rather than mixing the two in a conditional.
         player.level().playLocalSound(player.getX(), player.getY(), player.getZ(),
-                critical ? SoundEvents.PLAYER_LEVELUP : SoundEvents.ITEM_BREAK.value(),
+                critical ? SoundEvents.PLAYER_LEVELUP : SoundEvents.ITEM_BREAK,
                 SoundSource.PLAYERS, 1.0f, critical ? 1.2f : 0.7f, false);
 
         for (int i = 0; i < 40; i++) {

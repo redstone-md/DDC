@@ -136,19 +136,19 @@ public final class GuideScreen extends Screen {
 
     /** Arrow keys turn pages, because a book with only mouse buttons is a website. */
     @Override
-    public boolean keyPressed(net.minecraft.client.input.KeyEvent event) {
-        switch (event.key()) {
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        switch (keyCode) {
             case org.lwjgl.glfw.GLFW.GLFW_KEY_LEFT -> turn(-1);
             case org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT -> turn(1);
             default -> {
-                return super.keyPressed(event);
+                return super.keyPressed(keyCode, scanCode, modifiers);
             }
         }
         return true;
     }
 
     @Override
-    public void extractRenderState(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         // No blur asked for: a Screen blurs what is behind it already, and asking twice in one frame
         // is an error the renderer throws on.
         graphics.fill(0, 0, width, height, BACKDROP);
@@ -181,6 +181,6 @@ public final class GuideScreen extends Screen {
             RecipePage.render(graphics, font, left + PADDING, y, PANEL_WIDTH - PADDING * 2);
         }
 
-        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
+        super.render(graphics, mouseX, mouseY, partialTick);
     }
 }
