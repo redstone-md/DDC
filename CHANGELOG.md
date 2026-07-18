@@ -9,6 +9,31 @@ Each GitHub release carries notes generated from that release's commits by
 is written by hand for what the commits cannot say: why a release is shaped the way it is, and what
 it deliberately leaves out.
 
+## [1.15.0] - 2026-07-18
+
+### Changed
+- **Minecraft 1.21.1 is now the primary target.** DDC was built for 26.1.2, but the mods worth
+  connecting to — Iron's Spells 'n Spellbooks and L_Ender's Cataclysm — live on 1.21.1 and have not
+  ported to 26.x. A survey of eight candidates found only Mutant Monsters on a 26.x build, so the
+  ecosystem DDC wants to be an addon *to* is on 1.21.1. Rather than wait for it to move, DDC moved:
+  `main` is 1.21.1, and it installs alongside those mods today.
+- The whole codebase was ported across the 26.x → 1.21.1 API gap: `Identifier` → `ResourceLocation`,
+  the render-state entity renderers back to the old `render(...)` model, `SavedDataType` → `SavedData`
+  factories, the generic JSON reload listener to the non-generic one, the GM permission from
+  `COMMANDS_GAMEMASTER` to op level 2, and the dozens of `MobEffects`/`SoundEvents`/method renames
+  between the two. The build maps against official Mojang mappings with Parchment, so loom remaps
+  both loader jars.
+
+### Preserved
+- **26.1.2 support lives on the [`mc-26.1.2`](https://github.com/redstone-md/DDC/tree/mc-26.1.2)
+  branch**, unchanged and buildable, so nothing that ran on 26.x lost its home.
+
+### Verified
+- The 1.21.1 build was proven at runtime, not just at compile: the production jar was loaded onto a
+  standalone Fabric 1.21.1 server with Fabric API and Architectury. 44 mods load, DDC initialises,
+  all four classes / four races / five spells / three encounters / three block checks load, 1298
+  recipes parse, `Done` in 18s, zero errors and no mixin failure. 445 unit tests stay green.
+
 ## [1.14.1] - 2026-07-17
 
 ### Removed

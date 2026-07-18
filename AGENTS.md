@@ -1,15 +1,17 @@
 # DDC (Dungeons, Dragons & Crafting) - Root AGENTS.md
 
-Welcome, AI Agent. This is the root configuration and instruction file for the DDC (Dungeons, Dragons & Crafting) Minecraft mod. DDC is a multi-loader, multi-version mod targeting Minecraft 26.1.2, with native support for Fabric and NeoForge.
+Welcome, AI Agent. This is the root configuration and instruction file for the DDC (Dungeons, Dragons & Crafting) Minecraft mod. DDC is a multi-loader, multi-version mod. `main` targets **Minecraft 1.21.1** (the version where Iron's Spells 'n Spellbooks and L_Ender's Cataclysm live, so DDC installs alongside them); the **`mc-26.1.2`** branch keeps the 26.1.2 build. Both have native support for Fabric and NeoForge.
 
 You must follow the instructions, architecture rules, and validation gates defined here.
 
 ---
 
 ## 1. Project Overview & Tech Stack
-DDC integrates D&D tabletop rules and roleplay directly into the Minecraft voxel engine. It supports:
-- **Minecraft Version**: `26.1.2`
-- **Language**: Java 25. Minecraft 26.1.2 requires it (`piston-meta` reports `javaVersion.majorVersion=25`); an earlier draft of this file said Java 21, which the game will not run on. The version lives in `gradle.properties` as `java_version`.
+DDC integrates D&D tabletop rules and roleplay directly into the Minecraft voxel engine. `main`
+supports:
+- **Minecraft Version**: `1.21.1`
+- **Language**: Java 21. Minecraft 1.21.1's Java. The version lives in `gradle.properties` as
+  `java_version`.
 - **Build System**: Gradle 9 (multi-project: `common`, `fabric`, `neoforge`). The wrapper is committed; use `./gradlew`.
 - **Target Mod Loaders**:
   - Fabric (utilising Fabric API)
@@ -17,31 +19,38 @@ DDC integrates D&D tabletop rules and roleplay directly into the Minecraft voxel
 - **Core Library Dependencies**:
   - Architectury API (cross-loader abstractions for registries, networking, events, reload listeners)
 
-### Minecraft 26.x is unobfuscated — this changes the build
-Do not "fix" the build by adding mappings. For 26.x:
-- Mojang publishes **no mappings** (the version manifest has only `client`/`server`), and Fabric's intermediary for 26.1.2 resolves to the no-op `0.0.0`.
-- The build therefore declares **no `mappings` dependency** and uses the **`dev.architectury.loom-no-remap`** plugin rather than `dev.architectury.loom`. There is no `remapJar`; the shadow jar is what ships.
-- `loom.silentMojangMappingsWarning()` no longer exists.
+### 1.21.1 is obfuscated — the build remaps
+1.21.1 maps against **official Mojang mappings** layered with **Parchment** parameter names, using the
+**`dev.architectury.loom`** plugin. Both loader jars go through `remapJar`. Mod dependencies must be
+declared with `modApi`/`modImplementation` (not `api`/`implementation`) or loom leaves intermediary
+names (`class_3222`, `class_1937`) leaking into the jar.
+
+> The `mc-26.1.2` branch is the opposite: 26.x ships **unobfuscated**, so it declares **no mappings**,
+> uses **`loom-no-remap`**, and the shadow jar ships as-is. Do not port that branch's build back here.
 
 ### Version matrix (verified against upstream maven metadata; do not guess these)
 | Component | Version | Note |
 |---|---|---|
-| Minecraft | `26.1.2` | Java 25, unobfuscated |
-| Fabric Loader | `0.19.3` | |
-| Fabric API | `0.155.0+26.1.2` | must carry the `+26.1.2` suffix |
-| NeoForge | `26.1.2.81` | NeoForge now tracks the Minecraft version |
-| Architectury API | `20.0.9` | **21.x targets MC 26.2 and will not work here** |
+| Minecraft | `1.21.1` | Java 21, Mojang mappings |
+| Fabric Loader | `0.16.10` | |
+| Fabric API | `0.116.14+1.21.1` | must carry the `+1.21.1` suffix |
+| NeoForge | `21.1.238` | |
+| Parchment | `2024.11.17` | layered over official mappings |
+| Architectury API | `13.0.8` | the 1.21.1 line |
 | Architectury Loom | `1.17.491` | requires Gradle 9 |
 | architectury-plugin | `3.5.169` | |
 
-### API renames in 26.x that catch out training data
-Verify against the jar rather than memory; several familiar names moved:
-- `ResourceLocation` → **`net.minecraft.resources.Identifier`**
-- `net.minecraft.Util` → **`net.minecraft.util.Util`**
-- `GuiGraphics` → **`net.minecraft.client.gui.GuiGraphicsExtractor`** (`text(...)`, `fill(...)`)
-- Operator levels → a **named permission system**: `net.minecraft.server.permissions.Permissions`, `PermissionSet`, `PermissionCheck.Require`. `CommandSourceStack.hasPermission(int)` is gone.
-- `ServerPlayer.getServer()` is gone; use `player.level().getServer()`.
-- `pack.mcmeta` uses `min_format`/`max_format`, not `pack_format`. For 26.1.2 the data pack format is `101`.
+### API notes for 1.21.1 (the 26.x → 1.21.1 port already handled these)
+The codebase was ported from 26.x; these are the shapes it now uses (the *reverse* of the 26.x
+renames, kept here so nobody reintroduces a 26.x name):
+- Use **`net.minecraft.resources.ResourceLocation`** (not `Identifier`) and **`net.minecraft.Util`**.
+- Use **`GuiGraphics`** with `drawString`/`fill`, and the old
+  `EntityRenderer.render(entity, yaw, partialTick, PoseStack, MultiBufferSource, int)` — there is no
+  render-state / `SubmitNodeCollector` system.
+- The GM gate is **op level 2**: `player.hasPermissions(2)` / `source.hasPermission(2)`. There is no
+  named permission system.
+- `pack.mcmeta` uses **`pack_format`** (48 for 1.21.1), not `min_format`/`max_format`. Recipe
+  ingredients are **`{"item": "..."}`** objects, not bare strings.
 
 ---
 
@@ -82,7 +91,7 @@ There is no `checkstyleMain` task; an earlier draft of this file claimed one. St
 
 ## 4. Verification & Quality Gates
 You must verify your changes before proposing them:
-1. **Compilation**: `./gradlew build` must pass clean under Java 25.
+1. **Compilation**: `./gradlew build` must pass clean under Java 21.
 2. **Testing**: all unit tests must pass. New rules (spells, combat maths) need tests in `common/src/test/java`. The rules engine under `com.ddc.core` is deliberately Minecraft-free and tests without any bootstrap; tests that do touch Minecraft call `MinecraftBootstrapExtension.bootstrap()`.
 3. **Boot both loaders**: a change to registration, networking, or data packs must be booted on both `:fabric:runServer` and `:neoforge:runServer`. The log line `Loaded N character class(es)` proves the data pack pipeline still works.
 4. **Mixin Safety**: keep injections narrow. Avoid overwrite mixins. (There are no mixins yet; the mod has needed none.)
@@ -102,7 +111,7 @@ You must verify your changes before proposing them:
 - Use pattern matching and modern `switch` expressions.
 
 ### Network Protocol Security
-- GM commands (possessing mobs, editing sheets, narrating) must check server-side that the sender is a GM. The single gate is `com.ddc.gm.GameMasters`, which requires `Permissions.COMMANDS_GAMEMASTER` (the 26.x equivalent of operator level 2).
+- GM commands (possessing mobs, editing sheets, narrating) must check server-side that the sender is a GM. The single gate is `com.ddc.gm.GameMasters`, which requires operator level 2 (`hasPermissions(2)`).
 - A Brigadier `requires` is **not** a security boundary; it only shapes the command tree. Always re-check in the handler.
 
 ---

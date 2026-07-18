@@ -1,15 +1,15 @@
-<img src="assets/banner.png" alt="Dungeons, Dragons &amp; Crafting - dice, character sheets, and a Game Master who runs the world. Minecraft 26.1.2, Fabric and NeoForge." width="100%">
+<img src="assets/banner.png" alt="Dungeons, Dragons &amp; Crafting - dice, character sheets, and a Game Master who runs the world. Minecraft 1.21.1, Fabric and NeoForge." width="100%">
 
 # DDC (Dungeons, Dragons & Crafting)
 
-[![Minecraft](https://img.shields.io/badge/Minecraft-26.1.2-blue.svg)](https://minecraft.net)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1-blue.svg)](https://minecraft.net)
 [![Loader](https://img.shields.io/badge/Loader-Fabric%20%7C%20NeoForge-purple.svg)](https://modrinth.com)
 [![Java](https://img.shields.io/badge/Java-25-red.svg)](https://oracle.com/java)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![CI](https://github.com/redstone-md/DDC/actions/workflows/ci.yml/badge.svg)](https://github.com/redstone-md/DDC/actions/workflows/ci.yml)
 [![Framework](https://img.shields.io/badge/Framework-MCAF%20v1.2-success.svg)](https://mcaf.managed-code.com)
 
-**DDC** is a Minecraft Java Edition mod that merges tabletop roleplaying rules and storytelling (like Dungeons & Dragons) into Minecraft's 3D voxel world. It targets version **26.1.2** with native support for both **Fabric** and **NeoForge**.
+**DDC** is a Minecraft Java Edition mod that merges tabletop roleplaying rules and storytelling (like Dungeons & Dragons) into Minecraft's 3D voxel world. It targets version **1.21.1** with native support for both **Fabric** and **NeoForge** — the version where Iron's Spells 'n Spellbooks and L_Ender's Cataclysm live, so DDC installs alongside them. Minecraft **26.1.2** stays supported on the [`mc-26.1.2`](https://github.com/redstone-md/DDC/tree/mc-26.1.2) branch.
 
 DDC introduces an **asymmetric gameplay model**. Players explore the world as heroic characters with D&D classes, spell slots, and dice checks, while a **Game Master (GM)** controls the environment, possesses monsters, triggers sounds, and narrates the adventure in real-time.
 
@@ -92,8 +92,8 @@ Attacks are resolved with the SRD's d20 against armour class: a miss cancels the
 dodge, and the roll is hidden so only the attacker sees the numbers. The **Game Master's Wand** places encounters (right-click the ground, sneak-right-click to change
 which one) and possesses creatures (right-click one, sneak to let go).
 
-A Game Master is any player with Minecraft 26's `COMMANDS_GAMEMASTER` permission (what used to be
-operator level 2). The server checks this on every GM action; the client is never asked.
+A Game Master is any player with operator level 2. The server checks this on every GM action; the
+client is never asked.
 
 **Add a class, race, spell or encounter with no code** — drop a file into any data pack and
 `/reload`. Four directories are scanned across every namespace: `ddc_classes`, `ddc_races`,
@@ -161,7 +161,7 @@ DDC is built to turn campaigns into interactive streaming content:
 ## 🛠️ Quickstart Developer Setup
 
 To build and compile the project, run:
-Requires **JDK 25** — Minecraft 26.1.2 will not run on anything older.
+Requires **JDK 21** — Minecraft 1.21.1's Java.
 
 ```bash
 # Clone the repository
@@ -183,6 +183,7 @@ cd DDC
 Jars land in `fabric/build/libs/` and `neoforge/build/libs/`. All unit tests must pass before pushing
 to `main`; `./gradlew build` runs them.
 
-Minecraft 26.x ships unobfuscated, so this build declares no mappings and uses the
-`loom-no-remap` plugin. See [AGENTS.md](AGENTS.md) for the verified version matrix and the 26.x API
-renames that catch people out.
+The build maps against official Mojang mappings with Parchment names, so loom remaps both loader
+jars. See [AGENTS.md](AGENTS.md) for the verified version matrix. The 26.1.2 build lives on the
+[`mc-26.1.2`](https://github.com/redstone-md/DDC/tree/mc-26.1.2) branch, which ships unobfuscated and
+declares no mappings.
