@@ -92,7 +92,15 @@ public class SpellFocusItem extends Item {
      * wheel get.
      */
     @Override
-    public InteractionResult use(net.minecraft.world.level.Level level, Player player,
+    public net.minecraft.world.InteractionResultHolder<ItemStack> use(
+            net.minecraft.world.level.Level level, Player player, InteractionHand hand) {
+        // 1.21.1's use() returns a held-stack result; the decision is made in InteractionResult terms
+        // and wrapped, so the body reads the same as everything else in the mod.
+        return new net.minecraft.world.InteractionResultHolder<>(
+                useResult(level, player, hand), player.getItemInHand(hand));
+    }
+
+    private InteractionResult useResult(net.minecraft.world.level.Level level, Player player,
             InteractionHand hand) {
         if (!(player instanceof ServerPlayer caster)) {
             // The client is told the swing happened; the server decides whether anything else did.
@@ -119,7 +127,7 @@ public class SpellFocusItem extends Item {
 
         // Nothing about a cooldown is a rule the SRD wrote, so nothing about it is on the sheet: it is
         // the cost of a game that runs in real time rather than in turns.
-        if (caster.getCooldowns().isOnCooldown(stackIn(caster, hand))) {
+        if (caster.getCooldowns().isOnCooldown(stackIn(caster, hand).getItem())) {
             return InteractionResult.FAIL;
         }
 
@@ -199,7 +207,7 @@ public class SpellFocusItem extends Item {
     @Override
     public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity target,
             InteractionHand hand) {
-        return use(player.level(), player, hand);
+        return useResult(player.level(), player, hand);
     }
 
     private InteractionResult cast(ServerPlayer caster, Spell spell, ResourceLocation id, LivingEntity target) {
@@ -213,7 +221,7 @@ public class SpellFocusItem extends Item {
                 caster.swing(InteractionHand.MAIN_HAND);
                 // Vanilla's own cooldown, so the hotbar draws the sweep: the game already has a way to
                 // say "not yet", and a second one would be a second thing to learn.
-                caster.getCooldowns().addCooldown(stackIn(caster, InteractionHand.MAIN_HAND),
+                caster.getCooldowns().addCooldown(stackIn(caster, InteractionHand.MAIN_HAND).getItem(),
                         cooldownFor(spell));
                 yield InteractionResult.SUCCESS;
             }

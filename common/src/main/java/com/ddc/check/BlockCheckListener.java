@@ -50,24 +50,24 @@ public final class BlockCheckListener {
                 player -> passed.remove(player.getUUID()));
     }
 
-    private InteractionResult onRightClick(net.minecraft.world.entity.player.Player player,
+    private dev.architectury.event.EventResult onRightClick(net.minecraft.world.entity.player.Player player,
             InteractionHand hand, BlockPos pos, net.minecraft.core.Direction face) {
         if (!(player instanceof ServerPlayer server) || hand != InteractionHand.MAIN_HAND) {
-            return InteractionResult.PASS;
+            return dev.architectury.event.EventResult.pass();
         }
         Optional<BlockCheck> check = checkFor(server, pos);
         if (check.isEmpty() || hasPassed(server, pos)) {
-            return InteractionResult.PASS;
+            return dev.architectury.event.EventResult.pass();
         }
 
         CheckOutcome outcome = checkService.rollAndAnnounce(server, check.get().ability(), check.get().dc());
         if (!outcome.isSuccess()) {
             server.sendSystemMessage(Component.translatable(check.get().message()));
             // Stops the interaction dead: the point of a check is that failing it stops you.
-            return InteractionResult.FAIL;
+            return dev.architectury.event.EventResult.interruptFalse();
         }
         passed.computeIfAbsent(server.getUUID(), id -> ConcurrentHashMap.newKeySet()).add(pos.immutable());
-        return InteractionResult.PASS;
+        return dev.architectury.event.EventResult.pass();
     }
 
     /**

@@ -44,17 +44,33 @@ public record PartyPayload(List<Member> members) implements CustomPacketPayload 
 
         private static final int MAX_TEXT = 64;
 
-        public static final StreamCodec<ByteBuf, Member> STREAM_CODEC = StreamCodec.composite(
-                ByteBufCodecs.stringUtf8(MAX_TEXT), Member::name,
-                ByteBufCodecs.stringUtf8(MAX_TEXT), Member::className,
-                ByteBufCodecs.VAR_INT, Member::level,
-                ByteBufCodecs.VAR_INT, Member::hitPoints,
-                ByteBufCodecs.VAR_INT, Member::maxHitPoints,
-                // ARCHITECTURE 5's "level progress meters": what they have, and what the next level
-                // asks for. Zero when there is no next level, which a widget draws as full.
-                ByteBufCodecs.VAR_INT, Member::experience,
-                ByteBufCodecs.VAR_INT, Member::nextLevel,
-                Member::new);
+        // Written by hand rather than with composite(): a member has seven fields and composite tops
+        // out at six. The last two are ARCHITECTURE 5's level-progress meter -- what they have, and
+        // what the next level asks for, zero at the last level, which a widget draws as full.
+        public static final StreamCodec<ByteBuf, Member> STREAM_CODEC = new StreamCodec<>() {
+            @Override
+            public Member decode(ByteBuf buf) {
+                return new Member(
+                        ByteBufCodecs.stringUtf8(MAX_TEXT).decode(buf),
+                        ByteBufCodecs.stringUtf8(MAX_TEXT).decode(buf),
+                        ByteBufCodecs.VAR_INT.decode(buf),
+                        ByteBufCodecs.VAR_INT.decode(buf),
+                        ByteBufCodecs.VAR_INT.decode(buf),
+                        ByteBufCodecs.VAR_INT.decode(buf),
+                        ByteBufCodecs.VAR_INT.decode(buf));
+            }
+
+            @Override
+            public void encode(ByteBuf buf, Member member) {
+                ByteBufCodecs.stringUtf8(MAX_TEXT).encode(buf, member.name());
+                ByteBufCodecs.stringUtf8(MAX_TEXT).encode(buf, member.className());
+                ByteBufCodecs.VAR_INT.encode(buf, member.level());
+                ByteBufCodecs.VAR_INT.encode(buf, member.hitPoints());
+                ByteBufCodecs.VAR_INT.encode(buf, member.maxHitPoints());
+                ByteBufCodecs.VAR_INT.encode(buf, member.experience());
+                ByteBufCodecs.VAR_INT.encode(buf, member.nextLevel());
+            }
+        };
 
         public Member {
             Objects.requireNonNull(name, "name");

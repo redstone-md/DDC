@@ -3,7 +3,7 @@ package com.ddc.client.screen;
 import java.util.List;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
@@ -94,7 +94,7 @@ public class GameMasterScreen extends Screen {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         int left = (width - PANEL_WIDTH) / 2;
         int top = height / 2 - 84;
         int panelHeight = 14 + (BUTTON_HEIGHT + GAP) * 2 + 8
@@ -102,8 +102,8 @@ public class GameMasterScreen extends Screen {
 
         // A Screen already blurs what is behind it; a second blur in one frame is an error.
         graphics.fill(left - 8, top, left + PANEL_WIDTH + 8, top + panelHeight, BACKDROP);
-        graphics.outline(left - 8, top, PANEL_WIDTH + 16, panelHeight, BORDER);
-        graphics.text(font, Component.translatable("ddc.screen.gm"), left, top + 6, BRASS);
+        graphics.renderOutline(left - 8, top, PANEL_WIDTH + 16, panelHeight, BORDER);
+        graphics.drawString(font, Component.translatable("ddc.screen.gm"), left, top + 6, BRASS);
 
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }

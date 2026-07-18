@@ -4,7 +4,7 @@ import java.util.List;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.util.Mth;
 
 /**
@@ -40,7 +40,7 @@ public final class NarrationOverlay {
         this.shownAtMs = nowMs;
     }
 
-    public void render(GuiGraphicsExtractor graphics, Font font, long nowMs) {
+    public void render(GuiGraphics graphics, Font font, long nowMs) {
         if (text == null) {
             return;
         }
@@ -67,7 +67,7 @@ public final class NarrationOverlay {
                 font.split(net.minecraft.network.chat.Component.literal(text), TEXT_WIDTH);
         int y = graphics.guiHeight() / 2 - lines.size() * LINE_HEIGHT / 2;
         for (net.minecraft.util.FormattedCharSequence line : lines) {
-            graphics.centeredText(font, line, graphics.guiWidth() / 2, y, alpha << 24 | TEXT_COLOUR);
+            graphics.drawCenteredString(font, line, graphics.guiWidth() / 2, y, alpha << 24 | TEXT_COLOUR);
             y += LINE_HEIGHT;
         }
     }

@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
@@ -210,7 +210,7 @@ public class WheelScreen extends Screen {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         // Follows the mouse even when it has not moved since the wheel opened.
         chosen = pointingAt(mouseX - width / 2.0, mouseY - height / 2.0, options.size()).orElse(-1);
 
@@ -220,9 +220,9 @@ public class WheelScreen extends Screen {
 
         // The heading sits in the hole in the middle, which is now big enough to hold it: the ring
         // is pushed out by its cards, and the middle is what is left.
-        graphics.centeredText(font, heading, width / 2, height / 2 - 5, TITLE);
+        graphics.drawCenteredString(font, heading, width / 2, height / 2 - 5, TITLE);
         if (options.isEmpty()) {
-            graphics.centeredText(font, Component.translatable("ddc.wheel.empty"),
+            graphics.drawCenteredString(font, Component.translatable("ddc.wheel.empty"),
                     width / 2, height / 2 + 8, TEXT_DETAIL);
             return;
         }
@@ -233,14 +233,14 @@ public class WheelScreen extends Screen {
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }
 
-    private void drawSlice(GuiGraphicsExtractor graphics, int index) {
+    private void drawSlice(GuiGraphics graphics, int index) {
         WheelOption option = options.get(index);
         int[] at = cardAt(index);
         int cardWidth = cardWidth(index);
         boolean picked = index == chosen;
 
         graphics.fill(at[0], at[1], at[0] + cardWidth, at[1] + CARD_HEIGHT, picked ? CARD_CHOSEN : CARD);
-        graphics.outline(at[0], at[1], cardWidth, CARD_HEIGHT, picked ? BORDER_CHOSEN : BORDER);
+        graphics.renderOutline(at[0], at[1], cardWidth, CARD_HEIGHT, picked ? BORDER_CHOSEN : BORDER);
 
         // The icon takes the left of the card and the words take what is left, so a row of cards
         // lines its pictures up down the ring rather than each one centring itself differently.
@@ -252,9 +252,9 @@ public class WheelScreen extends Screen {
 
         boolean hasDetail = !option.detail().getString().isEmpty();
         int textY = hasDetail ? at[1] + 4 : at[1] + 8;
-        graphics.text(font, option.label(), textLeft, textY, TEXT);
+        graphics.drawString(font, option.label(), textLeft, textY, TEXT);
         if (hasDetail) {
-            graphics.text(font, option.detail(), textLeft, textY + 10, TEXT_DETAIL);
+            graphics.drawString(font, option.detail(), textLeft, textY + 10, TEXT_DETAIL);
         }
     }
 }

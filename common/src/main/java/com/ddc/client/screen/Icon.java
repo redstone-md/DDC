@@ -2,7 +2,7 @@ package com.ddc.client.screen;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -85,8 +85,8 @@ public enum Icon {
      * <p>The stack is looked up once and kept: the item registry is not filled when this enum loads,
      * so asking at that moment would find nothing.
      */
-    public void draw(GuiGraphicsExtractor graphics, int x, int y) {
-        graphics.item(stack(), x, y);
+    public void draw(GuiGraphics graphics, int x, int y) {
+        graphics.renderItem(stack(), x, y);
     }
 
     private ItemStack stack() {

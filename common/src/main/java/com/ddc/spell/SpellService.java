@@ -290,7 +290,7 @@ public final class SpellService {
             };
         }
         if (damage > 0 && target.level() instanceof ServerLevel level) {
-            target.hurtServer(level, level.damageSources().indirectMagic(caster, caster), damage);
+            target.hurt(level.damageSources().indirectMagic(caster, caster), damage);
         }
         return damage;
     }

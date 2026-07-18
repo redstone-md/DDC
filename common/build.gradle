@@ -5,6 +5,9 @@ architectury {
 dependencies {
     // Fabric loader is here only for its @Environment annotations. Nothing else from the loader may
     // be used in common, per common/AGENTS.md.
-    implementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
-    api "dev.architectury:architectury:${architectury_api_version}"
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    modApi "dev.architectury:architectury:${architectury_api_version}"
+    // The OBS overlay's tiny HTTP+WebSocket server. Minecraft bundles netty but not the http codec on
+    // the compile classpath, so it is named explicitly at the version MC ships.
+    compileOnly "io.netty:netty-codec-http:4.1.97.Final"
 }

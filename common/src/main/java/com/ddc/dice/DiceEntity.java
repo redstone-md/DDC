@@ -75,8 +75,7 @@ public class DiceEntity extends Entity {
      * make one flash and vanish.
      */
     @Override
-    public boolean hurtServer(net.minecraft.server.level.ServerLevel level,
-            net.minecraft.world.damagesource.DamageSource source, float amount) {
+    public boolean hurt(net.minecraft.world.damagesource.DamageSource source, float amount) {
         return false;
     }
 
@@ -86,11 +85,11 @@ public class DiceEntity extends Entity {
     }
 
     @Override
-    protected void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput input) {
+    protected void readAdditionalSaveData(net.minecraft.nbt.CompoundTag input) {
         // Nothing: the dice never survive a save. They are a four-second event.
     }
 
     @Override
-    protected void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput output) {
+    protected void addAdditionalSaveData(net.minecraft.nbt.CompoundTag output) {
     }
 }

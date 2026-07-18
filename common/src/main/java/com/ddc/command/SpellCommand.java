@@ -16,7 +16,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.commands.arguments.IdentifierArgument;
+import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -56,7 +56,7 @@ public final class SpellCommand {
     /** The {@code cast} branch, to hang under {@code /ddc}. */
     public ArgumentBuilder<CommandSourceStack, ?> castBranch() {
         return Commands.literal("cast")
-                .then(Commands.argument(ARG_SPELL, IdentifierArgument.id())
+                .then(Commands.argument(ARG_SPELL, ResourceLocationArgument.id())
                         .suggests((context, builder) ->
                                 SharedSuggestionProvider.suggestResource(spells.ids(), builder))
                         .then(Commands.argument(ARG_TARGET, EntityArgument.entity())
@@ -70,7 +70,7 @@ public final class SpellCommand {
 
     private int cast(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer caster = context.getSource().getPlayerOrException();
-        ResourceLocation id = IdentifierArgument.getId(context, ARG_SPELL);
+        ResourceLocation id = ResourceLocationArgument.getId(context, ARG_SPELL);
         Spell spell = spells.get(id).orElseThrow(() -> UNKNOWN_SPELL.create(id));
 
         Entity target = EntityArgument.getEntity(context, ARG_TARGET);

@@ -60,7 +60,7 @@ public final class GmLocks extends SavedData {
         ).apply(instance, Where::new));
 
         static Where of(ServerLevel level, BlockPos pos) {
-            return new Where(level.dimension().identifier().toString(), pos.immutable());
+            return new Where(level.dimension().location().toString(), pos.immutable());
         }
     }
 

@@ -90,9 +90,15 @@ public final class SpellEffects {
         }
     }
 
+    /** An 0xRRGGBB colour as the Vector3f the dust particle wants. */
+    private static org.joml.Vector3f rgb(int colour) {
+        return new org.joml.Vector3f(((colour >> 16) & 0xFF) / 255f,
+                ((colour >> 8) & 0xFF) / 255f, (colour & 0xFF) / 255f);
+    }
+
     /** A mote in the school's own colour. */
     private static DustParticleOptions dust(Spell spell) {
-        return new DustParticleOptions(colourOf(spell), MOTE);
+        return new DustParticleOptions(rgb(colourOf(spell)), MOTE);
     }
 
     /**

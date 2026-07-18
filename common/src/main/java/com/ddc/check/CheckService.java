@@ -68,12 +68,12 @@ public final class CheckService {
             case FAILURE -> "ddc.check.failure";
             case CRITICAL_FAILURE -> "ddc.check.critical_failure";
         });
-        Component message = Component.translatable("ddc.check.result", subject.getGameProfile().name(),
+        Component message = Component.translatable("ddc.check.result", subject.getGameProfile().getName(),
                         ability.abbreviation(), outcome.difficultyClass(), verdict)
                 .withStyle(outcome.isSuccess() ? ChatFormatting.GREEN : ChatFormatting.RED);
 
         // Everyone who saw the dice should hear the verdict, so the audience is the roll's audience.
-        for (ServerPlayer viewer : subject.level().players()) {
+        for (ServerPlayer viewer : subject.serverLevel().players()) {
             if (viewer.distanceToSqr(subject) <= DiceRollService.BROADCAST_RADIUS
                     * DiceRollService.BROADCAST_RADIUS) {
                 viewer.sendSystemMessage(message);

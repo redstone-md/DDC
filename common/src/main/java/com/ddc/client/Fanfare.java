@@ -5,7 +5,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
@@ -124,7 +124,7 @@ public final class Fanfare {
     }
 
     /** Draws the word across the middle of the screen while it lasts. */
-    public void render(GuiGraphicsExtractor graphics, Font font, long nowMs) {
+    public void render(GuiGraphics graphics, Font font, long nowMs) {
         long elapsed = nowMs - startedAtMs;
         if (elapsed < 0 || elapsed >= TEXT_MS) {
             return;
@@ -133,7 +133,7 @@ public final class Fanfare {
         if (alpha <= 0) {
             return;
         }
-        graphics.centeredText(font, Component.literal(word),
+        graphics.drawCenteredString(font, Component.literal(word),
                 graphics.guiWidth() / 2, graphics.guiHeight() / 3,
                 alpha << 24 | (critical ? GOLD : RED));
     }

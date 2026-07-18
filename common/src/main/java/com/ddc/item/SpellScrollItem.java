@@ -77,7 +77,7 @@ public class SpellScrollItem extends Item {
                 // The scroll burns. That is the whole bargain: a spell you did not prepare, once.
                 stack.shrink(1);
                 caster.swing(hand);
-                caster.getCooldowns().addCooldown(stack, 20);
+                caster.getCooldowns().addCooldown(stack.getItem(), 20);
                 yield InteractionResult.SUCCESS;
             }
         };
@@ -86,9 +86,8 @@ public class SpellScrollItem extends Item {
     /** Says what is written on it, since every scroll looks the same in a hand otherwise. */
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context,
-            net.minecraft.world.item.component.TooltipDisplay display,
-            java.util.function.Consumer<Component> lines, TooltipFlag flag) {
-        spellOn(stack).ifPresent(id -> lines.accept(
+            java.util.List<Component> lines, TooltipFlag flag) {
+        spellOn(stack).ifPresent(id -> lines.add(
                 spells.get(id)
                         .map(spell -> Component.literal(spell.name()))
                         .orElseGet(() -> Component.literal(id.getPath()))

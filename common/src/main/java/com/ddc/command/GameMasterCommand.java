@@ -50,7 +50,7 @@ public final class GameMasterCommand {
     }
 
     private int enter(CommandContext<CommandSourceStack> context, ServerPlayer player) {
-        previous.put(player.getUUID(), player.gameMode());
+        previous.put(player.getUUID(), player.gameMode.getGameModeForPlayer());
         player.setGameMode(GameType.SPECTATOR);
         context.getSource().sendSuccess(() -> Component.translatable("ddc.gm.mode_on")
                 .withStyle(ChatFormatting.GOLD), false);

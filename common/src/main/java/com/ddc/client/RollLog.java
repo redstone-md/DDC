@@ -7,7 +7,7 @@ import java.util.Deque;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.util.Mth;
 
 /**
@@ -58,7 +58,7 @@ public final class RollLog {
     }
 
     /** Draws the log in the top-right corner, dropping entries that have timed out. */
-    public void render(GuiGraphicsExtractor graphics, Font font, long nowMs) {
+    public void render(GuiGraphics graphics, Font font, long nowMs) {
         entries.removeIf(entry -> entry.isExpired(nowMs));
         if (entries.isEmpty()) {
             return;
@@ -68,7 +68,7 @@ public final class RollLog {
             int alpha = entry.alpha(nowMs);
             if (alpha > 0) {
                 int x = graphics.guiWidth() - font.width(entry.text) - MARGIN;
-                graphics.text(font, entry.text, x, y, alpha << 24 | entry.colour);
+                graphics.drawString(font, entry.text, x, y, alpha << 24 | entry.colour);
                 y += LINE_HEIGHT;
             }
         }

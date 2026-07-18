@@ -4,7 +4,7 @@ import com.ddc.character.CharacterSheet;
 import com.ddc.core.character.Ability;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
@@ -59,7 +59,7 @@ public class CharacterSheetScreen extends Screen {
      * {@code extractRenderState} rather than the {@code render} older versions had.
      */
     @Override
-    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
 
         int left = (width - CARD_WIDTH) / 2;
@@ -68,33 +68,33 @@ public class CharacterSheetScreen extends Screen {
         // A Screen already blurs what is behind it, so the card only has to be drawn on top. Asking
         // for a second blur in one frame is an error the renderer throws on.
         graphics.fill(left, top, left + CARD_WIDTH, top + CARD_HEIGHT, BACKDROP);
-        graphics.outline(left, top, CARD_WIDTH, CARD_HEIGHT, BORDER);
+        graphics.renderOutline(left, top, CARD_WIDTH, CARD_HEIGHT, BORDER);
 
         LocalPlayer player = minecraft == null ? null : minecraft.player;
         int y = top + 8;
 
-        graphics.text(font, Component.translatable("ddc.screen.level",
+        graphics.drawString(font, Component.translatable("ddc.screen.level",
                 className.toUpperCase(java.util.Locale.ROOT), sheet.level()), left + 10, y, BRASS);
         y += LINE + 2;
 
         if (player != null) {
-            graphics.text(font, Component.translatable("ddc.screen.hit_points",
+            graphics.drawString(font, Component.translatable("ddc.screen.hit_points",
                             Math.round(player.getHealth()), Math.round(player.getMaxHealth())),
                     left + 10, y, TEXT);
             y += LINE;
         }
-        graphics.text(font, Component.translatable("ddc.screen.proficiency", sheet.proficiencyBonus()),
+        graphics.drawString(font, Component.translatable("ddc.screen.proficiency", sheet.proficiencyBonus()),
                 left + 10, y, TEXT);
         y += LINE + 6;
 
         y = renderAbilities(graphics, left, y);
 
-        graphics.text(font, sheet.preparedSpells().isEmpty()
+        graphics.drawString(font, sheet.preparedSpells().isEmpty()
                         ? Component.translatable("ddc.screen.no_prepared")
                         : Component.translatable("ddc.screen.prepared", sheet.preparedSpells().size()),
                 left + 10, y, MUTED);
         y += LINE;
-        graphics.text(font, Component.translatable("ddc.screen.hint"), left + 10, y, MUTED);
+        graphics.drawString(font, Component.translatable("ddc.screen.hint"), left + 10, y, MUTED);
     }
 
     /**
@@ -105,7 +105,7 @@ public class CharacterSheetScreen extends Screen {
      * sheet keeps the score as well as the modifier -- this is the screen you open to read, and the
      * score is what the modifier came from.
      */
-    private int renderAbilities(GuiGraphicsExtractor graphics, int left, int top) {
+    private int renderAbilities(GuiGraphics graphics, int left, int top) {
         Ability[] abilities = Ability.values();
         for (int i = 0; i < abilities.length; i++) {
             Ability ability = abilities[i];
@@ -115,7 +115,7 @@ public class CharacterSheetScreen extends Screen {
             int column = left + 10 + (i % 2) * (CARD_WIDTH / 2 - 10);
             int row = top + (i / 2) * ABILITY_LINE;
             Icon.of(ability).draw(graphics, column, row - 4);
-            graphics.text(font, Component.literal(text), column + Icon.SIZE + 4, row, TEXT);
+            graphics.drawString(font, Component.literal(text), column + Icon.SIZE + 4, row, TEXT);
         }
         return top + (abilities.length / 2) * ABILITY_LINE + 6;
     }

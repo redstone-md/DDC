@@ -3,7 +3,7 @@ package com.ddc.client.screen;
 import java.util.List;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -148,7 +148,7 @@ public final class GuideScreen extends Screen {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+    public void extractRenderState(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         // No blur asked for: a Screen blurs what is behind it already, and asking twice in one frame
         // is an error the renderer throws on.
         graphics.fill(0, 0, width, height, BACKDROP);
@@ -156,12 +156,12 @@ public final class GuideScreen extends Screen {
         int left = (width - PANEL_WIDTH) / 2;
         int top = (height - panelHeight()) / 2;
         graphics.fill(left, top, left + PANEL_WIDTH, top + panelHeight(), PANEL);
-        graphics.outline(left, top, PANEL_WIDTH, panelHeight(), BORDER);
+        graphics.renderOutline(left, top, PANEL_WIDTH, panelHeight(), BORDER);
 
         Chapter current = CHAPTERS.get(chapter);
         current.icon().draw(graphics, left + PADDING, top + PADDING);
-        graphics.text(font, current.title(), left + PADDING + Icon.SIZE + 8, top + PADDING + 4, TITLE);
-        graphics.text(font, Component.translatable("ddc.guide.page", chapter + 1, CHAPTERS.size()),
+        graphics.drawString(font, current.title(), left + PADDING + Icon.SIZE + 8, top + PADDING + 4, TITLE);
+        graphics.drawString(font, Component.translatable("ddc.guide.page", chapter + 1, CHAPTERS.size()),
                 left + PANEL_WIDTH - PADDING - font.width(
                         Component.translatable("ddc.guide.page", chapter + 1, CHAPTERS.size())),
                 top + PADDING + 4, DIM);
@@ -172,7 +172,7 @@ public final class GuideScreen extends Screen {
             // from the English it was written beside, and Russian is longer than most.
             for (net.minecraft.util.FormattedCharSequence line
                     : font.split(paragraph, PANEL_WIDTH - PADDING * 2)) {
-                graphics.text(font, line, left + PADDING, y, TEXT);
+                graphics.drawString(font, line, left + PADDING, y, TEXT);
                 y += LINE_HEIGHT;
             }
             y += 4;

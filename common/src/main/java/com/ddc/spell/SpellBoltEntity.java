@@ -101,9 +101,15 @@ public class SpellBoltEntity extends Entity {
      * <p>Laid along the path travelled rather than at the position: at a block and a half a tick, one
      * particle per tick is a dotted line. The wake is what makes it read as speed.
      */
+    /** An 0xRRGGBB colour as the Vector3f the dust particle wants. */
+    private static org.joml.Vector3f rgb(int colour) {
+        return new org.joml.Vector3f(((colour >> 16) & 0xFF) / 255f,
+                ((colour >> 8) & 0xFF) / 255f, (colour & 0xFF) / 255f);
+    }
+
     private void trail(ServerLevel server) {
         net.minecraft.core.particles.DustParticleOptions mote =
-                new net.minecraft.core.particles.DustParticleOptions(colour(), 1.1f);
+                new net.minecraft.core.particles.DustParticleOptions(rgb(colour()), 1.1f);
         Vec3 step = getDeltaMovement().scale(1.0 / WAKE);
         Vec3 from = position().subtract(getDeltaMovement());
 
@@ -123,17 +129,16 @@ public class SpellBoltEntity extends Entity {
      * fireball would be a rule nobody wrote, and this has no rules at all.
      */
     @Override
-    public boolean hurtServer(ServerLevel level, net.minecraft.world.damagesource.DamageSource source,
-            float amount) {
+    public boolean hurt(net.minecraft.world.damagesource.DamageSource source, float amount) {
         return false;
     }
 
     /** Bolts are not saved: see the constructor. */
     @Override
-    protected void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput input) {
+    protected void readAdditionalSaveData(net.minecraft.nbt.CompoundTag input) {
     }
 
     @Override
-    protected void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput output) {
+    protected void addAdditionalSaveData(net.minecraft.nbt.CompoundTag output) {
     }
 }

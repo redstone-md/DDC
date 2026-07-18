@@ -58,7 +58,7 @@ public final class WorldControlService {
         if (!GameMasters.isGameMaster(gameMaster)) {
             return Optional.of(net.minecraft.network.chat.Component.translatable("ddc.error.not_gm"));
         }
-        ServerLevel level = gameMaster.level();
+        ServerLevel level = gameMaster.serverLevel();
 
         switch (change) {
             case DAY -> level.setDayTime(1000L);
@@ -100,13 +100,13 @@ public final class WorldControlService {
                 continue;
             }
             if (frozen) {
-                player.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, FREEZE_SECONDS * 20, ROOTED,
+                player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, FREEZE_SECONDS * 20, ROOTED,
                         false, false, false));
-                player.addEffect(new MobEffectInstance(MobEffects.JUMP_BOOST, FREEZE_SECONDS * 20, 128,
+                player.addEffect(new MobEffectInstance(MobEffects.JUMP, FREEZE_SECONDS * 20, 128,
                         false, false, false));
             } else {
-                player.removeEffect(MobEffects.SLOWNESS);
-                player.removeEffect(MobEffects.JUMP_BOOST);
+                player.removeEffect(MobEffects.MOVEMENT_SLOWDOWN);
+                player.removeEffect(MobEffects.JUMP);
             }
         }
     }

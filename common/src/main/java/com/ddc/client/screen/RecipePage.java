@@ -4,7 +4,7 @@ import java.util.List;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -63,24 +63,24 @@ public final class RecipePage {
      *
      * @return how far down the page it got
      */
-    public static int render(GuiGraphicsExtractor graphics, Font font, int left, int top, int width) {
+    public static int render(GuiGraphics graphics, Font font, int left, int top, int width) {
         int y = top;
         for (Craft craft : CRAFTS) {
             int x = left;
             for (String ingredient : craft.ingredients()) {
-                graphics.item(stack(ingredient), x, y);
+                graphics.renderItem(stack(ingredient), x, y);
                 x += SLOT;
             }
-            graphics.text(font, Component.literal("->"), x + 2, y + 5, 0xFF8A7F6B);
-            graphics.item(stack(craft.result()), x + ARROW + 4, y);
-            graphics.text(font, name(craft.result()), x + ARROW + 4 + SLOT + 4, y + 5, 0xFFE8DCC0);
+            graphics.drawString(font, Component.literal("->"), x + 2, y + 5, 0xFF8A7F6B);
+            graphics.renderItem(stack(craft.result()), x + ARROW + 4, y);
+            graphics.drawString(font, name(craft.result()), x + ARROW + 4 + SLOT + 4, y + 5, 0xFFE8DCC0);
 
             y += SLOT;
             // The note sits under its own row, wrapped: a translation is a different length from the
             // English beside it.
             for (net.minecraft.util.FormattedCharSequence line
                     : font.split(Component.translatable(craft.note()), width)) {
-                graphics.text(font, line, left, y, 0xFF8A7F6B);
+                graphics.drawString(font, line, left, y, 0xFF8A7F6B);
                 y += 9;
             }
             y += 4;

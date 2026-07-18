@@ -48,7 +48,7 @@ public enum BossAbility {
             }
             for (LivingEntity caught : inCone(level, mob, 9, 0.55)) {
                 caught.igniteForSeconds(5);
-                caught.hurtServer(level, mob.damageSources().mobAttack(mob), 6);
+                caught.hurt(mob.damageSources().mobAttack(mob), 6);
             }
             level.playSound(null, mob.blockPosition(), SoundEvents.ENDER_DRAGON_SHOOT,
                     SoundSource.HOSTILE, 1.2f, 0.8f);
@@ -60,7 +60,7 @@ public enum BossAbility {
         @Override
         void perform(ServerLevel level, Mob mob, ServerPlayer gameMaster) {
             for (LivingEntity caught : inCone(level, mob, 8, 0.5)) {
-                caught.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 100, 3));
+                caught.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 100, 3));
                 caught.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 100, 0));
                 level.sendParticles(ParticleTypes.ITEM_COBWEB, caught.getX(), caught.getY() + 1,
                         caught.getZ(), 30, 0.4, 0.6, 0.4, 0.0);
@@ -80,7 +80,7 @@ public enum BossAbility {
                 Vec3 away = caught.position().subtract(mob.position()).normalize();
                 caught.push(away.x * 1.4, 0.6, away.z * 1.4);
                 caught.hurtMarked = true;
-                caught.addEffect(new MobEffectInstance(MobEffects.NAUSEA, 80, 0));
+                caught.addEffect(new MobEffectInstance(MobEffects.CONFUSION, 80, 0));
             }
             level.sendParticles(ParticleTypes.SONIC_BOOM, mob.getX(), mob.getEyeY(), mob.getZ(),
                     1, 0, 0, 0, 0);

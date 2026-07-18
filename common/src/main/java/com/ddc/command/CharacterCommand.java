@@ -16,7 +16,7 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
-import net.minecraft.commands.arguments.IdentifierArgument;
+import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -81,11 +81,11 @@ public final class CharacterCommand {
         dispatcher.register(Commands.literal("ddc")
                 .then(Commands.literal("sheet").executes(this::showSheet))
                 .then(Commands.literal("class")
-                        .then(Commands.argument(ARG_CLASS, IdentifierArgument.id())
+                        .then(Commands.argument(ARG_CLASS, ResourceLocationArgument.id())
                                 .suggests(classSuggestions())
                                 .executes(this::chooseClass)))
                 .then(Commands.literal("race")
-                        .then(Commands.argument(ARG_RACE, IdentifierArgument.id())
+                        .then(Commands.argument(ARG_RACE, ResourceLocationArgument.id())
                                 .suggests((context, builder) ->
                                         SharedSuggestionProvider.suggestResource(races.ids(), builder))
                                 .executes(this::chooseRace)))
@@ -116,7 +116,7 @@ public final class CharacterCommand {
 
     private int chooseClass(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = context.getSource().getPlayerOrException();
-        ResourceLocation id = IdentifierArgument.getId(context, ARG_CLASS);
+        ResourceLocation id = ResourceLocationArgument.getId(context, ARG_CLASS);
 
         CharacterSheet sheet = characters.chooseClass(player, id)
                 .orElseThrow(() -> UNKNOWN_CLASS.create(id));
@@ -129,7 +129,7 @@ public final class CharacterCommand {
 
     private int chooseRace(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = context.getSource().getPlayerOrException();
-        ResourceLocation id = IdentifierArgument.getId(context, ARG_RACE);
+        ResourceLocation id = ResourceLocationArgument.getId(context, ARG_RACE);
         Race race = races.get(id).orElseThrow(() -> UNKNOWN_RACE.create(id));
 
         // The race being replaced hands its bonuses back, so picking human twice does not pay twice.

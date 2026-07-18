@@ -58,7 +58,7 @@ public final class PartyService {
     private java.util.Optional<PartyPayload.Member> member(ServerPlayer player) {
         CharacterSheet sheet = characters.get(player);
         return characters.definitionFor(sheet).map(definition -> new PartyPayload.Member(
-                player.getGameProfile().name(),
+                player.getGameProfile().getName(),
                 definition.name(),
                 sheet.level(),
                 Math.round(player.getHealth()),

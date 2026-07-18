@@ -65,7 +65,7 @@ public final class SneakAttackService {
         int invulnerable = target.invulnerableTime;
         target.invulnerableTime = 0;
         try {
-            target.hurtServer(level, level.damageSources().playerAttack(attacker), damage);
+            target.hurt(level.damageSources().playerAttack(attacker), damage);
         } finally {
             // Put the window back rather than leaving the target open to everything else this tick.
             target.invulnerableTime = Math.max(target.invulnerableTime, invulnerable);

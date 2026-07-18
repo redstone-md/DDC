@@ -91,7 +91,7 @@ public final class PossessionService {
         }
 
         possessions.put(gameMaster.getUUID(),
-                new Possession(gameMaster.getUUID(), mob, gameMaster.gameMode(), !mob.isNoAi()));
+                new Possession(gameMaster.getUUID(), mob, gameMaster.gameMode.getGameModeForPlayer(), !mob.isNoAi()));
 
         scaleUp(mob);
         // The mob stops thinking for itself: two things steering one monster would fight each other.
@@ -185,7 +185,7 @@ public final class PossessionService {
             return false;
         }
         mob.swing(net.minecraft.world.InteractionHand.MAIN_HAND);
-        return mob.doHurtTarget(level, target);
+        return mob.doHurtTarget(target);
     }
 
     /**

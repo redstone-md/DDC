@@ -23,7 +23,7 @@ public final class NarrationService {
     public int narrate(ServerPlayer gameMaster, String text) {
         if (!GameMasters.isGameMaster(gameMaster)) {
             throw new IllegalArgumentException(
-                    "Refusing to narrate for a non-GM: " + gameMaster.getGameProfile().name());
+                    "Refusing to narrate for a non-GM: " + gameMaster.getGameProfile().getName());
         }
         List<ServerPlayer> audience = gameMaster.level().getServer().getPlayerList().getPlayers();
         NetworkManager.sendToPlayers(audience, new NarrationPayload(text));

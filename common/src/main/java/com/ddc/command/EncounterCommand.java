@@ -13,7 +13,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
-import net.minecraft.commands.arguments.IdentifierArgument;
+import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -42,7 +42,7 @@ public final class EncounterCommand {
     public ArgumentBuilder<CommandSourceStack, ?> branch() {
         return Commands.literal("encounter")
                 .requires(GameMasters.requirement())
-                .then(Commands.argument(ARG_ENCOUNTER, IdentifierArgument.id())
+                .then(Commands.argument(ARG_ENCOUNTER, ResourceLocationArgument.id())
                         .suggests((context, builder) ->
                                 SharedSuggestionProvider.suggestResource(encounters.ids(), builder))
                         .executes(this::select));
@@ -50,7 +50,7 @@ public final class EncounterCommand {
 
     private int select(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = context.getSource().getPlayerOrException();
-        ResourceLocation id = IdentifierArgument.getId(context, ARG_ENCOUNTER);
+        ResourceLocation id = ResourceLocationArgument.getId(context, ARG_ENCOUNTER);
         Encounter encounter = encounters.get(id).orElseThrow(() -> UNKNOWN.create(id));
 
         // Checked again rather than trusting the branch: a command tree is not a security boundary.

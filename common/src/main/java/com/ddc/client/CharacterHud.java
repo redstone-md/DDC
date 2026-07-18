@@ -9,7 +9,7 @@ import java.util.Optional;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
 
 /**
@@ -114,7 +114,7 @@ public final class CharacterHud {
     }
 
     /** Draws the panel in the top-left corner. Silent until the server has sent a sheet. */
-    public void render(GuiGraphicsExtractor graphics, Font font, LocalPlayer player) {
+    public void render(GuiGraphics graphics, Font font, LocalPlayer player) {
         this.font = font;
         if (sheet == null || !sheet.hasClass() || player == null) {
             return;
@@ -132,9 +132,9 @@ public final class CharacterHud {
                 + (casts ? PIP + PIP_GAP + 2 : 0);
 
         graphics.fill(MARGIN, MARGIN, MARGIN + width, MARGIN + height, BACKDROP);
-        graphics.outline(MARGIN, MARGIN, width, height, BORDER);
-        graphics.text(font, who, MARGIN + PADDING, MARGIN + PADDING, TEXT);
-        graphics.text(font, header, MARGIN + PADDING, MARGIN + PADDING + LINE_HEIGHT,
+        graphics.renderOutline(MARGIN, MARGIN, width, height, BORDER);
+        graphics.drawString(font, who, MARGIN + PADDING, MARGIN + PADDING, TEXT);
+        graphics.drawString(font, header, MARGIN + PADDING, MARGIN + PADDING + LINE_HEIGHT,
                 hitPointColour(hitPoints, maxHitPoints));
         if (!streamerMode) {
             renderAbilities(graphics, font, MARGIN + PADDING, MARGIN + PADDING + LINE_HEIGHT * 2);
@@ -156,7 +156,7 @@ public final class CharacterHud {
      * <p>Only the modifier is shown, not the score. The modifier is the number that gets added to a
      * roll; the score is where it came from, and the sheet screen has it.
      */
-    private void renderAbilities(GuiGraphicsExtractor graphics, Font font, int x, int y) {
+    private void renderAbilities(GuiGraphics graphics, Font font, int x, int y) {
         Ability[] abilities = Ability.values();
         int column = columnWidth(font);
         for (int i = 0; i < abilities.length; i++) {
@@ -166,7 +166,7 @@ public final class CharacterHud {
             Icon.of(abilities[i]).draw(graphics, left, top);
             // Baselined against the icon rather than the line: a number sitting on the icon's own
             // middle reads as belonging to it.
-            graphics.text(font, modifierText(abilities[i]), left + Icon.SIZE + 1,
+            graphics.drawString(font, modifierText(abilities[i]), left + Icon.SIZE + 1,
                     top + (Icon.SIZE - 8) / 2 + 1, modifierColour(abilities[i]));
         }
     }
@@ -211,7 +211,7 @@ public final class CharacterHud {
      * <p>Pips rather than a number because a caster's question at the table is "have I got a second
      * level left", and counting three lit dots answers it without reading.
      */
-    private void renderSlots(GuiGraphicsExtractor graphics, int x, int y) {
+    private void renderSlots(GuiGraphics graphics, int x, int y) {
         List<Integer> slots = spellSlots();
         int left = x;
         for (int spellLevel = 1; spellLevel <= slots.size(); spellLevel++) {

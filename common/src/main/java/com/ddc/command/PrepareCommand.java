@@ -16,7 +16,7 @@ import java.util.Optional;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
-import net.minecraft.commands.arguments.IdentifierArgument;
+import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -59,7 +59,7 @@ public final class PrepareCommand {
     /** The {@code prepare} branch, to hang under {@code /ddc}. */
     public ArgumentBuilder<CommandSourceStack, ?> prepareBranch() {
         return Commands.literal("prepare")
-                .then(Commands.argument(ARG_SPELL, IdentifierArgument.id())
+                .then(Commands.argument(ARG_SPELL, ResourceLocationArgument.id())
                         .suggests((context, builder) ->
                                 SharedSuggestionProvider.suggestResource(spells.ids(), builder))
                         .executes(this::prepare));
@@ -68,7 +68,7 @@ public final class PrepareCommand {
     /** The {@code forget} branch: scrubbing a spell out to make room. */
     public ArgumentBuilder<CommandSourceStack, ?> forgetBranch() {
         return Commands.literal("forget")
-                .then(Commands.argument(ARG_SPELL, IdentifierArgument.id())
+                .then(Commands.argument(ARG_SPELL, ResourceLocationArgument.id())
                         .suggests((context, builder) -> SharedSuggestionProvider.suggestResource(
                                 characters.get(context.getSource().getPlayerOrException())
                                         .preparedSpells(), builder))
@@ -77,7 +77,7 @@ public final class PrepareCommand {
 
     private int prepare(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = context.getSource().getPlayerOrException();
-        ResourceLocation id = IdentifierArgument.getId(context, ARG_SPELL);
+        ResourceLocation id = ResourceLocationArgument.getId(context, ARG_SPELL);
         Spell spell = spells.get(id).orElseThrow(() -> UNKNOWN_SPELL.create(id));
 
         if (!isHoldingSpellbook(player)) {
@@ -110,7 +110,7 @@ public final class PrepareCommand {
 
     private int forget(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = context.getSource().getPlayerOrException();
-        ResourceLocation id = IdentifierArgument.getId(context, ARG_SPELL);
+        ResourceLocation id = ResourceLocationArgument.getId(context, ARG_SPELL);
         if (!isHoldingSpellbook(player)) {
             throw NO_BOOK.create();
         }

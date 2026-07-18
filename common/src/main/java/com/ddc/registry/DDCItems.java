@@ -40,15 +40,13 @@ public final class DDCItems {
     public static final RegistrySupplier<Item> GM_WAND = ITEMS.register("gm_wand",
             () -> new GmWandItem(new Item.Properties()
                     .stacksTo(1)
-                    .rarity(Rarity.EPIC)
-                    .setId(ResourceKey.create(Registries.ITEM, DDC.id("gm_wand"))), POSSESSIONS));
+                    .rarity(Rarity.EPIC), POSSESSIONS));
 
     /** The wizard's spellbook. What is written in it lives on the sheet; see {@link SpellbookItem}. */
     public static final RegistrySupplier<Item> SPELLBOOK = ITEMS.register("spellbook",
             () -> new SpellbookItem(new Item.Properties()
                     .stacksTo(1)
-                    .rarity(Rarity.UNCOMMON)
-                    .setId(ResourceKey.create(Registries.ITEM, DDC.id("spellbook")))));
+                    .rarity(Rarity.UNCOMMON)));
 
     /**
      * A caster's wand: cantrips, which never run dry.
@@ -92,19 +90,16 @@ public final class DDCItems {
             com.ddc.spell.SpellService casting) {
         WAND = ITEMS.register("wand", () -> new com.ddc.item.SpellFocusItem(new Item.Properties()
                 .stacksTo(1)
-                .rarity(Rarity.UNCOMMON)
-                .setId(ResourceKey.create(Registries.ITEM, DDC.id("wand"))),
+                .rarity(Rarity.UNCOMMON),
                 com.ddc.item.SpellFocusItem.Power.WAND, characters, spells, casting));
         STAFF = ITEMS.register("staff", () -> new com.ddc.item.SpellFocusItem(new Item.Properties()
                 .stacksTo(1)
-                .rarity(Rarity.RARE)
-                .setId(ResourceKey.create(Registries.ITEM, DDC.id("staff"))),
+                .rarity(Rarity.RARE),
                 com.ddc.item.SpellFocusItem.Power.STAFF, characters, spells, casting));
         SPELL_SCROLL = ITEMS.register("spell_scroll", () -> new com.ddc.item.SpellScrollItem(
                 new Item.Properties()
                         .stacksTo(16)
-                        .rarity(Rarity.UNCOMMON)
-                        .setId(ResourceKey.create(Registries.ITEM, DDC.id("spell_scroll"))),
+                        .rarity(Rarity.UNCOMMON),
                 spells, casting, SPELL.get()));
     }
 

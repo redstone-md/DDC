@@ -9,7 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
@@ -77,7 +77,7 @@ public final class EncounterService {
     private static boolean spawnOne(EntityType<?> type, ServerLevel level, Vec3 at,
             Encounter.Member member) {
         BlockPos pos = BlockPos.containing(at);
-        Entity entity = type.spawn(level, pos, EntitySpawnReason.COMMAND);
+        Entity entity = type.spawn(level, pos, MobSpawnType.COMMAND);
         if (entity == null) {
             return false;
         }

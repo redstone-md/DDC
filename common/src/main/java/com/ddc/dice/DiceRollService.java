@@ -58,7 +58,7 @@ public final class DiceRollService {
         // PRD 4.4's slow motion, on the roll that earns it. The whole table shares the moment: the
         // world itself slows, rather than one client pretending it did.
         if (result.isNatural20() && slowMotion != null) {
-            slowMotion.play(player.level().getServer(), System.currentTimeMillis());
+            slowMotion.play(player.getServer(), System.currentTimeMillis());
         }
         return result;
     }
@@ -71,7 +71,7 @@ public final class DiceRollService {
      */
     private static void throwDice(ServerPlayer player, RollResult result) {
         Vec3 at = player.position().add(player.getLookAngle().scale(0.8)).add(0, 1.2, 0);
-        DiceEntity.spawn(player.level(), at, result.seed());
+        DiceEntity.spawn(player.serverLevel(), at, result.seed());
     }
 
     /**
@@ -96,12 +96,12 @@ public final class DiceRollService {
     }
 
     private static String displayName(ServerPlayer player) {
-        return player.getGameProfile().name();
+        return player.getGameProfile().getName();
     }
 
     /** Everyone close enough to see the dice land, including the roller. */
     private List<ServerPlayer> nearbyPlayers(ServerPlayer roller) {
-        ServerLevel level = roller.level();
+        ServerLevel level = roller.serverLevel();
         double radiusSquared = BROADCAST_RADIUS * BROADCAST_RADIUS;
         return level.players().stream()
                 .filter(player -> player.distanceToSqr(roller) <= radiusSquared)

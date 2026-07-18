@@ -27,8 +27,7 @@ public final class DDCEntities {
                     .noSave()
                     .fireImmune()
                     .clientTrackingRange(4)
-                    .build(net.minecraft.resources.ResourceKey.create(
-                            Registries.ENTITY_TYPE, DDC.id("dice"))));
+                    .build("dice"));
 
     /** A spell in flight. Cosmetic, brief, and never saved: see {@link com.ddc.spell.SpellBoltEntity}. */
     public static final RegistrySupplier<EntityType<com.ddc.spell.SpellBoltEntity>> SPELL_BOLT =
@@ -41,8 +40,7 @@ public final class DDCEntities {
                             // Further than a die: a bolt crosses a room, and the room is watching.
                             .clientTrackingRange(8)
                             .updateInterval(1)
-                            .build(net.minecraft.resources.ResourceKey.create(
-                                    Registries.ENTITY_TYPE, DDC.id("spell_bolt"))));
+                            .build("spell_bolt"));
 
     private DDCEntities() {
     }

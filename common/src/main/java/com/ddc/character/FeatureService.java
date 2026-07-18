@@ -83,7 +83,7 @@ public final class FeatureService {
     public Either<Failure, Used> channelDivinity(ServerPlayer player, Divinity what) {
         return use(player, ClassFeature.ChannelDivinity.class, ClassFeature.Type.CHANNEL_DIVINITY,
                 (sheet, feature) -> {
-                    ServerLevel level = player.level();
+                    ServerLevel level = player.serverLevel();
                     Used used = switch (what) {
                         case TURN -> turnUndead(player, level, feature);
                         case HEAL -> mendTheParty(player, level, feature);
@@ -138,7 +138,7 @@ public final class FeatureService {
         for (LivingEntity undead : level.getEntitiesOfClass(LivingEntity.class,
                 player.getBoundingBox().inflate(feature.radius()),
                 entity -> entity != player && isUndead(entity))) {
-            undead.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, ticks, 2));
+            undead.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, ticks, 2));
             undead.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, ticks, 1));
             undead.addEffect(new MobEffectInstance(MobEffects.GLOWING, ticks, 0));
             turnedCount++;
@@ -174,8 +174,8 @@ public final class FeatureService {
         int blessed = 0;
         for (ServerPlayer ally : level.getServer().getPlayerList().getPlayers()) {
             if (ally.distanceTo(player) <= feature.radius() && ally.isAlive()) {
-                ally.addEffect(new MobEffectInstance(MobEffects.STRENGTH, ticks, 0));
-                ally.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, ticks, 0));
+                ally.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, ticks, 0));
+                ally.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, ticks, 0));
                 blessed++;
             }
         }
@@ -194,8 +194,8 @@ public final class FeatureService {
         return use(player, ClassFeature.ActionSurge.class, ClassFeature.Type.ACTION_SURGE,
                 (sheet, feature) -> {
                     int ticks = feature.seconds() * 20;
-                    player.addEffect(new MobEffectInstance(MobEffects.HASTE, ticks, 2));
-                    player.addEffect(new MobEffectInstance(MobEffects.SPEED, ticks, 1));
+                    player.addEffect(new MobEffectInstance(MobEffects.DIG_SPEED, ticks, 2));
+                    player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, ticks, 1));
                     player.level().playSound(null, player.blockPosition(), SoundEvents.PLAYER_ATTACK_SWEEP,
                             SoundSource.PLAYERS, 1.0f, 1.4f);
                     return new Used(net.minecraft.network.chat.Component.translatable(
@@ -218,8 +218,7 @@ public final class FeatureService {
                 (sheet, feature) -> {
                     RollResult roll = rolls.rollPublic(player, feature.dice(),
                             com.ddc.core.dice.RollMode.NORMAL);
-                    target.hurtServer((ServerLevel) player.level(),
-                            player.damageSources().playerAttack(player), roll.total());
+                    target.hurt(player.damageSources().playerAttack(player), roll.total());
                     apply(maneuver, player, target);
                     return new Used(net.minecraft.network.chat.Component.translatable(
                             "ddc.feature.maneuver." + maneuver.id(), roll.total(),
@@ -230,8 +229,8 @@ public final class FeatureService {
     /** What each manoeuvre does once its die has been spent. */
     private static void apply(Maneuver maneuver, ServerPlayer player, LivingEntity target) {
         switch (maneuver) {
-            case TRIP -> target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 60, 4));
-            case PARRY -> player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 100, 1));
+            case TRIP -> target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 60, 4));
+            case PARRY -> player.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 100, 1));
             case PUSH -> target.push(
                     (target.getX() - player.getX()) * 0.6, 0.35, (target.getZ() - player.getZ()) * 0.6);
         }

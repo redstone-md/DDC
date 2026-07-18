@@ -33,7 +33,7 @@ public final class SoundscapeService {
     public boolean play(ServerPlayer gameMaster, ResourceLocation sound, float volume, float pitch) {
         if (!GameMasters.isGameMaster(gameMaster)) {
             throw new IllegalArgumentException(
-                    "Refusing to play a soundscape for a non-GM: " + gameMaster.getGameProfile().name());
+                    "Refusing to play a soundscape for a non-GM: " + gameMaster.getGameProfile().getName());
         }
         Optional<SoundEvent> event = BuiltInRegistries.SOUND_EVENT.getOptional(sound);
         if (event.isEmpty() || !(gameMaster.level() instanceof ServerLevel level)) {
