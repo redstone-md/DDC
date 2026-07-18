@@ -5,7 +5,7 @@ import java.util.Optional;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -111,7 +111,7 @@ public final class EncounterService {
                 living.setHealth((float) (double) health);
             }
         });
-        for (Map.Entry<net.minecraft.world.entity.EquipmentSlot, Identifier> worn
+        for (Map.Entry<net.minecraft.world.entity.EquipmentSlot, ResourceLocation> worn
                 : member.equipment().entrySet()) {
             BuiltInRegistries.ITEM.getOptional(worn.getValue()).ifPresent(item ->
                     living.setItemSlot(worn.getKey(), new net.minecraft.world.item.ItemStack(item)));

@@ -3,7 +3,7 @@ package com.ddc.character;
 import com.ddc.DDC;
 import com.ddc.rules.CharacterClass;
 import java.util.Optional;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -30,7 +30,7 @@ public final class HealthService {
      * The id the modifier is stored under. Stable, so re-applying updates the same modifier rather
      * than stacking a second one on top of it.
      */
-    private static final Identifier MODIFIER_ID = DDC.id("hit_die");
+    private static final ResourceLocation MODIFIER_ID = DDC.id("hit_die");
 
     /** Minecraft's own maximum health, which the modifier adjusts away from. */
     private static final double VANILLA_MAX_HEALTH = 20.0;

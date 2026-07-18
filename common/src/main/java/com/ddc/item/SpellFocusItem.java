@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -98,7 +98,7 @@ public class SpellFocusItem extends Item {
             // The client is told the swing happened; the server decides whether anything else did.
             return InteractionResult.SUCCESS;
         }
-        List<Identifier> castable = castable(caster);
+        List<ResourceLocation> castable = castable(caster);
         if (castable.isEmpty()) {
             caster.sendSystemMessage(Component.translatable("ddc.focus.nothing_to_cast")
                     .withStyle(ChatFormatting.RED));
@@ -109,7 +109,7 @@ public class SpellFocusItem extends Item {
             return InteractionResult.SUCCESS;
         }
 
-        Identifier chosen = SpellSelection.current(caster, castable);
+        ResourceLocation chosen = SpellSelection.current(caster, castable);
         Optional<Spell> spell = spells.get(chosen);
         if (spell.isEmpty()) {
             // The pack that defined it is gone since it was chosen. Pick again rather than fail.
@@ -202,7 +202,7 @@ public class SpellFocusItem extends Item {
         return use(player.level(), player, hand);
     }
 
-    private InteractionResult cast(ServerPlayer caster, Spell spell, Identifier id, LivingEntity target) {
+    private InteractionResult cast(ServerPlayer caster, Spell spell, ResourceLocation id, LivingEntity target) {
         return switch (casting.cast(caster, spell, id, target)) {
             case SpellService.Either.Left<SpellService.Failure, SpellService.Cast> left -> {
                 // Above the hotbar: a refusal is a glance, not a conversation.
@@ -235,19 +235,19 @@ public class SpellFocusItem extends Item {
      * <p>Sorted, because the order is what sneak-clicking walks through: a cycle that shuffled itself
      * between clicks would be a cycle nobody could learn.
      */
-    private List<Identifier> castable(ServerPlayer caster) {
+    private List<ResourceLocation> castable(ServerPlayer caster) {
         CharacterSheet sheet = characters.get(caster);
         return spells.ids().stream()
                 .filter(id -> spells.get(id).map(spell -> switch (power) {
                     case WAND -> spell.isCantrip();
                     case STAFF -> spell.isCantrip() || sheet.hasPrepared(id);
                 }).orElse(false))
-                .sorted(Identifier::compareTo)
+                .sorted(ResourceLocation::compareTo)
                 .toList();
     }
 
     /** Says what the focus is now pointed at, above the hotbar where a held item's news belongs. */
-    private void announce(ServerPlayer caster, Identifier chosen) {
+    private void announce(ServerPlayer caster, ResourceLocation chosen) {
         Component name = spells.get(chosen)
                 .map(spell -> Component.literal(spell.name()))
                 .orElseGet(() -> Component.literal(chosen.getPath()));

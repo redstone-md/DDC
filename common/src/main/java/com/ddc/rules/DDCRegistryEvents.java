@@ -3,7 +3,7 @@ package com.ddc.rules;
 import dev.architectury.event.Event;
 import dev.architectury.event.EventFactory;
 import java.util.Map;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * What an addon can listen to: ARCHITECTURE 3's registry callbacks, which never existed.
@@ -26,7 +26,7 @@ public final class DDCRegistryEvents {
      * it would be a data pack nobody could see.
      */
     public interface Reloaded<T> {
-        void reloaded(DataRegistry<T> registry, Map<Identifier, T> entries);
+        void reloaded(DataRegistry<T> registry, Map<ResourceLocation, T> entries);
     }
 
     public static final Event<Reloaded<CharacterClass>> CLASSES_RELOADED = create();
@@ -50,7 +50,7 @@ public final class DDCRegistryEvents {
      * arrives.
      */
     @SuppressWarnings("unchecked")
-    static <T> void announce(DataRegistry<T> registry, Map<Identifier, T> entries) {
+    static <T> void announce(DataRegistry<T> registry, Map<ResourceLocation, T> entries) {
         Event<Reloaded<T>> event = (Event<Reloaded<T>>) eventFor(registry);
         if (event != null) {
             event.invoker().reloaded(registry, entries);

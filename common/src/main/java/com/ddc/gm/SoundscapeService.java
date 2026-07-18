@@ -2,7 +2,7 @@ package com.ddc.gm;
 
 import java.util.Optional;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -30,7 +30,7 @@ public final class SoundscapeService {
      * @return false when nothing is registered under that id, which the command reports rather than
      *         failing silently
      */
-    public boolean play(ServerPlayer gameMaster, Identifier sound, float volume, float pitch) {
+    public boolean play(ServerPlayer gameMaster, ResourceLocation sound, float volume, float pitch) {
         if (!GameMasters.isGameMaster(gameMaster)) {
             throw new IllegalArgumentException(
                     "Refusing to play a soundscape for a non-GM: " + gameMaster.getGameProfile().name());

@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Map;
 import java.util.Optional;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 
 /**
@@ -91,7 +91,7 @@ public record Encounter(String name, List<Member> members) {
      *                   usually wants
      * @param name       what floats above them, or empty for an ordinary mob
      */
-    public record Member(Identifier entity, int count, Map<EquipmentSlot, Identifier> equipment,
+    public record Member(ResourceLocation entity, int count, Map<EquipmentSlot, ResourceLocation> equipment,
             Optional<Double> health, boolean persistent, Optional<String> name) {
 
         /** Enough for a boss; not enough for a typo to make an unkillable one. */
@@ -109,18 +109,18 @@ public record Encounter(String name, List<Member> members) {
                 EquipmentSlot::getName);
 
         public static final Codec<Member> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                Identifier.CODEC.fieldOf("entity").forGetter(Member::entity),
+                ResourceLocation.CODEC.fieldOf("entity").forGetter(Member::entity),
                 Codec.intRange(1, MAX_TOTAL).optionalFieldOf("count", 1).forGetter(Member::count),
                 // PRD 4.2 asks for custom equipment and AI parameters. All optional: an encounter that
                 // only names a mob is the common case and should stay one line long.
-                Codec.unboundedMap(SLOT, Identifier.CODEC).optionalFieldOf("equipment", Map.of())
+                Codec.unboundedMap(SLOT, ResourceLocation.CODEC).optionalFieldOf("equipment", Map.of())
                         .forGetter(Member::equipment),
                 Codec.doubleRange(1, MAX_HEALTH).optionalFieldOf("health").forGetter(Member::health),
                 Codec.BOOL.optionalFieldOf("persistent", true).forGetter(Member::persistent),
                 Codec.STRING.optionalFieldOf("name").forGetter(Member::name)
         ).apply(instance, Member::new));
 
-        public Member(Identifier entity, int count) {
+        public Member(ResourceLocation entity, int count) {
             this(entity, count, Map.of(), Optional.empty(), true, Optional.empty());
         }
 

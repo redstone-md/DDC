@@ -3,7 +3,7 @@ package com.ddc.mixin.client;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
@@ -24,5 +24,5 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 public interface GameRendererInvoker {
 
     @Invoker("setPostEffect")
-    void ddc$setPostEffect(Identifier effect);
+    void ddc$setPostEffect(ResourceLocation effect);
 }

@@ -14,14 +14,14 @@ import com.mojang.serialization.JsonOps;
 import net.minecraft.nbt.NbtOps;
 import java.util.Optional;
 import java.util.Set;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class CharacterSheetTest {
 
-    private static final Identifier FIGHTER_ID = Identifier.fromNamespaceAndPath("ddc", "fighter");
+    private static final ResourceLocation FIGHTER_ID = ResourceLocation.fromNamespaceAndPath("ddc", "fighter");
     private static final CharacterClass FIGHTER = new CharacterClass(
             "Fighter", new HitDie(Die.D10), Ability.STRENGTH,
             Set.of(Ability.STRENGTH, Ability.CONSTITUTION), Optional.empty(), java.util.List.of(),

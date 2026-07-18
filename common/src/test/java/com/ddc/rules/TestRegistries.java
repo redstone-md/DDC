@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * Registries with something in them, for tests that need a data pack without a game to load one.
@@ -23,19 +23,19 @@ public final class TestRegistries {
     private TestRegistries() {
     }
 
-    public static DataRegistry<CharacterClass> classes(Map<Identifier, CharacterClass> entries) {
+    public static DataRegistry<CharacterClass> classes(Map<ResourceLocation, CharacterClass> entries) {
         return loaded(new DataRegistry<>("ddc_classes", "character classes", CharacterClass.CODEC), entries);
     }
 
-    public static DataRegistry<Race> races(Map<Identifier, Race> entries) {
+    public static DataRegistry<Race> races(Map<ResourceLocation, Race> entries) {
         return loaded(new DataRegistry<>("ddc_races", "races", Race.CODEC), entries);
     }
 
-    public static DataRegistry<Spell> spells(Map<Identifier, Spell> entries) {
+    public static DataRegistry<Spell> spells(Map<ResourceLocation, Spell> entries) {
         return loaded(new DataRegistry<>("ddc_spells", "spells", Spell.CODEC), entries);
     }
 
-    public static DataRegistry<Encounter> encounters(Map<Identifier, Encounter> entries) {
+    public static DataRegistry<Encounter> encounters(Map<ResourceLocation, Encounter> entries) {
         return loaded(new DataRegistry<>("ddc_encounters", "encounters", Encounter.CODEC), entries);
     }
 
@@ -46,7 +46,7 @@ public final class TestRegistries {
      * which is right -- a registry anything could write to would be a registry no data pack owned --
      * and a test in the package is the one caller that has business standing in for a reload.
      */
-    private static <T> DataRegistry<T> loaded(DataRegistry<T> registry, Map<Identifier, T> entries) {
+    private static <T> DataRegistry<T> loaded(DataRegistry<T> registry, Map<ResourceLocation, T> entries) {
         registry.apply(entries, null, null);
         return registry;
     }
@@ -66,6 +66,6 @@ public final class TestRegistries {
     }
 
     public static Encounter encounter(String name) {
-        return new Encounter(name, List.of(new Encounter.Member(Identifier.parse("minecraft:zombie"), 2)));
+        return new Encounter(name, List.of(new Encounter.Member(ResourceLocation.parse("minecraft:zombie"), 2)));
     }
 }

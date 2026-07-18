@@ -6,7 +6,7 @@ import com.ddc.core.character.Ability;
 import com.ddc.rules.Race;
 import java.util.Map;
 import java.util.Optional;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -19,8 +19,8 @@ import org.junit.jupiter.api.Test;
  */
 class RaceChangeTest {
 
-    private static final Identifier DWARF_ID = Identifier.parse("ddc:dwarf");
-    private static final Identifier ELF_ID = Identifier.parse("ddc:elf");
+    private static final ResourceLocation DWARF_ID = ResourceLocation.parse("ddc:dwarf");
+    private static final ResourceLocation ELF_ID = ResourceLocation.parse("ddc:elf");
 
     private static final Race DWARF = new Race("Dwarf", Map.of(Ability.CONSTITUTION, 2), 25, java.util.List.of(), java.util.List.of());
     private static final Race ELF = new Race("Elf", Map.of(Ability.DEXTERITY, 2), 30, java.util.List.of(), java.util.List.of());

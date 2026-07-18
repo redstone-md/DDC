@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 
 /**
@@ -19,13 +19,13 @@ import net.minecraft.server.level.ServerPlayer;
  */
 public final class GmWandSelection {
 
-    private static final Map<UUID, Identifier> SELECTED = new ConcurrentHashMap<>();
+    private static final Map<UUID, ResourceLocation> SELECTED = new ConcurrentHashMap<>();
 
     private GmWandSelection() {
     }
 
     /** Sets a player's selection outright, for the wheel that picks it by name. */
-    public static void select(ServerPlayer player, Identifier encounter) {
+    public static void select(ServerPlayer player, ResourceLocation encounter) {
         SELECTED.put(player.getUUID(), encounter);
     }
 
@@ -35,8 +35,8 @@ public final class GmWandSelection {
      * <p>Falls back to the first when the selection is gone, which is what happens when a data pack
      * reload removes the encounter a GM had chosen.
      */
-    static Identifier current(ServerPlayer player, List<Identifier> available) {
-        Identifier selected = SELECTED.get(player.getUUID());
+    static ResourceLocation current(ServerPlayer player, List<ResourceLocation> available) {
+        ResourceLocation selected = SELECTED.get(player.getUUID());
         if (selected == null || !available.contains(selected)) {
             selected = available.getFirst();
             SELECTED.put(player.getUUID(), selected);
@@ -45,9 +45,9 @@ public final class GmWandSelection {
     }
 
     /** Steps to the next encounter and returns it, wrapping at the end. */
-    static Identifier next(ServerPlayer player, List<Identifier> available) {
+    static ResourceLocation next(ServerPlayer player, List<ResourceLocation> available) {
         int index = available.indexOf(current(player, available));
-        Identifier next = available.get((index + 1) % available.size());
+        ResourceLocation next = available.get((index + 1) % available.size());
         SELECTED.put(player.getUUID(), next);
         return next;
     }

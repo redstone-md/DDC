@@ -19,7 +19,7 @@ import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.IdentifierArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 
 /**
@@ -116,7 +116,7 @@ public final class CharacterCommand {
 
     private int chooseClass(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = context.getSource().getPlayerOrException();
-        Identifier id = IdentifierArgument.getId(context, ARG_CLASS);
+        ResourceLocation id = IdentifierArgument.getId(context, ARG_CLASS);
 
         CharacterSheet sheet = characters.chooseClass(player, id)
                 .orElseThrow(() -> UNKNOWN_CLASS.create(id));
@@ -129,7 +129,7 @@ public final class CharacterCommand {
 
     private int chooseRace(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = context.getSource().getPlayerOrException();
-        Identifier id = IdentifierArgument.getId(context, ARG_RACE);
+        ResourceLocation id = IdentifierArgument.getId(context, ARG_RACE);
         Race race = races.get(id).orElseThrow(() -> UNKNOWN_RACE.create(id));
 
         // The race being replaced hands its bonuses back, so picking human twice does not pay twice.

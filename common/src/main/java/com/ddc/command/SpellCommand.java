@@ -18,7 +18,7 @@ import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.IdentifierArgument;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -70,7 +70,7 @@ public final class SpellCommand {
 
     private int cast(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer caster = context.getSource().getPlayerOrException();
-        Identifier id = IdentifierArgument.getId(context, ARG_SPELL);
+        ResourceLocation id = IdentifierArgument.getId(context, ARG_SPELL);
         Spell spell = spells.get(id).orElseThrow(() -> UNKNOWN_SPELL.create(id));
 
         Entity target = EntityArgument.getEntity(context, ARG_TARGET);

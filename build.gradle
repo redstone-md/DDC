@@ -1,6 +1,6 @@
 plugins {
     id "architectury-plugin"
-    id "dev.architectury.loom-no-remap" apply false
+    id "dev.architectury.loom" apply false
     id "com.gradleup.shadow" apply false
 }
 
@@ -10,7 +10,7 @@ architectury {
 
 subprojects {
     apply plugin: "java-library"
-    apply plugin: "dev.architectury.loom-no-remap"
+    apply plugin: "dev.architectury.loom"
     apply plugin: "architectury-plugin"
     apply plugin: "maven-publish"
 
@@ -21,13 +21,18 @@ subprojects {
     repositories {
         maven { url = "https://maven.architectury.dev/" }
         maven { url = "https://maven.neoforged.net/releases/" }
+        maven { url = "https://maven.parchmentmc.org/" }
         mavenCentral()
     }
 
     dependencies {
-        // Minecraft 26.x ships unobfuscated: Mojang publishes no mappings for it and Fabric's
-        // intermediary is a no-op, so no `mappings` dependency is declared at all.
         minecraft "com.mojang:minecraft:${minecraft_version}"
+        // Mojang's official mappings, so the code reads in the same names 26.x uses unobfuscated --
+        // ServerPlayer, ServerLevel, BlockPos. Parchment layers parameter names on top.
+        mappings loom.layered {
+            officialMojangMappings()
+            parchment("org.parchmentmc.data:parchment-1.21.1:${parchment_version}@zip")
+        }
 
         testImplementation platform("org.junit:junit-bom:${junit_version}")
         testImplementation "org.junit.jupiter:junit-jupiter"

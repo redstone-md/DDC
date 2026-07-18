@@ -1,16 +1,10 @@
 package com.ddc.gm;
 
 import java.util.Optional;
-import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.clock.ClockTimeMarker;
-import net.minecraft.world.clock.ClockTimeMarkers;
-import net.minecraft.world.clock.WorldClock;
-import net.minecraft.world.clock.WorldClocks;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.level.GameRules;
 import net.minecraft.world.effect.MobEffects;
 
 /**
@@ -67,8 +61,8 @@ public final class WorldControlService {
         ServerLevel level = gameMaster.level();
 
         switch (change) {
-            case DAY -> moveClock(level, ClockTimeMarkers.DAY);
-            case NIGHT -> moveClock(level, ClockTimeMarkers.NIGHT);
+            case DAY -> level.setDayTime(1000L);
+            case NIGHT -> level.setDayTime(13000L);
             case STORM -> storm(level, true);
             case CLEAR -> storm(level, false);
             case PAUSE_TIME -> pauseClock(level, true);
@@ -80,29 +74,17 @@ public final class WorldControlService {
     }
 
     /**
-     * Minecraft 26 keeps time on clocks with named markers rather than a tick number, so day and
-     * night are the markers' own names instead of numbers this code would have to know.
+     * PRD 3.2's "slow down time", in the only honest version of it: stop the day/night cycle.
+     *
+     * <p>The daylight gamerule rather than the tick-rate manager, because a table wants the sun to
+     * hold still for a monologue, not the whole world to stop moving.
      */
-    private static void moveClock(ServerLevel level, ResourceKey<ClockTimeMarker> marker) {
-        overworldClock(level).ifPresent(clock -> level.clockManager().moveToTimeMarker(clock, marker));
-    }
-
-    /** PRD 3.2's "slow down time", in the only honest version of it: stop the clock. */
     private static void pauseClock(ServerLevel level, boolean paused) {
-        overworldClock(level).ifPresent(clock -> level.clockManager().setPaused(clock, paused));
-    }
-
-    private static Optional<Holder.Reference<WorldClock>> overworldClock(ServerLevel level) {
-        return level.registryAccess().lookupOrThrow(Registries.WORLD_CLOCK).get(WorldClocks.OVERWORLD);
+        level.getGameRules().getRule(GameRules.RULE_DAYLIGHT).set(!paused, level.getServer());
     }
 
     private static void storm(ServerLevel level, boolean stormy) {
-        var weather = level.getWeatherData();
-        weather.setRaining(stormy);
-        weather.setThundering(stormy);
-        weather.setRainTime(stormy ? STORM_TICKS : 0);
-        weather.setThunderTime(stormy ? STORM_TICKS : 0);
-        weather.setClearWeatherTime(stormy ? 0 : STORM_TICKS);
+        level.setWeatherParameters(stormy ? 0 : STORM_TICKS, stormy ? STORM_TICKS : 0, stormy, stormy);
     }
 
     /**

@@ -7,7 +7,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 /**
@@ -94,7 +94,7 @@ public final class RecipePage {
     }
 
     private static ItemStack stack(String id) {
-        return BuiltInRegistries.ITEM.getOptional(Identifier.parse(id))
+        return BuiltInRegistries.ITEM.getOptional(ResourceLocation.parse(id))
                 .map(ItemStack::new)
                 .orElse(ItemStack.EMPTY);
     }

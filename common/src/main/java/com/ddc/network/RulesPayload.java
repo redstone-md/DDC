@@ -13,7 +13,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * The names of the rules a client is allowed to pick from.
@@ -51,10 +51,10 @@ public record RulesPayload(List<Entry> classes, List<Entry> races, List<Entry> s
      * @param name  what the menu shows, as the pack wrote it
      * @param level a spell's level; zero for anything that has none
      */
-    public record Entry(Identifier id, String name, int level) {
+    public record Entry(ResourceLocation id, String name, int level) {
 
         public static final StreamCodec<ByteBuf, Entry> STREAM_CODEC = StreamCodec.composite(
-                Identifier.STREAM_CODEC, Entry::id,
+                ResourceLocation.STREAM_CODEC, Entry::id,
                 ByteBufCodecs.stringUtf8(MAX_NAME), Entry::name,
                 ByteBufCodecs.VAR_INT, Entry::level,
                 Entry::new);
@@ -64,7 +64,7 @@ public record RulesPayload(List<Entry> classes, List<Entry> races, List<Entry> s
             Objects.requireNonNull(name, "name");
         }
 
-        public static Entry of(Identifier id, String name) {
+        public static Entry of(ResourceLocation id, String name) {
             return new Entry(id, name, 0);
         }
     }
@@ -116,9 +116,9 @@ public record RulesPayload(List<Entry> classes, List<Entry> races, List<Entry> s
      * without one, and it is right to.
      */
     private static <T> List<Entry> entries(DataRegistry<T> registry,
-            java.util.function.BiFunction<Identifier, T, Entry> describe) {
+            java.util.function.BiFunction<ResourceLocation, T, Entry> describe) {
         return registry.ids().stream()
-                .sorted(Identifier::compareTo)
+                .sorted(ResourceLocation::compareTo)
                 .flatMap(id -> registry.get(id).map(definition -> describe.apply(id, definition)).stream())
                 .toList();
     }

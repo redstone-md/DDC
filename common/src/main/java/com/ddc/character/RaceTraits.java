@@ -3,7 +3,7 @@ package com.ddc.character;
 import com.ddc.DDC;
 import com.ddc.rules.Race;
 import java.util.Locale;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -35,7 +35,7 @@ public final class RaceTraits {
      * The id the speed modifier is stored under. Stable, so a change of race replaces it rather than
      * stacking a second one on top -- the same reason the hit die modifier has an id.
      */
-    private static final Identifier SPEED_ID = DDC.id("race_speed");
+    private static final ResourceLocation SPEED_ID = DDC.id("race_speed");
 
     /** The trait a pack writes for seeing in the dark. */
     private static final String DARKVISION = "darkvision";

@@ -7,7 +7,7 @@ import com.ddc.rules.DataRegistry;
 import dev.architectury.networking.NetworkManager;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 
 /**
@@ -92,7 +92,7 @@ public final class CharacterService {
      * @return empty if no loaded data pack defines that class, which the caller must report rather
      *         than silently ignore
      */
-    public Optional<CharacterSheet> chooseClass(ServerPlayer player, Identifier classId) {
+    public Optional<CharacterSheet> chooseClass(ServerPlayer player, ResourceLocation classId) {
         return classes.get(classId).map(definition -> {
             CharacterSheet updated = update(player, sheet -> sheet.withClass(classId, definition));
             health.applyAndHeal(player);

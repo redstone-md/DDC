@@ -11,7 +11,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 
 /**
@@ -41,7 +41,7 @@ public final class SoundCommand {
                 .requires(GameMasters.requirement())
                 .then(Commands.argument(ARG_SOUND, com.mojang.brigadier.arguments.StringArgumentType.string())
                         .suggests((context, builder) -> SharedSuggestionProvider.suggest(
-                                BuiltInRegistries.SOUND_EVENT.keySet().stream().map(Identifier::toString),
+                                BuiltInRegistries.SOUND_EVENT.keySet().stream().map(ResourceLocation::toString),
                                 builder))
                         .executes(context -> play(context, 1.0f, 1.0f))
                         .then(Commands.argument(ARG_VOLUME, FloatArgumentType.floatArg(0.0f, 4.0f))
@@ -57,7 +57,7 @@ public final class SoundCommand {
             throws CommandSyntaxException {
         ServerPlayer gameMaster = context.getSource().getPlayerOrException();
         String key = com.mojang.brigadier.arguments.StringArgumentType.getString(context, ARG_SOUND);
-        Identifier id = Identifier.tryParse(key);
+        ResourceLocation id = ResourceLocation.tryParse(key);
 
         if (id == null || !soundscapes.play(gameMaster, id, volume, pitch)) {
             context.getSource().sendFailure(Component.translatable("ddc.error.unknown_sound", key));

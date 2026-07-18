@@ -11,7 +11,7 @@ import com.ddc.dice.DiceRollService;
 import com.ddc.rules.CharacterClass;
 import com.ddc.rules.Spell;
 import com.ddc.rules.Spellcasting;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import java.util.Optional;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -74,7 +74,7 @@ public final class SpellService {
      *
      * @return the cast, or the reason it could not happen; nothing has changed in the failure case
      */
-    public Either<Failure, Cast> cast(ServerPlayer caster, Spell spell, Identifier spellId,
+    public Either<Failure, Cast> cast(ServerPlayer caster, Spell spell, ResourceLocation spellId,
             LivingEntity target) {
         CharacterSheet sheet = characters.get(caster);
         Optional<CharacterClass> definition = characters.definitionFor(sheet);

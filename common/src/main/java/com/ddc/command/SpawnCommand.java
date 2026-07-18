@@ -14,7 +14,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.HitResult;
@@ -53,14 +53,14 @@ public final class SpawnCommand {
                 .requires(GameMasters.requirement())
                 .then(Commands.argument(ARG_ENCOUNTER, StringArgumentType.string())
                         .suggests((context, builder) -> SharedSuggestionProvider.suggest(
-                                encounters.ids().stream().map(Identifier::toString), builder))
+                                encounters.ids().stream().map(ResourceLocation::toString), builder))
                         .executes(this::spawn));
     }
 
     private int spawn(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer gameMaster = context.getSource().getPlayerOrException();
         String key = StringArgumentType.getString(context, ARG_ENCOUNTER);
-        Identifier id = Optional.ofNullable(Identifier.tryParse(key))
+        ResourceLocation id = Optional.ofNullable(ResourceLocation.tryParse(key))
                 .orElseThrow(() -> UNKNOWN_ENCOUNTER.create(key));
         Encounter encounter = encounters.get(id).orElseThrow(() -> UNKNOWN_ENCOUNTER.create(key));
 

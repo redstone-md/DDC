@@ -9,7 +9,7 @@ import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
@@ -74,11 +74,11 @@ public final class DDCItems {
      * <p>A component rather than an item per spell, which is what lets a data pack's own spell have a
      * scroll: a mod registering one item per spell could only ever have scrolls for its own.
      */
-    public static final RegistrySupplier<net.minecraft.core.component.DataComponentType<Identifier>> SPELL =
+    public static final RegistrySupplier<net.minecraft.core.component.DataComponentType<ResourceLocation>> SPELL =
             COMPONENTS.register("spell", () ->
-                    net.minecraft.core.component.DataComponentType.<Identifier>builder()
-                            .persistent(Identifier.CODEC)
-                            .networkSynchronized(Identifier.STREAM_CODEC)
+                    net.minecraft.core.component.DataComponentType.<ResourceLocation>builder()
+                            .persistent(ResourceLocation.CODEC)
+                            .networkSynchronized(ResourceLocation.STREAM_CODEC)
                             .build());
 
     /**
@@ -126,7 +126,7 @@ public final class DDCItems {
     }
 
     /** The wand's id, for anything that needs to name it. */
-    public static Identifier gmWandId() {
+    public static ResourceLocation gmWandId() {
         return DDC.id("gm_wand");
     }
 }

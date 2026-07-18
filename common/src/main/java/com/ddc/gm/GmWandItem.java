@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
@@ -69,7 +69,7 @@ public class GmWandItem extends Item {
             return InteractionResult.FAIL;
         }
 
-        List<Identifier> available = availableEncounters();
+        List<ResourceLocation> available = availableEncounters();
         if (available.isEmpty()) {
             player.sendSystemMessage(Component.translatable("ddc.error.no_encounters")
                     .withStyle(ChatFormatting.RED), true);
@@ -83,12 +83,12 @@ public class GmWandItem extends Item {
     }
 
     /** The encounters this server knows, in a stable order so cycling is predictable. */
-    private static List<Identifier> availableEncounters() {
-        return DDCRegistries.ENCOUNTERS.ids().stream().sorted(Identifier::compareTo).toList();
+    private static List<ResourceLocation> availableEncounters() {
+        return DDCRegistries.ENCOUNTERS.ids().stream().sorted(ResourceLocation::compareTo).toList();
     }
 
-    private InteractionResult cycle(ServerPlayer player, List<Identifier> available) {
-        Identifier next = GmWandSelection.next(player, available);
+    private InteractionResult cycle(ServerPlayer player, List<ResourceLocation> available) {
+        ResourceLocation next = GmWandSelection.next(player, available);
         DDCRegistries.ENCOUNTERS.get(next).ifPresent(encounter ->
                 player.sendSystemMessage(Component.translatable("ddc.gm.selected",
                         encounter.name(), encounter.total()).withStyle(ChatFormatting.GOLD), true));
@@ -96,8 +96,8 @@ public class GmWandItem extends Item {
     }
 
     private InteractionResult spawn(ServerPlayer player, ServerLevel level, Vec3 at,
-            List<Identifier> available) {
-        Identifier selected = GmWandSelection.current(player, available);
+            List<ResourceLocation> available) {
+        ResourceLocation selected = GmWandSelection.current(player, available);
         Optional<Encounter> encounter = DDCRegistries.ENCOUNTERS.get(selected);
         if (encounter.isEmpty()) {
             return InteractionResult.FAIL;

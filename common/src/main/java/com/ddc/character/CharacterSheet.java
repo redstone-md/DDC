@@ -17,7 +17,7 @@ import java.util.Objects;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * A player's character, as stored and synced.
@@ -39,9 +39,9 @@ import net.minecraft.resources.Identifier;
  * @param preparedSpells    the spells written into the character's spellbook
  * @param experience        experience earned, which is what the level is worked out from
  */
-public record CharacterSheet(Optional<Identifier> characterClass, int level, AbilityScores abilities,
-        Optional<Identifier> race, Map<Integer, Integer> usedSpellSlots, Map<ClassFeature.Type, Integer> usedFeatures,
-        Set<Identifier> preparedSpells, int experience) {
+public record CharacterSheet(Optional<ResourceLocation> characterClass, int level, AbilityScores abilities,
+        Optional<ResourceLocation> race, Map<Integer, Integer> usedSpellSlots, Map<ClassFeature.Type, Integer> usedFeatures,
+        Set<ResourceLocation> preparedSpells, int experience) {
 
     private static final Codec<AbilityScores> ABILITY_SCORES_CODEC =
             Codec.unboundedMap(DDCCodecs.ABILITY, Codec.intRange(Ability.MIN_SCORE, Ability.MAX_SCORE))
@@ -85,17 +85,17 @@ public record CharacterSheet(Optional<Identifier> characterClass, int level, Abi
                     com.mojang.datafixers.util.Either::left);
 
     public static final Codec<CharacterSheet> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Identifier.CODEC.optionalFieldOf("class").forGetter(CharacterSheet::characterClass),
+            ResourceLocation.CODEC.optionalFieldOf("class").forGetter(CharacterSheet::characterClass),
             Codec.intRange(Proficiency.MIN_LEVEL, Proficiency.MAX_LEVEL).fieldOf("level")
                     .forGetter(CharacterSheet::level),
             ABILITY_SCORES_CODEC.fieldOf("abilities").forGetter(CharacterSheet::abilities),
-            Identifier.CODEC.optionalFieldOf("race").forGetter(CharacterSheet::race),
+            ResourceLocation.CODEC.optionalFieldOf("race").forGetter(CharacterSheet::race),
             Codec.unboundedMap(SPELL_LEVEL_KEY, Codec.intRange(0, 99))
                     .optionalFieldOf("used_spell_slots", Map.of())
                     .forGetter(CharacterSheet::usedSpellSlots),
             USED_FEATURES.optionalFieldOf("used_features", Map.of())
                     .forGetter(CharacterSheet::usedFeatures),
-            Identifier.CODEC.listOf().xmap(Set::copyOf, List::copyOf)
+            ResourceLocation.CODEC.listOf().xmap(Set::copyOf, List::copyOf)
                     .optionalFieldOf("prepared_spells", Set.of())
                     .forGetter(CharacterSheet::preparedSpells),
             // Optional so every sheet saved before levelling existed still loads, at zero.
@@ -141,7 +141,7 @@ public record CharacterSheet(Optional<Identifier> characterClass, int level, Abi
     }
 
     /** Returns a copy that has picked a class. The player's health is sized by {@link HealthService}. */
-    public CharacterSheet withClass(Identifier id, CharacterClass definition) {
+    public CharacterSheet withClass(ResourceLocation id, CharacterClass definition) {
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(definition, "definition");
         return new CharacterSheet(Optional.of(id), level, abilities, race, usedSpellSlots, usedFeatures,
@@ -183,7 +183,7 @@ public record CharacterSheet(Optional<Identifier> characterClass, int level, Abi
      *
      * @param previous the race being replaced, if there was one
      */
-    public CharacterSheet withRace(Identifier id, Race definition, Optional<Race> previous) {
+    public CharacterSheet withRace(ResourceLocation id, Race definition, Optional<Race> previous) {
         Objects.requireNonNull(id, "id");
         AbilityScores base = previous.map(old -> old.removeFrom(abilities)).orElse(abilities);
         return new CharacterSheet(characterClass, level, definition.applyTo(base),
@@ -233,21 +233,21 @@ public record CharacterSheet(Optional<Identifier> characterClass, int level, Abi
     }
 
     /** Whether this spell is written in the character's book. */
-    public boolean hasPrepared(Identifier spell) {
+    public boolean hasPrepared(ResourceLocation spell) {
         return preparedSpells.contains(spell);
     }
 
     /** Returns a copy with a spell written into the book. */
-    public CharacterSheet withPrepared(Identifier spell) {
-        Set<Identifier> prepared = new java.util.HashSet<>(preparedSpells);
+    public CharacterSheet withPrepared(ResourceLocation spell) {
+        Set<ResourceLocation> prepared = new java.util.HashSet<>(preparedSpells);
         prepared.add(Objects.requireNonNull(spell, "spell"));
         return new CharacterSheet(characterClass, level, abilities, race, usedSpellSlots, usedFeatures,
                 prepared, experience);
     }
 
     /** Returns a copy with a spell scrubbed out of the book. */
-    public CharacterSheet withoutPrepared(Identifier spell) {
-        Set<Identifier> prepared = new java.util.HashSet<>(preparedSpells);
+    public CharacterSheet withoutPrepared(ResourceLocation spell) {
+        Set<ResourceLocation> prepared = new java.util.HashSet<>(preparedSpells);
         prepared.remove(spell);
         return new CharacterSheet(characterClass, level, abilities, race, usedSpellSlots, usedFeatures,
                 prepared, experience);

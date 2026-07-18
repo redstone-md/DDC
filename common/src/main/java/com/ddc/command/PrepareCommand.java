@@ -18,7 +18,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.IdentifierArgument;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 
@@ -77,7 +77,7 @@ public final class PrepareCommand {
 
     private int prepare(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = context.getSource().getPlayerOrException();
-        Identifier id = IdentifierArgument.getId(context, ARG_SPELL);
+        ResourceLocation id = IdentifierArgument.getId(context, ARG_SPELL);
         Spell spell = spells.get(id).orElseThrow(() -> UNKNOWN_SPELL.create(id));
 
         if (!isHoldingSpellbook(player)) {
@@ -110,7 +110,7 @@ public final class PrepareCommand {
 
     private int forget(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = context.getSource().getPlayerOrException();
-        Identifier id = IdentifierArgument.getId(context, ARG_SPELL);
+        ResourceLocation id = IdentifierArgument.getId(context, ARG_SPELL);
         if (!isHoldingSpellbook(player)) {
             throw NO_BOOK.create();
         }

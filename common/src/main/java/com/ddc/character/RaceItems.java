@@ -29,7 +29,7 @@ public final class RaceItems {
      * the player's feet the way vanilla does it.
      */
     public static void give(ServerPlayer player, Race race) {
-        for (net.minecraft.resources.Identifier id : race.items()) {
+        for (net.minecraft.resources.ResourceLocation id : race.items()) {
             BuiltInRegistries.ITEM.getOptional(id).ifPresentOrElse(
                     item -> give(player, item),
                     () -> warn(player, id));
@@ -49,7 +49,7 @@ public final class RaceItems {
      * <p>Told to the player rather than only the log: a pack written for a modpack they do not have
      * should say why their elf came empty-handed, not simply fail to arm them.
      */
-    private static void warn(ServerPlayer player, net.minecraft.resources.Identifier id) {
+    private static void warn(ServerPlayer player, net.minecraft.resources.ResourceLocation id) {
         player.sendSystemMessage(Component.translatable("ddc.race.missing_item", id.toString()));
     }
 }

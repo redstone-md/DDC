@@ -8,7 +8,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -37,8 +37,8 @@ public final class PossessionService {
     private static final double BOSS_HEALTH_MULTIPLIER = 4.0;
     private static final double BOSS_DAMAGE_MULTIPLIER = 2.0;
 
-    private static final Identifier HEALTH_MODIFIER = DDC.id("possessed_health");
-    private static final Identifier DAMAGE_MODIFIER = DDC.id("possessed_damage");
+    private static final ResourceLocation HEALTH_MODIFIER = DDC.id("possessed_health");
+    private static final ResourceLocation DAMAGE_MODIFIER = DDC.id("possessed_damage");
 
     /** How fast a possessed mob chases the point its GM is at. */
     private static final double FOLLOW_SPEED = 1.3;
@@ -284,14 +284,14 @@ public final class PossessionService {
         mob.getNavigation().stop();
     }
 
-    private static void multiply(AttributeInstance attribute, Identifier id, double factor) {
+    private static void multiply(AttributeInstance attribute, ResourceLocation id, double factor) {
         if (attribute != null) {
             attribute.addOrUpdateTransientModifier(new AttributeModifier(
                     id, factor - 1, AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
         }
     }
 
-    private static void remove(AttributeInstance attribute, Identifier id) {
+    private static void remove(AttributeInstance attribute, ResourceLocation id) {
         if (attribute != null) {
             attribute.removeModifier(id);
         }

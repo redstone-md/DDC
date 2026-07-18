@@ -15,7 +15,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.IdentifierArgument;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 
 /**
@@ -50,7 +50,7 @@ public final class EncounterCommand {
 
     private int select(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = context.getSource().getPlayerOrException();
-        Identifier id = IdentifierArgument.getId(context, ARG_ENCOUNTER);
+        ResourceLocation id = IdentifierArgument.getId(context, ARG_ENCOUNTER);
         Encounter encounter = encounters.get(id).orElseThrow(() -> UNKNOWN.create(id));
 
         // Checked again rather than trusting the branch: a command tree is not a security boundary.

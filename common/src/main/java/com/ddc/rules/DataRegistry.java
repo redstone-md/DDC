@@ -5,9 +5,12 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.mojang.serialization.Codec;
-import net.minecraft.resources.FileToIdConverter;
-import net.minecraft.resources.Identifier;
+import com.mojang.serialization.JsonOps;
+import java.util.HashMap;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -25,26 +28,36 @@ import net.minecraft.util.profiling.ProfilerFiller;
  *
  * @param <T> what a file in this directory describes
  */
-public class DataRegistry<T> extends SimpleJsonResourceReloadListener<T> {
+public class DataRegistry<T> extends SimpleJsonResourceReloadListener {
 
     private final String directory;
     private final String describes;
-    private volatile Map<Identifier, T> entries = Map.of();
+    private volatile Map<ResourceLocation, T> entries = Map.of();
 
     /**
      * @param directory the data pack directory to scan, such as {@code ddc_spells}
      * @param describes what the entries are, plural, for the log line, such as {@code spells}
      */
+    private static final Gson GSON = new Gson();
+
+    private final Codec<T> codec;
+
     public DataRegistry(String directory, String describes, Codec<T> codec) {
-        super(codec, FileToIdConverter.json(directory));
+        super(GSON, directory);
         this.directory = directory;
         this.describes = describes;
+        this.codec = codec;
     }
 
     @Override
-    protected void apply(Map<Identifier, T> parsed, ResourceManager resourceManager, ProfilerFiller profiler) {
-        // A file that fails its codec never reaches this map; Minecraft logs it against its own name,
-        // so a broken addon reports itself rather than taking the reload down.
+    protected void apply(Map<ResourceLocation, JsonElement> object, ResourceManager resourceManager,
+            ProfilerFiller profiler) {
+        // Each file is parsed through the codec here. One that fails is logged against its own name
+        // and dropped, so a broken addon reports itself rather than taking the reload down.
+        Map<ResourceLocation, T> parsed = new HashMap<>();
+        object.forEach((id, json) -> codec.parse(JsonOps.INSTANCE, json)
+                .resultOrPartial(error -> DDC.LOGGER.error("Skipping {} '{}': {}", describes, id, error))
+                .ifPresent(value -> parsed.put(id, value)));
         entries = Map.copyOf(parsed);
         DDC.LOGGER.info("Loaded {} {}: {}", entries.size(), describes, entries.keySet());
         // ARCHITECTURE 3's registry callback: an addon that wants to react to what a pack defined has
@@ -56,11 +69,11 @@ public class DataRegistry<T> extends SimpleJsonResourceReloadListener<T> {
         return directory;
     }
 
-    public Optional<T> get(Identifier id) {
+    public Optional<T> get(ResourceLocation id) {
         return Optional.ofNullable(entries.get(id));
     }
 
-    public Set<Identifier> ids() {
+    public Set<ResourceLocation> ids() {
         return Collections.unmodifiableSet(entries.keySet());
     }
 

@@ -5,7 +5,7 @@ import com.ddc.core.character.AbilityScores;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.List;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import java.util.Map;
 import java.util.Objects;
 
@@ -29,7 +29,7 @@ import java.util.Objects;
  * @param items          what the race hands a character when they pick it, once
  */
 public record Race(String name, Map<Ability, Integer> abilityBonuses, int speed, List<String> traits,
-        List<Identifier> items) {
+        List<ResourceLocation> items) {
 
     /** Wide enough for any SRD race and for homebrew, narrow enough to reject a typo'd number. */
     private static final int MIN_SPEED = 0;
@@ -43,7 +43,7 @@ public record Race(String name, Map<Ability, Integer> abilityBonuses, int speed,
             Codec.STRING.listOf().optionalFieldOf("traits", List.of()).forGetter(Race::traits),
             // What a race puts in your hands. An elf starts with a bow because an elf starts with a
             // bow; which items those are is the pack's story to tell, not the mod's.
-            Identifier.CODEC.listOf().optionalFieldOf("items", List.of()).forGetter(Race::items)
+            ResourceLocation.CODEC.listOf().optionalFieldOf("items", List.of()).forGetter(Race::items)
     ).apply(instance, Race::new));
 
     public Race {

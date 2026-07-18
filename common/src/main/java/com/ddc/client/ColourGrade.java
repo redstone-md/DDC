@@ -5,7 +5,7 @@ import com.ddc.mixin.client.GameRendererInvoker;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * PRD 4.4's colour grading: the screen turns gold on a natural 20, and grey on a natural 1.
@@ -26,8 +26,8 @@ public final class ColourGrade {
     /** How long the grade holds. Roughly the shake, so the screen recovers all at once. */
     static final long GRADE_MS = 700;
 
-    private static final Identifier CRITICAL = DDC.id("critical");
-    private static final Identifier FUMBLE = DDC.id("fumble");
+    private static final ResourceLocation CRITICAL = DDC.id("critical");
+    private static final ResourceLocation FUMBLE = DDC.id("fumble");
 
     private long endsAtMs = Long.MIN_VALUE;
     private boolean grading;

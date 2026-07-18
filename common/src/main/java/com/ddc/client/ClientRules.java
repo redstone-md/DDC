@@ -54,7 +54,7 @@ public final class ClientRules {
     }
 
     /** A race's name, or its id when this client has not been told about it. */
-    public static String raceName(net.minecraft.resources.Identifier id) {
+    public static String raceName(net.minecraft.resources.ResourceLocation id) {
         return rules.races().stream()
                 .filter(entry -> entry.id().equals(id))
                 .map(RulesPayload.Entry::name)
@@ -63,7 +63,7 @@ public final class ClientRules {
     }
 
     /** A spell's name, or its id when this client has not been told about it. */
-    public static String spellName(net.minecraft.resources.Identifier id) {
+    public static String spellName(net.minecraft.resources.ResourceLocation id) {
         return rules.spells().stream()
                 .filter(entry -> entry.id().equals(id))
                 .map(RulesPayload.Entry::name)

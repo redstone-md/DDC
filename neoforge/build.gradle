@@ -21,20 +21,33 @@ dependencies {
     shadowCommon(project(path: ":common", configuration: "transformProductionNeoForge")) { transitive false }
 }
 
-jar {
-    archiveClassifier = "raw"
-}
-
-// Minecraft 26.x is unobfuscated, so there is no remapJar step: the shadow jar of the platform
-// classes plus the transformed common classes is the jar that ships.
+// 1.21.1 is obfuscated: the shadow jar of platform + transformed-common classes is remapped to
+// intermediary/srg by remapJar, which is the jar that ships.
 shadowJar {
     exclude "architectury.common.json"
-
-    dependsOn jar
-    mainSpec.sourcePaths.clear()
-    from(zipTree(jar.archiveFile))
     configurations = [project.configurations.shadowCommon]
+    archiveClassifier = "dev-shadow"
+}
+
+remapJar {
+    injectAccessWidener = true
+    input.set shadowJar.archiveFile
+    dependsOn shadowJar
     archiveClassifier = null
 }
 
-assemble.dependsOn shadowJar
+jar {
+    archiveClassifier = "dev"
+}
+
+sourcesJar {
+    def commonSources = project(":common").tasks.named("sourcesJar")
+    dependsOn commonSources
+    from commonSources.map { zipTree(it.archiveFile) }
+}
+
+components.java {
+    withVariantsFromConfiguration(project.configurations.shadowRuntimeElements) {
+        skip()
+    }
+}

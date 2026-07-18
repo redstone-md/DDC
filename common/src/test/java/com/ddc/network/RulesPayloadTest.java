@@ -11,7 +11,7 @@ import com.ddc.rules.Spell;
 import com.ddc.rules.TestRegistries;
 import java.util.List;
 import java.util.Map;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -25,8 +25,8 @@ import org.junit.jupiter.api.Test;
  */
 class RulesPayloadTest {
 
-    private static final Identifier FIGHTER = Identifier.parse("ddc:fighter");
-    private static final Identifier WIZARD = Identifier.parse("ddc:wizard");
+    private static final ResourceLocation FIGHTER = ResourceLocation.parse("ddc:fighter");
+    private static final ResourceLocation WIZARD = ResourceLocation.parse("ddc:wizard");
 
     @Test
     @DisplayName("every entry carries the id its command takes")
@@ -59,7 +59,7 @@ class RulesPayloadTest {
     @DisplayName("a player is not told the encounters")
     void encountersAreForGameMastersOnly() {
         DataRegistry<Encounter> encounters = TestRegistries.encounters(Map.of(
-                Identifier.parse("ddc:patrol"), TestRegistries.encounter("Patrol")));
+                ResourceLocation.parse("ddc:patrol"), TestRegistries.encounter("Patrol")));
 
         RulesPayload player = RulesPayload.of(TestRegistries.classes(Map.of()),
                 TestRegistries.races(Map.of()), TestRegistries.spells(Map.of()), encounters, false);
@@ -75,7 +75,7 @@ class RulesPayloadTest {
     @Test
     @DisplayName("a spell keeps its level, because the wheel shows it")
     void spellsKeepTheirLevel() {
-        Identifier fireBolt = Identifier.parse("ddc:fire_bolt");
+        ResourceLocation fireBolt = ResourceLocation.parse("ddc:fire_bolt");
         DataRegistry<Spell> spells = TestRegistries.spells(Map.of(fireBolt, TestRegistries.spell("Fire Bolt", 0)));
 
         RulesPayload payload = RulesPayload.of(TestRegistries.classes(Map.of()),
@@ -88,7 +88,7 @@ class RulesPayloadTest {
     @Test
     @DisplayName("a race the pack named is offered under that name")
     void racesAreDescribed() {
-        Identifier elf = Identifier.parse("ddc:elf");
+        ResourceLocation elf = ResourceLocation.parse("ddc:elf");
         DataRegistry<Race> races = TestRegistries.races(Map.of(elf, TestRegistries.race("Elf")));
 
         RulesPayload payload = RulesPayload.of(TestRegistries.classes(Map.of()), races,

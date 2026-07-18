@@ -49,7 +49,7 @@ public class DiceEntityRenderer extends EntityRenderer<DiceEntity, DiceRenderSta
      * which does not cull, so every die showed its own far side through its near side. Twenty
      * triangles laid over each other is what a player photographed twice and called broken faces.
      */
-    private static final net.minecraft.resources.Identifier TEXTURE =
+    private static final net.minecraft.resources.ResourceLocation TEXTURE =
             com.ddc.DDC.id("textures/entity/dice.png");
 
     /** Which way is up, for a die that has to show its number to the room. */

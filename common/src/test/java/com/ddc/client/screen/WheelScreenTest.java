@@ -79,9 +79,9 @@ class WheelScreenTest {
     @Test
     void aSpellsLabelReadsLikeAName() {
         assertEquals("Magic missile",
-                PlayerWheel.name(net.minecraft.resources.Identifier.fromNamespaceAndPath("ddc", "magic_missile")));
+                PlayerWheel.name(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("ddc", "magic_missile")));
         assertEquals("Fireball",
-                PlayerWheel.name(net.minecraft.resources.Identifier.fromNamespaceAndPath("ddc", "fireball")));
+                PlayerWheel.name(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("ddc", "fireball")));
     }
 
     @Test

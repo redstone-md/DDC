@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -69,8 +69,8 @@ class EncounterTest {
     @Test
     void refusesTheCapEvenWhenSpreadAcrossMembers() {
         assertThrows(IllegalArgumentException.class, () -> new Encounter("Swarm", List.of(
-                new Encounter.Member(Identifier.withDefaultNamespace("zombie"), 30),
-                new Encounter.Member(Identifier.withDefaultNamespace("skeleton"), 30))));
+                new Encounter.Member(ResourceLocation.withDefaultNamespace("zombie"), 30),
+                new Encounter.Member(ResourceLocation.withDefaultNamespace("skeleton"), 30))));
     }
 
     @Test
@@ -100,7 +100,7 @@ class EncounterTest {
 
         assertEquals("Patrol Captain", captain.name().orElseThrow());
         assertEquals(40.0, captain.health().orElseThrow());
-        assertEquals(net.minecraft.resources.Identifier.parse("minecraft:iron_sword"),
+        assertEquals(net.minecraft.resources.ResourceLocation.parse("minecraft:iron_sword"),
                 captain.equipment().get(net.minecraft.world.entity.EquipmentSlot.MAINHAND));
     }
 
@@ -108,7 +108,7 @@ class EncounterTest {
     @DisplayName("a mob a pack says nothing about is an ordinary mob that stays put")
     void everythingIsOptional() {
         Encounter.Member plain = new Encounter.Member(
-                net.minecraft.resources.Identifier.parse("minecraft:zombie"), 2);
+                net.minecraft.resources.ResourceLocation.parse("minecraft:zombie"), 2);
 
         assertTrue(plain.equipment().isEmpty());
         assertTrue(plain.health().isEmpty());

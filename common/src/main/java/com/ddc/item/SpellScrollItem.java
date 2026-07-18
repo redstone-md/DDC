@@ -7,7 +7,7 @@ import java.util.Optional;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -31,10 +31,10 @@ public class SpellScrollItem extends Item {
 
     private final DataRegistry<Spell> spells;
     private final SpellService casting;
-    private final DataComponentType<Identifier> spellComponent;
+    private final DataComponentType<ResourceLocation> spellComponent;
 
     public SpellScrollItem(Properties properties, DataRegistry<Spell> spells, SpellService casting,
-            DataComponentType<Identifier> spellComponent) {
+            DataComponentType<ResourceLocation> spellComponent) {
         super(properties);
         this.spells = spells;
         this.casting = casting;
@@ -42,7 +42,7 @@ public class SpellScrollItem extends Item {
     }
 
     /** The spell written on a scroll, if it is a scroll and anything is written on it. */
-    public Optional<Identifier> spellOn(ItemStack stack) {
+    public Optional<ResourceLocation> spellOn(ItemStack stack) {
         return Optional.ofNullable(stack.get(spellComponent));
     }
 

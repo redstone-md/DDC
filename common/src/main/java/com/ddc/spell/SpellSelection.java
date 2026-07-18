@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 
 /**
@@ -20,14 +20,14 @@ import net.minecraft.server.level.ServerPlayer;
  */
 public final class SpellSelection {
 
-    private static final Map<UUID, Identifier> SELECTED = new ConcurrentHashMap<>();
+    private static final Map<UUID, ResourceLocation> SELECTED = new ConcurrentHashMap<>();
 
     private SpellSelection() {
     }
 
     /** The spell this caster's focus is pointed at, defaulting to the first they can cast. */
-    public static Identifier current(ServerPlayer caster, List<Identifier> castable) {
-        Identifier selected = SELECTED.get(caster.getUUID());
+    public static ResourceLocation current(ServerPlayer caster, List<ResourceLocation> castable) {
+        ResourceLocation selected = SELECTED.get(caster.getUUID());
         if (selected == null || !castable.contains(selected)) {
             selected = castable.getFirst();
             SELECTED.put(caster.getUUID(), selected);
@@ -36,9 +36,9 @@ public final class SpellSelection {
     }
 
     /** Steps to the next spell and returns it, wrapping at the end. */
-    public static Identifier next(ServerPlayer caster, List<Identifier> castable) {
+    public static ResourceLocation next(ServerPlayer caster, List<ResourceLocation> castable) {
         int index = castable.indexOf(current(caster, castable));
-        Identifier next = castable.get((index + 1) % castable.size());
+        ResourceLocation next = castable.get((index + 1) % castable.size());
         SELECTED.put(caster.getUUID(), next);
         return next;
     }

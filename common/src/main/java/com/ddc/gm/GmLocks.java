@@ -12,9 +12,11 @@ import java.util.Objects;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.level.saveddata.SavedData;
-import net.minecraft.world.level.saveddata.SavedDataType;
 
 /**
  * The blocks a Game Master has locked: PRD 3.2's "lock/unlock door", and the trapped chest with it.
@@ -75,8 +77,25 @@ public final class GmLocks extends SavedData {
             .fieldOf("locks")
             .codec();
 
-    private static final SavedDataType<GmLocks> TYPE = new SavedDataType<>(
-            DDC.id("gm_locks"), GmLocks::new, CODEC, DataFixTypes.LEVEL);
+    private static final String FILE = "ddc_gm_locks";
+
+    private static SavedData.Factory<GmLocks> factory() {
+        return new SavedData.Factory<>(GmLocks::new, GmLocks::load, DataFixTypes.LEVEL);
+    }
+
+    private static GmLocks load(CompoundTag tag, HolderLookup.Provider provider) {
+        return CODEC.parse(NbtOps.INSTANCE, tag).result().orElseGet(GmLocks::new);
+    }
+
+    @Override
+    public CompoundTag save(CompoundTag tag, HolderLookup.Provider provider) {
+        CODEC.encodeStart(NbtOps.INSTANCE, this).result().ifPresent(nbt -> {
+            if (nbt instanceof CompoundTag encoded) {
+                encoded.getAllKeys().forEach(key -> tag.put(key, encoded.get(key)));
+            }
+        });
+        return tag;
+    }
 
     private final Map<Where, Lock> locks = new HashMap<>();
 
@@ -98,7 +117,7 @@ public final class GmLocks extends SavedData {
     /** The locks for this world, creating the store on first use. */
     public static GmLocks of(ServerLevel level) {
         return Objects.requireNonNull(level.getServer().overworld(), "overworld")
-                .getDataStorage().computeIfAbsent(TYPE);
+                .getDataStorage().computeIfAbsent(factory(), FILE);
     }
 
     /** What this block asks for before it opens, if a Game Master sealed it. */

@@ -56,7 +56,7 @@ class LevellingTest {
     @DisplayName("proficiency and hit points follow the level up")
     void levellingChangesWhatFollowsFromIt() {
         CharacterSheet first = CharacterSheet.initial().withClass(
-                net.minecraft.resources.Identifier.parse("ddc:fighter"), FIGHTER);
+                net.minecraft.resources.ResourceLocation.parse("ddc:fighter"), FIGHTER);
         CharacterSheet fifth = first.withExperienceGained(6_500, FIGHTER);
 
         assertEquals(5, fifth.level());

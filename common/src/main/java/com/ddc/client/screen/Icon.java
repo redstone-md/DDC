@@ -4,7 +4,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 /**
@@ -91,7 +91,7 @@ public enum Icon {
 
     private ItemStack stack() {
         if (stack == null) {
-            stack = BuiltInRegistries.ITEM.getOptional(Identifier.parse(item))
+            stack = BuiltInRegistries.ITEM.getOptional(ResourceLocation.parse(item))
                     .map(ItemStack::new)
                     .orElse(ItemStack.EMPTY);
         }

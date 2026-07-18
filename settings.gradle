@@ -13,7 +13,7 @@ plugins {
     id "org.gradle.toolchains.foojay-resolver-convention" version "0.9.0"
     // Versions are pinned here and applied in the build scripts, so no subproject repeats a version.
     id "architectury-plugin" version "${architectury_plugin_version}" apply false
-    id "dev.architectury.loom-no-remap" version "${architectury_loom_version}" apply false
+    id "dev.architectury.loom" version "${architectury_loom_version}" apply false
     id "com.gradleup.shadow" version "${shadow_version}" apply false
 }
 

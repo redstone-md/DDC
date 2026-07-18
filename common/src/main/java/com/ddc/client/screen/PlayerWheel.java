@@ -12,7 +12,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 
 /**
@@ -265,7 +265,7 @@ public final class PlayerWheel {
     }
 
     /** A spell's id, tidied for a label, for when the server never told us its name. */
-    static String name(Identifier spell) {
+    static String name(ResourceLocation spell) {
         String path = spell.getPath().replace('_', ' ');
         return Character.toUpperCase(path.charAt(0)) + path.substring(1);
     }

@@ -9,7 +9,7 @@ import com.ddc.core.character.Ability;
 import com.ddc.core.character.AbilityScores;
 import com.mojang.serialization.JsonOps;
 import net.minecraft.nbt.NbtOps;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,8 +19,8 @@ import org.junit.jupiter.params.provider.CsvSource;
 /** Covers the wizard's spellbook: what it holds, how much, and that it survives a save. */
 class PreparedSpellsTest {
 
-    private static final Identifier FIREBALL = Identifier.fromNamespaceAndPath("ddc", "fireball");
-    private static final Identifier MAGIC_MISSILE = Identifier.fromNamespaceAndPath("ddc", "magic_missile");
+    private static final ResourceLocation FIREBALL = ResourceLocation.fromNamespaceAndPath("ddc", "fireball");
+    private static final ResourceLocation MAGIC_MISSILE = ResourceLocation.fromNamespaceAndPath("ddc", "magic_missile");
 
     @BeforeAll
     static void setUp() {
