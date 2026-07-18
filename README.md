@@ -4,7 +4,7 @@
 
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1-blue.svg)](https://minecraft.net)
 [![Loader](https://img.shields.io/badge/Loader-Fabric%20%7C%20NeoForge-purple.svg)](https://modrinth.com)
-[![Java](https://img.shields.io/badge/Java-25-red.svg)](https://oracle.com/java)
+[![Java](https://img.shields.io/badge/Java-21-red.svg)](https://oracle.com/java)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![CI](https://github.com/redstone-md/DDC/actions/workflows/ci.yml/badge.svg)](https://github.com/redstone-md/DDC/actions/workflows/ci.yml)
 [![Framework](https://img.shields.io/badge/Framework-MCAF%20v1.2-success.svg)](https://mcaf.managed-code.com)
@@ -13,7 +13,7 @@
 
 DDC introduces an **asymmetric gameplay model**. Players explore the world as heroic characters with D&D classes, spell slots, and dice checks, while a **Game Master (GM)** controls the environment, possesses monsters, triggers sounds, and narrates the adventure in real-time.
 
-> ### Status: 1.14.1
+> ### Status: 1.15.0
 >
 > **This page describes the full design. The released mod is smaller.** Shipping today: the rules
 > engine, `/roll`, character sheets whose hit points are the player's real health, attack rolls
@@ -34,28 +34,28 @@ DDC introduces an **asymmetric gameplay model**. Players explore the world as he
 >
 > [**CHANGELOG.md**](CHANGELOG.md) lists exactly what is in the release and what is not.
 
-🇷🇺 **[Нажмите здесь, чтобы прочитать README на русском языке.](file:///d:/projects/DDC/README.RU.md)**
+🇷🇺 **[Нажмите здесь, чтобы прочитать README на русском языке.](README.RU.md)**
 
 ---
 
 ## 🗺️ Repository Navigation & Documentation Map
 
 - 📜 **Release**:
-  - [CHANGELOG.md](CHANGELOG.md) — what 1.0.0 ships, and what it deliberately does not.
+  - [CHANGELOG.md](CHANGELOG.md) — what 1.15.0 ships, and what it deliberately does not.
   - [LICENSE](LICENSE) — MIT; the built-in rules data pack is SRD 5.1 under CC-BY-4.0.
 - 📑 **Root Instructions**: 
-  - [AGENTS.md](file:///d:/projects/DDC/AGENTS.md) — Root AI development rules, workspace layout, and compiler properties.
+  - [AGENTS.md](AGENTS.md) — Root AI development rules, workspace layout, and compiler properties.
 - 📁 **Module Instructions**:
-  - [common/AGENTS.md](file:///d:/projects/DDC/common/AGENTS.md) — Shared gameplay, mathematical calculations, and loader isolation.
-  - [fabric/AGENTS.md](file:///d:/projects/DDC/fabric/AGENTS.md) — Fabric API integration, loader bootstrap, and Mixin security.
-  - [neoforge/AGENTS.md](file:///d:/projects/DDC/neoforge/AGENTS.md) — NeoForge event handling, registry bus, and capabilities.
+  - [common/AGENTS.md](common/AGENTS.md) — Shared gameplay, mathematical calculations, and loader isolation.
+  - [fabric/AGENTS.md](fabric/AGENTS.md) — Fabric API integration, loader bootstrap, and Mixin security.
+  - [neoforge/AGENTS.md](neoforge/AGENTS.md) — NeoForge event handling, registry bus, and capabilities.
 - 📘 **Product & Architecture Specs**:
-  - [docs/PRD.md](file:///d:/projects/DDC/docs/PRD.md) — Product Requirement Document detailing features, UI, combat, and publishing rules.
-  - [docs/ARCHITECTURE.md](file:///d:/projects/DDC/docs/ARCHITECTURE.md) — Technical layout, packet sync protocol, rendering pipelines, and Twitch sockets.
+  - [docs/PRD.md](docs/PRD.md) — Product Requirement Document detailing features, UI, combat, and publishing rules.
+  - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — Technical layout, packet sync protocol, rendering pipelines, and Twitch sockets.
 - 🏛️ **Architectural Decision Records (ADRs)**:
-  - [0001-multi-loader-architecture.md](file:///d:/projects/DDC/docs/ADR/0001-multi-loader-architecture.md) — Choice of Gradle multi-project structures and Architectury API.
-  - [0002-data-driven-ruleset.md](file:///d:/projects/DDC/docs/ADR/0002-data-driven-ruleset.md) — Data Packs for classes, spells, and code-free addon support.
-  - [0003-gm-networking-sync.md](file:///d:/projects/DDC/docs/ADR/0003-gm-networking-sync.md) — Validation layers and C2S inputs compression for mob possession.
+  - [0001-multi-loader-architecture.md](docs/ADR/0001-multi-loader-architecture.md) — Choice of Gradle multi-project structures and Architectury API.
+  - [0002-data-driven-ruleset.md](docs/ADR/0002-data-driven-ruleset.md) — Data Packs for classes, spells, and code-free addon support.
+  - [0003-gm-networking-sync.md](docs/ADR/0003-gm-networking-sync.md) — Validation layers and C2S inputs compression for mob possession.
 
 ---
 
