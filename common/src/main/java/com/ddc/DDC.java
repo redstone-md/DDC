@@ -69,9 +69,18 @@ public final class DDC {
                 com.ddc.network.PossessActionPayload.TYPE,
                 com.ddc.network.PossessActionPayload.STREAM_CODEC,
                 (payload, context) -> context.queue(() -> {
-                    if (context.getPlayer() instanceof net.minecraft.server.level.ServerPlayer player) {
-                        com.ddc.registry.DDCItems.POSSESSIONS.attack(player);
+                    if (!(context.getPlayer() instanceof net.minecraft.server.level.ServerPlayer player)) {
+                        return;
                     }
+                    if (payload.ability().isEmpty()) {
+                        com.ddc.registry.DDCItems.POSSESSIONS.attack(player);
+                        return;
+                    }
+                    com.ddc.gm.BossAbility.byId(payload.ability()).ifPresent(ability ->
+                            com.ddc.registry.DDCItems.POSSESSIONS.useAbility(player, ability)
+                                    .ifPresent(left -> player.sendSystemMessage(
+                                            net.minecraft.network.chat.Component.translatable(
+                                                    "ddc.ability.cooling", left / 20 + 1), true)));
                 }));
         ExperienceService experience = new ExperienceService(characters);
         new com.ddc.character.PartyService(characters).register();

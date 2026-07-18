@@ -165,7 +165,28 @@ public final class DDCClient {
             return;
         }
         while (client.options.keyAttack.consumeClick()) {
-            NetworkManager.sendToServer(new com.ddc.network.PossessActionPayload());
+            NetworkManager.sendToServer(com.ddc.network.PossessActionPayload.attack());
+        }
+    }
+
+    /**
+     * The boss's abilities, on the keys a hotbar already uses.
+     *
+     * <p>1, 2 and 3 while driving a monster: PRD 3.2 asks for a bar of abilities with cooldowns, and
+     * a GM in spectator has a hotbar doing nothing. The cooldown is the server's -- a client that kept
+     * its own could choose not to -- and the hotbar's own numbers are what a player's hand already
+     * knows.
+     */
+    private static void sendPossessedAbilities(Minecraft client) {
+        if (client.player == null || client.getCameraEntity() == client.player) {
+            return;
+        }
+        com.ddc.gm.BossAbility[] abilities = com.ddc.gm.BossAbility.values();
+        for (int slot = 0; slot < abilities.length && slot < client.options.keyHotbarSlots.length; slot++) {
+            while (client.options.keyHotbarSlots[slot].consumeClick()) {
+                NetworkManager.sendToServer(
+                        new com.ddc.network.PossessActionPayload(abilities[slot].id()));
+            }
         }
     }
 
@@ -318,6 +339,7 @@ public final class DDCClient {
             while (VIEW_KEY.consumeClick()) {
                 togglePossessionView(client);
             }
+            sendPossessedAbilities(client);
         });
 
         ClientGuiEvent.RENDER_HUD.register((graphics, delta) -> {

@@ -1,4 +1,9 @@
 {
+  "ddc.ability.bar": "1–3: способности",
+  "ddc.ability.breath": "Огненное дыхание",
+  "ddc.ability.cooling": "Ещё не готово: %sс",
+  "ddc.ability.roar": "Рёв",
+  "ddc.ability.web": "Паутина",
   "ddc.check.block.door": "Дверь не поддаётся.",
   "ddc.check.block.failed": "Не выходит.",
   "ddc.check.block.lock": "Замок не поддаётся.",

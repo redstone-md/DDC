@@ -117,6 +117,11 @@ public final class PossessionService {
 
     /** Lets go, giving the GM back their body and the mob back its mind. */
     public void release(ServerPlayer gameMaster) {
+        // A monster you are no longer driving has no cooldowns of yours on it: the next one is a
+        // fresh monster, and a GM who let go to reposition should not find its breath still spent.
+        for (BossAbility ability : BossAbility.values()) {
+            readyAt.remove(key(gameMaster, ability));
+        }
         Possession possession = possessions.remove(gameMaster.getUUID());
         if (possession == null) {
             return;
@@ -181,6 +186,36 @@ public final class PossessionService {
         }
         mob.swing(net.minecraft.world.InteractionHand.MAIN_HAND);
         return mob.doHurtTarget(level, target);
+    }
+
+    /**
+     * Uses one of the monster's own abilities: PRD 3.2's "Fire Breath", "Web Spray".
+     *
+     * <p>The cooldown is kept here rather than on the client, for the reason every rule in this mod is
+     * on the server: a client that kept its own cooldown would be a client that could choose not to.
+     *
+     * @return how many ticks are left, or empty when it happened
+     */
+    public java.util.OptionalInt useAbility(ServerPlayer gameMaster, BossAbility ability) {
+        Mob mob = possessedBy(gameMaster).orElse(null);
+        if (mob == null || !(mob.level() instanceof ServerLevel level)) {
+            return java.util.OptionalInt.of(0);
+        }
+        long now = level.getGameTime();
+        long ready = readyAt.getOrDefault(key(gameMaster, ability), 0L);
+        if (now < ready) {
+            return java.util.OptionalInt.of((int) (ready - now));
+        }
+        ability.perform(level, mob, gameMaster);
+        readyAt.put(key(gameMaster, ability), now + ability.cooldownTicks());
+        return java.util.OptionalInt.empty();
+    }
+
+    /** When each GM's each ability is ready again. Forgotten when they let go: see {@link #release}. */
+    private final Map<String, Long> readyAt = new java.util.concurrent.ConcurrentHashMap<>();
+
+    private static String key(ServerPlayer gameMaster, BossAbility ability) {
+        return gameMaster.getUUID() + ":" + ability.id();
     }
 
     /**

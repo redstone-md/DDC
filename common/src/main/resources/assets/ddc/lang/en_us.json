@@ -1,4 +1,9 @@
 {
+  "ddc.ability.bar": "1-3: abilities",
+  "ddc.ability.breath": "Fire Breath",
+  "ddc.ability.cooling": "Not yet: %ss",
+  "ddc.ability.roar": "Roar",
+  "ddc.ability.web": "Web Spray",
   "ddc.check.block.door": "The door does not budge.",
   "ddc.check.block.failed": "It does not give.",
   "ddc.check.block.lock": "The lock holds.",

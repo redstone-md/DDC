@@ -17,12 +17,26 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
  * client choosing who a monster mauls. ADR-0003 is explicit about this, and this is the packet it was
  * warning about.
  */
-public record PossessActionPayload() implements CustomPacketPayload {
+public record PossessActionPayload(String ability) implements CustomPacketPayload {
+
+    /** The plain attack: what a click means when no ability was asked for. */
+    public static final String ATTACK = "";
+
+    /** An ability's name is a word. Anything longer is not one of ours. */
+    private static final int MAX_NAME = 16;
 
     public static final Type<PossessActionPayload> TYPE = new Type<>(DDC.id("possess_action"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, PossessActionPayload> STREAM_CODEC =
-            StreamCodec.unit(new PossessActionPayload());
+            StreamCodec.composite(
+                    net.minecraft.network.codec.ByteBufCodecs.stringUtf8(MAX_NAME),
+                    PossessActionPayload::ability,
+                    PossessActionPayload::new);
+
+    /** A click. */
+    public static PossessActionPayload attack() {
+        return new PossessActionPayload(ATTACK);
+    }
 
     @Override
     public Type<? extends CustomPacketPayload> type() {

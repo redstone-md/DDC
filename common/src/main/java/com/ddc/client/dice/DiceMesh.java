@@ -70,6 +70,19 @@ public final class DiceMesh {
         return sides.get(Math.floorMod(value - 1, sides.size()));
     }
 
+    /**
+     * How far a die's own middle is from the face it lands on, as a multiple of its scale.
+     *
+     * <p>Every solid here is built on a unit sphere, so its middle is one radius above whatever it is
+     * resting on -- except the d10, whose points stick out further than its equator.
+     */
+    public static float restingHeight(Die die) {
+        return switch (die) {
+            case D10, D100 -> 1.2f;
+            default -> 1.0f;
+        };
+    }
+
     /** How big this die is drawn, in blocks. A d20 is the biggest; a d4 the smallest. */
     public static float scaleOf(Die die) {
         return switch (die) {

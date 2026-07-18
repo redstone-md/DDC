@@ -40,6 +40,18 @@ public class DiceEntityRenderer extends EntityRenderer<DiceEntity, DiceRenderSta
     private static final int[] CRIT = {242, 200, 121};
     private static final int[] FUMBLE = {200, 60, 60};
 
+    /**
+     * The die's skin: one white pixel.
+     *
+     * <p>The colour is in the vertices, so the texture only has to not tint it. It exists at all
+     * because the render type that culls back faces is an entity type, and an entity type wants a
+     * texture -- and culling is the whole point: the die used to be drawn with the game's debug box,
+     * which does not cull, so every die showed its own far side through its near side. Twenty
+     * triangles laid over each other is what a player photographed twice and called broken faces.
+     */
+    private static final net.minecraft.resources.Identifier TEXTURE =
+            com.ddc.DDC.id("textures/entity/dice.png");
+
     /** Which way is up, for a die that has to show its number to the room. */
     private static final Vector3f UP = new Vector3f(0, 1, 0);
 
@@ -80,7 +92,12 @@ public class DiceEntityRenderer extends EntityRenderer<DiceEntity, DiceRenderSta
         double seconds = state.seconds;
 
         pose.pushPose();
-        pose.translate(flight.x(seconds), flight.y(seconds), flight.z(seconds));
+        // Lifted by its own radius. The flight rests a die's *centre* on the ground plane, which puts
+        // half of every die inside the floor: a solid cut through the middle by a block, which is what
+        // a player photographed and called broken faces. A die sits on the ground; it is not buried in
+        // it. The d10 is taller than it is wide, so it is lifted by what it actually is.
+        float radius = DiceMesh.scaleOf(die.die()) * DiceMesh.restingHeight(die.die());
+        pose.translate(flight.x(seconds), flight.y(seconds) + radius, flight.z(seconds));
 
         pose.mulPose(orientation(flight, die, seconds));
         float scale = DiceMesh.scaleOf(die.die());
@@ -98,8 +115,8 @@ public class DiceEntityRenderer extends EntityRenderer<DiceEntity, DiceRenderSta
         // count, and that has to be said in colour rather than in transparency now.
         int[] colour = die.discarded() ? dim(colourFor(die)) : colourFor(die);
 
-        collector.submitCustomGeometry(pose, RenderTypes.debugFilledBox(),
-                (entry, consumer) -> emitDie(entry.pose(), consumer, die, colour, alpha));
+        collector.submitCustomGeometry(pose, RenderTypes.entitySolid(TEXTURE),
+                (entry, consumer) -> emitDie(entry.pose(), consumer, die, colour, alpha, state.lightCoords));
         pose.popPose();
     }
 
@@ -154,7 +171,7 @@ public class DiceEntityRenderer extends EntityRenderer<DiceEntity, DiceRenderSta
     }
 
     private static void emitDie(Matrix4f matrix, VertexConsumer consumer, DieRoll die,
-            int[] colour, int alpha) {
+            int[] colour, int alpha, int light) {
         for (DiceMesh.Face face : DiceMesh.facesOf(die.die())) {
             // Shaded by the facet's own normal, so the solid reads as a solid rather than a blob.
             float shade = 0.55f + 0.45f * Math.max(0, face.normal().dot(LIGHT_DIRECTION));
@@ -162,14 +179,26 @@ public class DiceEntityRenderer extends EntityRenderer<DiceEntity, DiceRenderSta
             int g = (int) (colour[1] * shade);
             int b = (int) (colour[2] * shade);
 
-            vertex(consumer, matrix, face.a(), r, g, b, alpha);
-            vertex(consumer, matrix, face.b(), r, g, b, alpha);
-            vertex(consumer, matrix, face.c(), r, g, b, alpha);
+            vertex(consumer, matrix, face, face.a(), r, g, b, alpha, light);
+            vertex(consumer, matrix, face, face.b(), r, g, b, alpha, light);
+            vertex(consumer, matrix, face, face.c(), r, g, b, alpha, light);
         }
     }
 
-    private static void vertex(VertexConsumer consumer, Matrix4f matrix, Vector3f at,
-            int r, int g, int b, int alpha) {
-        consumer.addVertex(matrix, at.x(), at.y(), at.z()).setColor(r, g, b, alpha);
+    /**
+     * One corner, with everything a solid entity's vertex format asks for.
+     *
+     * <p>The texture is one white pixel, so the uv is anywhere in it and the colour is what shows.
+     * The normal is the facet's own, and the light is the die's -- a die in a dark cave should be a
+     * shape in the dark, not a glowing one.
+     */
+    private static void vertex(VertexConsumer consumer, Matrix4f matrix, DiceMesh.Face face,
+            Vector3f at, int r, int g, int b, int alpha, int light) {
+        consumer.addVertex(matrix, at.x(), at.y(), at.z())
+                .setColor(r, g, b, alpha)
+                .setUv(0.5f, 0.5f)
+                .setOverlay(net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY)
+                .setLight(light)
+                .setNormal(face.normal().x(), face.normal().y(), face.normal().z());
     }
 }
