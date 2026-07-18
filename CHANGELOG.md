@@ -12,15 +12,20 @@ it deliberately leaves out.
 ## [1.15.0] - 2026-07-18
 
 ### Added
-- **Iron's Spells 'n Spellbooks bridge.** With Iron's installed, a DDC spell that has an equivalent
-  casts as that Iron's spell — its projectile, its animation, its light — while DDC keeps the rules
-  (class, slot, range). Five spells map today: fire bolt → firebolt, fireball → fireball, magic
-  missile → magic missile, sacred flame → guiding bolt, burning hands → flaming barrage; the ids were
-  read from Iron's own spell classes. Iron's is All Rights Reserved and allows addons but not the reuse
+- **Iron's Spells 'n Spellbooks bridge.** With Iron's installed, a DDC spell that names one casts as
+  that Iron's spell — its projectile, its animation, its light — while DDC keeps the rules (class, slot,
+  range). Which Iron's spell a DDC spell casts as is **data**, not code: a `ddc_spells` file names it in
+  an `irons_spell` field. The five built-in spells set it (fire bolt → firebolt, fireball → fireball,
+  magic missile → magic missile, sacred flame → guiding bolt, burning hands → flaming barrage), and
+  because **every Iron's addon registers into the same spell registry**, a data pack reaches all of
+  them the same way — no per-mod code. Iron's is All Rights Reserved and allows addons but not the reuse
   of its code or assets, so the bridge holds no Iron's class at compile time and ships no Iron's file:
   it reaches the mod's public API by reflection, guarded by a check that the API is present. Absent —
   on Fabric, where Iron's does not exist, or a NeoForge install without it — DDC's own particle spells
   run exactly as before. Addons hook in through a new `SpellPresentation` seam that any mod can use.
+- **Monsters & Spellbooks integration pack** (`ddc-monsterspellbooks.zip`), the bridge in action: an
+  Iron's addon whose casters ship as twelve GM encounters and six of whose spells ship as castable DDC
+  spells via `irons_spell`. Ids read from the mod's own `en_us.json`.
 - **L_Ender's Cataclysm integration pack.** Sixteen encounters — the eight dungeon bosses each as a
   set-piece, plus eight warbands from the lesser monsters — as a data-only pack pointing at Cataclysm's
   entity ids. No code, no dependency; ships as `ddc-cataclysm.zip`.

@@ -1,0 +1,1 @@
+{ "name": "The Soul Horde", "members": [ { "entity": "monsterspellbooks:soul_wizard", "count": 1 }, { "entity": "monsterspellbooks:soul_wraith", "count": 2 }, { "entity": "monsterspellbooks:vile_skeleton", "count": 4 } ] }

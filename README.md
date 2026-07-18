@@ -116,8 +116,9 @@ client is never asked.
 
 DDC needs no other mod, but connects to the big ones on 1.21.1 when they are there:
 
-- **[Iron's Spells 'n Spellbooks](https://www.curseforge.com/minecraft/mc-mods/irons-spells-n-spellbooks)** — install it, and a mapped DDC spell casts *as* the Iron's spell: fireball becomes Iron's fireball, sacred flame its guiding bolt, with its projectile, animation and light. DDC still owns the rules (your class, your slot, your range); Iron's owns the look. Without it, DDC's own particle spells run unchanged. The bridge touches no Iron's code or asset — it reaches the mod's public API by reflection, so DDC ships nothing of theirs.
-- **[L_Ender's Cataclysm](https://modrinth.com/mod/l_enders-cataclysm)** and **[Mutant Monsters](https://modrinth.com/mod/mutant-monsters)** — optional data packs (`ddc-cataclysm.zip`, `ddc-mutantmonsters.zip` on each release) put their bosses on the GM wand as set-piece encounters. See [`assets/integrations`](assets/integrations/).
+- **[Iron's Spells 'n Spellbooks](https://www.curseforge.com/minecraft/mc-mods/irons-spells-n-spellbooks)** — install it, and a DDC spell casts *as* an Iron's spell: fireball becomes Iron's fireball, sacred flame its guiding bolt, with its projectile, animation and light. DDC still owns the rules (your class, your slot, your range); Iron's owns the look. Which DDC spell maps to which Iron's spell is just data — a spell's `irons_spell` field — so **any Iron's addon works too**: its spells register into the same Iron's registry, so a data pack reaches them with no code. Without Iron's, DDC's own particle spells run unchanged. The bridge touches no Iron's code or asset — it reaches the mod's public API by reflection, so DDC ships nothing of theirs.
+- **[Monsters & Spellbooks](https://www.curseforge.com/minecraft/mc-mods/monsters-spellbooks-iss)** (an Iron's addon) — `ddc-monsterspellbooks.zip` adds its casters as GM encounters *and* six of its spells as castable DDC spells, the bridge above in action.
+- **[L_Ender's Cataclysm](https://modrinth.com/mod/l_enders-cataclysm)** and **[Mutant Monsters](https://modrinth.com/mod/mutant-monsters)** — data packs (`ddc-cataclysm.zip`, `ddc-mutantmonsters.zip` on each release) put their bosses on the GM wand as set-piece encounters. See [`assets/integrations`](assets/integrations/).
 
 ---
 

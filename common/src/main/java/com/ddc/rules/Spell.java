@@ -40,7 +40,7 @@ import java.util.Optional;
  */
 public record Spell(String name, int level, String school, int range,
         Optional<DiceExpression> damageDice, Optional<SavingThrow> savingThrow,
-        int castTime, List<String> components, int areaOfEffect) {
+        int castTime, List<String> components, int areaOfEffect, Optional<String> ironsSpell) {
 
     /** Feet. Generous enough for SRD's longest ranged spells. */
     private static final int MAX_RANGE = 500;
@@ -86,7 +86,12 @@ public record Spell(String name, int level, String school, int range,
             // of them: a pack copying the documentation had two thirds of its file silently dropped.
             Codec.intRange(0, MAX_CAST_TIME).optionalFieldOf("cast_time", 0).forGetter(Spell::castTime),
             Codec.STRING.listOf().optionalFieldOf("components", List.of()).forGetter(Spell::components),
-            AREA.optionalFieldOf("area_of_effect", 0).forGetter(Spell::areaOfEffect)
+            AREA.optionalFieldOf("area_of_effect", 0).forGetter(Spell::areaOfEffect),
+            // The id of a spell in Iron's Spells 'n Spellbooks (or any of its addons -- they all
+            // register into the same registry) that this DDC spell casts as, when that mod is present.
+            // A pack that sets it turns a DDC spell into a door onto the whole Iron's spell library;
+            // absent, the spell is DDC's own particles as before. See the Iron's bridge.
+            Codec.STRING.optionalFieldOf("irons_spell").forGetter(Spell::ironsSpell)
     ).apply(instance, Spell::new));
 
     public Spell {
@@ -95,6 +100,7 @@ public record Spell(String name, int level, String school, int range,
         Objects.requireNonNull(damageDice, "damageDice");
         Objects.requireNonNull(savingThrow, "savingThrow");
         components = List.copyOf(Objects.requireNonNull(components, "components"));
+        Objects.requireNonNull(ironsSpell, "ironsSpell");
     }
 
     /** Whether this spell takes time to cast, which is what the runes on the ground warn about. */

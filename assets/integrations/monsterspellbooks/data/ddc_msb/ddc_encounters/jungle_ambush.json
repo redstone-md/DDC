@@ -1,0 +1,1 @@
+{ "name": "The Jungle Ambush", "members": [ { "entity": "monsterspellbooks:jungle_whisperer", "count": 1 }, { "entity": "monsterspellbooks:jungle_leapleaf", "count": 2 }, { "entity": "monsterspellbooks:spriggan", "count": 2 }, { "entity": "monsterspellbooks:poison_quill_vine", "count": 2 } ] }

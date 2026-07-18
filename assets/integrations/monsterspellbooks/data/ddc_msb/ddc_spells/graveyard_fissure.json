@@ -1,0 +1,7 @@
+{
+  "name": "Graveyard Fissure",
+  "level": 4,
+  "school": "necromancy",
+  "range": 60,
+  "irons_spell": "monsterspellbooks:graveyard_fissure"
+}

@@ -62,7 +62,7 @@ public final class TestRegistries {
 
     public static Spell spell(String name, int level) {
         return new Spell(name, level, "evocation", 60, Optional.empty(), Optional.empty(),
-                0, List.of(), 0);
+                0, List.of(), 0, Optional.empty());
     }
 
     public static Encounter encounter(String name) {

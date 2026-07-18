@@ -1,0 +1,1 @@
+{ "name": "The Wither Legion", "members": [ { "entity": "monsterspellbooks:wither_warlock", "count": 1 }, { "entity": "monsterspellbooks:wither_warrior", "count": 3 } ] }

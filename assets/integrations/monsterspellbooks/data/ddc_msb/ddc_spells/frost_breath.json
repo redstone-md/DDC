@@ -1,0 +1,7 @@
+{
+  "name": "Frost Breath",
+  "level": 2,
+  "school": "evocation",
+  "range": 20,
+  "irons_spell": "monsterspellbooks:frost_breath"
+}

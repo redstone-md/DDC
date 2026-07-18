@@ -1,0 +1,1 @@
+{ "name": "The Dwarven Incursion", "members": [ { "entity": "monsterspellbooks:dwarven_slicer", "count": 2 }, { "entity": "monsterspellbooks:dwarven_sphere", "count": 1 }, { "entity": "monsterspellbooks:dwarven_swarm_drone", "count": 4 } ] }

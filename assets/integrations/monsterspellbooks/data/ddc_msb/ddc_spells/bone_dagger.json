@@ -1,0 +1,7 @@
+{
+  "name": "Bone Dagger",
+  "level": 0,
+  "school": "necromancy",
+  "range": 30,
+  "irons_spell": "monsterspellbooks:bone_dagger"
+}

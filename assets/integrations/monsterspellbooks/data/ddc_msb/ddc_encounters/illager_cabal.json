@@ -1,0 +1,1 @@
+{ "name": "The Illager Cabal", "members": [ { "entity": "monsterspellbooks:illager_enchanter", "count": 1 }, { "entity": "monsterspellbooks:illager_fireologer", "count": 2 }, { "entity": "monsterspellbooks:illager_iceologer", "count": 2 } ] }

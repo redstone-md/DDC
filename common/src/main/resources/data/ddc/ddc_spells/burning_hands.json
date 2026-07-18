@@ -8,5 +8,6 @@
     "ability": "dexterity",
     "effect_on_success": "half_damage"
   },
-  "area_of_effect": 15
+  "area_of_effect": 15,
+  "irons_spell": "irons_spellbooks:flaming_barrage"
 }

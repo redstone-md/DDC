@@ -90,6 +90,40 @@ class IntegrationPackTest {
     }
 
     @Test
+    @DisplayName("every spell a pack ships parses, and its irons_spell names a real id")
+    void everyIntegrationSpellParses() throws IOException {
+        List<Path> spells = integrationFiles("/ddc_spells/");
+        // Not every pack ships spells (the mob packs do not), so this only asserts on the ones present.
+        for (Path file : spells) {
+            Spell spell = Spell.CODEC.parse(JsonOps.INSTANCE, JsonParser.parseString(Files.readString(file)))
+                    .getOrThrow(message -> new AssertionError(file + ": " + message));
+            // A spell in an integration pack exists to reach another mod's spell; one with no link is a
+            // spell that does nothing the base mod does not, which is not what these packs are for.
+            assertTrue(spell.ironsSpell().isPresent(), file + " ships in an integration pack but links no spell");
+            assertTrue(spell.ironsSpell().orElseThrow().contains(":"),
+                    file + ": irons_spell must be a namespaced id like monsterspellbooks:bone_dagger");
+        }
+    }
+
+    @Test
+    @DisplayName("the Monsters & Spellbooks pack points at that mod's own namespace")
+    void theMonstersPackNamesItsMod() throws IOException {
+        Path pack = INTEGRATIONS.resolve("monsterspellbooks/data/ddc_msb");
+        assertTrue(Files.isDirectory(pack), "the Monsters & Spellbooks pack is where it expects");
+        boolean namesTheMod;
+        try (Stream<Path> tree = Files.walk(pack)) {
+            namesTheMod = tree.filter(Files::isRegularFile).anyMatch(file -> {
+                try {
+                    return Files.readString(file).contains("monsterspellbooks:");
+                } catch (IOException e) {
+                    throw new java.io.UncheckedIOException(e);
+                }
+            });
+        }
+        assertTrue(namesTheMod, "an integration pack that never names the mod integrates with nothing");
+    }
+
+    @Test
     @DisplayName("every integration pack declares the 1.21.1 data pack format")
     void everyPackDeclaresTheFormat() throws IOException {
         try (Stream<Path> packs = Files.list(INTEGRATIONS)) {
@@ -107,11 +141,16 @@ class IntegrationPackTest {
     }
 
     private static List<Path> integrationEncounters() throws IOException {
+        return integrationFiles("/ddc_encounters/");
+    }
+
+    /** Every {@code .json} under any integration pack whose path passes through {@code segment}. */
+    private static List<Path> integrationFiles(String segment) throws IOException {
         if (!Files.isDirectory(INTEGRATIONS)) {
             return List.of();
         }
         try (Stream<Path> walk = Files.walk(INTEGRATIONS)) {
-            return walk.filter(path -> path.toString().replace('\\', '/').contains("/ddc_encounters/"))
+            return walk.filter(path -> path.toString().replace('\\', '/').contains(segment))
                     .filter(path -> path.toString().endsWith(".json"))
                     .toList();
         }

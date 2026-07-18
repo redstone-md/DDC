@@ -1,0 +1,7 @@
+{
+  "name": "Blood Thorn",
+  "level": 1,
+  "school": "necromancy",
+  "range": 40,
+  "irons_spell": "monsterspellbooks:blood_thorn"
+}

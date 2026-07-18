@@ -4,7 +4,6 @@ import com.ddc.DDC;
 import com.ddc.spell.SpellPresentation;
 import com.ddc.spell.SpellPresentations;
 import java.lang.reflect.Method;
-import java.util.Map;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -31,21 +30,6 @@ import net.minecraft.world.level.Level;
  */
 public final class IronsSpellbooks {
 
-    private static final String MOD_ID = "irons_spellbooks";
-
-    /**
-     * DDC's spells to their nearest Iron's spell. Thematic, not literal: a sacred flame becomes a
-     * guiding bolt because both are holy fire thrown at a foe, and burning hands becomes a flaming
-     * barrage because both are a fan of fire up close. A DDC spell with no entry here keeps DDC's own
-     * effect. The ids were read from Iron's own spell classes, not guessed.
-     */
-    private static final Map<ResourceLocation, String> SPELLS = Map.of(
-            DDC.id("fire_bolt"), MOD_ID + ":firebolt",
-            DDC.id("fireball"), MOD_ID + ":fireball",
-            DDC.id("magic_missile"), MOD_ID + ":magic_missile",
-            DDC.id("sacred_flame"), MOD_ID + ":guiding_bolt",
-            DDC.id("burning_hands"), MOD_ID + ":flaming_barrage");
-
     private IronsSpellbooks() {
     }
 
@@ -60,7 +44,7 @@ public final class IronsSpellbooks {
             return;
         }
         SpellPresentations.register(new IronsPresentation(api));
-        DDC.LOGGER.info("Iron's Spells is installed: {} DDC spells will cast as Iron's spells", SPELLS.size());
+        DDC.LOGGER.info("Iron's Spells is installed: DDC spells with an 'irons_spell' will cast as it");
     }
 
     /** The presentation DDC offers each cast to. */
@@ -69,7 +53,9 @@ public final class IronsSpellbooks {
         @Override
         public boolean present(ServerPlayer caster, com.ddc.rules.Spell spell, ResourceLocation spellId,
                 LivingEntity target) {
-            String ironsId = SPELLS.get(spellId);
+            // The mapping is the spell's own data: a ddc_spells file names the Iron's spell it casts as.
+            // Any Iron's addon works the same way, since they all register into Iron's spell registry.
+            String ironsId = spell.ironsSpell().orElse(null);
             if (ironsId == null) {
                 return false;
             }

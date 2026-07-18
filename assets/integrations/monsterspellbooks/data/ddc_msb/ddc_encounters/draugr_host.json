@@ -1,0 +1,1 @@
+{ "name": "The Draugr Host", "members": [ { "entity": "monsterspellbooks:draugr_evoker", "count": 1 }, { "entity": "monsterspellbooks:draugr_elite_vindicator", "count": 1 }, { "entity": "monsterspellbooks:draugr_vindicator", "count": 3 }, { "entity": "monsterspellbooks:draugr_pillager", "count": 3 } ] }
